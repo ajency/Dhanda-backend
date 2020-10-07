@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {});
   auth_token.associate = function(models) {
     // associations can be defined here
-    auth_token.belongsTo(models.user, {foreignKey: 'user_id', as: 'user'});
+    // auth_token.belongsTo(models.user, {foreignKey: 'user_id', as: 'user'});
   };
   return auth_token;
 };
