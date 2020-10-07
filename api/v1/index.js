@@ -4,7 +4,7 @@ const router = express.Router();
 const passport = require("passport");
 
 /** Controllers */
-const defaultController = require("../../controllers/"+process.env.API_VERSION+"/defaultController");
+const defaultController = require("../../controllers/v1/defaultController");
 
 /** API auth middleware */
 require("../../config/apiAuth")
