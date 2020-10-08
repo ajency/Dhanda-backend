@@ -1,20 +1,24 @@
-const models = require("../../models");
-
+const logger = require("simple-node-logger").createSimpleLogger({ timestampFormat:'YYYY-MM-DD HH:mm:ss.SSS' });
 const otpService = new (require('../../services/v1/OtpService'));
 
 module.exports = {
     sendOtp: async (req, res) => {
-        let { phone } = req.body;
+        try {
+            let { phone } = req.body;
 
-        /** Generate the OTP */
-        let otp = await otpService.generateOtp();
-        if(process.env.OTP_SANDBOX && process.env.OTP_SANDBOX === "true") {
-            await logger.info("OTP for " + phone + " is " + otp);
+            /** Generate the OTP */
+            let otp = await otpService.generateOtp();
+            if(process.env.OTP_SANDBOX && process.env.OTP_SANDBOX === "true") {
+                await logger.info("OTP for " + phone + " is " + otp);
+            }
+            
+            /** Save OTP */
+            await otpService.saveOtp(phone, otp, "login");
+
+            res.status(200).send({ code: "success", message: "success" });
+        } catch(err) {
+            await logger.error("Exception in send otp api: " + err);
+            res.status(200).send({ code: "error", message: "error" });
         }
-        
-        /** Save OTP */
-        await otpService.saveOtp(phone, otp, "login");
-
-        res.status(200).send("Test");
     }
 }

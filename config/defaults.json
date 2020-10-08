@@ -1,0 +1,20 @@
+{
+    "development": {
+        "otp": {
+            "length": 6,
+            "expiry": 10,
+            "span": 10,
+            "max_sent": 30,
+            "invalid_tries": 30
+        }
+    },
+    "production": {
+        "otp": {
+            "length": 6,
+            "expiry": 10,
+            "span": 10,
+            "max_sent": 30,
+            "invalid_tries": 30
+        }
+    }
+  }

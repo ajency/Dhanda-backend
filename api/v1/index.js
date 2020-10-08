@@ -14,6 +14,6 @@ require("../../config/apiAuth")
 router.get("/", defaultController.default);
 
 /** Open APIs */
-router.get("/login/sendOtp", loginController.sendOtp);
+router.post("/login/sendOtp", loginController.sendOtp);
 
 module.exports = router;

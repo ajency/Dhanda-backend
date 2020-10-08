@@ -1,6 +1,7 @@
 const logger = require("simple-node-logger").createSimpleLogger({ timestampFormat:'YYYY-MM-DD HH:mm:ss.SSS' });
 const defaults = require("../defaults");
 const CryptrMod = require("cryptr");
+const models = require("../../models");
 
 module.exports = class OtpService {
     async generateOtp() {
@@ -26,7 +27,7 @@ module.exports = class OtpService {
         await models.otp.create({
             phone: phone,
             otp: encOtp,
-            otpType: otpType
+            otp_type: otpType
         });
     }
 }
