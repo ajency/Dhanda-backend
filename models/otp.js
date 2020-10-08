@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
     otp: DataTypes.STRING,
     attempts: DataTypes.INTEGER,
     invalid: DataTypes.BOOLEAN,
-    type: DataTypes.STRING
+    otp_type: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'otp',

@@ -15,12 +15,14 @@ module.exports = {
         type: Sequelize.STRING
       },
       attempts: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        defaultValue: 0
       },
       invalid: {
-        type: Sequelize.BOOLEAN
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
       },
-      type: {
+      otp_type: {
         type: Sequelize.STRING
       },
       created_at: {
