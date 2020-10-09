@@ -6,8 +6,14 @@ module.exports = {
         try {
             let { phone } = req.body;
 
-            /** Generate the OTP */
-            let otp = await otpService.generateOtp();
+            /** Check if there is a valid OTP already present */
+            let otp = await otpService.getLastValidOtp(phone, "login");
+
+            /** Generate the OTP if not already present */
+            if(otp === null) {
+                otp = await otpService.generateOtp();
+            }
+
             if(process.env.OTP_SANDBOX && process.env.OTP_SANDBOX === "true") {
                 await logger.info("OTP for " + phone + " is " + otp);
             }

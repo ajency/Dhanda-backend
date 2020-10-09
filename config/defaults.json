@@ -2,7 +2,7 @@
     "development": {
         "otp": {
             "length": 6,
-            "expiry": 10,
+            "expiry_sec": 300,
             "span": 10,
             "max_sent": 30,
             "invalid_tries": 30
