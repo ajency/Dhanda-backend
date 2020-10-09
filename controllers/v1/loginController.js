@@ -1,5 +1,6 @@
 const logger = require("simple-node-logger").createSimpleLogger({ timestampFormat:'YYYY-MM-DD HH:mm:ss.SSS' });
-const otpService = new (require('../../services/v1/OtpService'));
+const otpService = new (require("../../services/v1/OtpService"));
+const userService = new (require("../../services/v1/UserService"));
 
 module.exports = {
     sendOtp: async (req, res) => {
@@ -40,7 +41,7 @@ module.exports = {
 
     verifyOtp: async (req, res) => {
         try {
-            let { country_code, phone, lang } = req.body;
+            let { countryCode, phone, lang } = req.body;
             let enteredOtp = req.body.otp;
 
             /** Fetch the latest OTP */
@@ -63,10 +64,26 @@ module.exports = {
                 else if(verifyMsgCode === "incorrect_otp")
                     return res.status(200).send({ code: "error", message: "incorrect_otp" });
             }
-            
-            let data = {};
 
-            return res.status(200).send({ code: "business_details", message: "success", data: data });
+            /** Check if the user exists */
+            let user = await userService.fetchUserByPhone(countryCode, phone);
+
+            /** Create a new user if not present */
+            if(user === null) {
+                user = await userService.createUser(countryCode, phone, lang);
+                code = "business_details";
+            } else {
+                code = "home";
+            }
+
+            /** Generate access token */
+            
+            let data = {
+                token: "xyz",
+                lang: user.lang
+            };
+
+            return res.status(200).send({ code: code, message: "success", data: data });
         } catch(err) {
             await logger.error("Exception in verify otp api: " + err);
             res.status(200).send({ code: "error", message: "error" });
