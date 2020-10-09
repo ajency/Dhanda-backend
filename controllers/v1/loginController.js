@@ -7,7 +7,14 @@ module.exports = {
             let { phone } = req.body;
 
             /** Check if there is a valid OTP already present */
-            let otp = await otpService.getLastValidOtp(phone, "login");
+            let { otp, otpCount } = await otpService.getLastValidOtpAndCount(phone, "login");
+
+            /** Check if max tries have been exceeded */
+            let canGenerateOtp = await otpService.canGenerateOtp(otpCount);
+            if(!canGenerateOtp) {
+                return res.status(200).send({ code: "error", message: "otp_limit_reached" });
+            }
+
 
             /** Generate the OTP if not already present */
             if(otp === null) {

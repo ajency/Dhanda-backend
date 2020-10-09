@@ -3,6 +3,8 @@ const defaults = require("../defaults");
 const CryptrMod = require("cryptr");
 const models = require("../../models");
 const moment = require("moment");
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 
 module.exports = class OtpService {
     async generateOtp() {
@@ -49,28 +51,40 @@ module.exports = class OtpService {
         }
     }
 
-    async getLastValidOtp(phone, otpType) {
+    async getLastValidOtpAndCount(phone, otpType) {
         /** Fetch the latest OTP for this phone */
-        let otpEntry = await models.otp.findOne({ where: { phone: phone, otp_type: otpType },
+        let otps = await models.otp.findAll({ where: { 
+            phone: phone, otp_type: otpType, created_at: {
+                [Op.between]: [ moment().subtract(1,"days"), moment() ]
+            }},
             order: [ ['createdAt', 'DESC'] ] });
 
-        if(otpEntry === null) {
-            return null;
+        if(otps === null || otps.length === 0) {
+            return { otp: null, otpCount: 0 };
         } else {
             /** Check if the otp has expiried */
             let expirySec = defaults.getValue("otp").expiry_sec;
-            if(moment().diff(moment(otpEntry.created_at), 'seconds') >= expirySec) {
-                return null;
+            if(moment().diff(moment(otps[0].created_at), 'seconds') >= expirySec) {
+                return { otp: null, otpCount: otps.length };
             }
 
             /** Check if the otp is valid */
-            if(otpEntry.invalid) {
-                return null;
+            if(otps[0].invalid) {
+                return { otp: null, otpCount: otps.length };
             }
 
             await logger.info("Valid otp exists.");
             let cryptr = new CryptrMod(process.env.CRYPTR_KEY);
-            return cryptr.decrypt(otpEntry.otp);
+            return { otp: cryptr.decrypt(otps[0].otp), otpCount: otps.length };
+        }
+    }
+
+    async canGenerateOtp(countOfOtps) {
+        let maxAllowed = defaults.getValue("otp").max_allowed;
+        if(countOfOtps < maxAllowed) {
+            return true;
+        } else {
+            return false;
         }
     }
 }
