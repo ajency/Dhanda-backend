@@ -4,7 +4,7 @@
             "length": 6,
             "expiry_sec": 300,
             "max_allowed": 2,
-            "invalid_tries": 30
+            "max_attempts": 30
         }
     },
     "production": {
@@ -12,7 +12,7 @@
             "length": 6,
             "expiry_sec": 300,
             "max_allowed": 2,
-            "invalid_tries": 30
+            "max_attempts": 30
         }
     }
   }

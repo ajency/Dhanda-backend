@@ -60,22 +60,22 @@ module.exports = class OtpService {
             order: [ ['createdAt', 'DESC'] ] });
 
         if(otps === null || otps.length === 0) {
-            return { otp: null, otpCount: 0 };
+            return { otp: null, otpCount: 0, otpMsgCode: "no_otp", otpObj: null };
         } else {
             /** Check if the otp has expiried */
             let expirySec = defaults.getValue("otp").expiry_sec;
             if(moment().diff(moment(otps[0].created_at), 'seconds') >= expirySec) {
-                return { otp: null, otpCount: otps.length };
+                return { otp: null, otpCount: otps.length, otpMsgCode: "otp_expired", otpObj: otps[0] };
             }
 
             /** Check if the otp is valid */
             if(otps[0].invalid) {
-                return { otp: null, otpCount: otps.length };
+                return { otp: null, otpCount: otps.length, otpMsgCode: "otp_invalid", otpObj: otps[0] };
             }
 
             await logger.info("Valid otp exists.");
             let cryptr = new CryptrMod(process.env.CRYPTR_KEY);
-            return { otp: cryptr.decrypt(otps[0].otp), otpCount: otps.length };
+            return { otp: cryptr.decrypt(otps[0].otp), otpCount: otps.length, otpMsgCode: "otp_returned", otpObj: otps[0] };
         }
     }
 
@@ -86,5 +86,37 @@ module.exports = class OtpService {
         } else {
             return false;
         }
+    }
+
+    async verfyOtp(otp, otpObj, decodedOtp = null) {
+        /** Decode otp from otpObj is not passed */
+        if(decodedOtp === null) {
+            let cryptr = new CryptrMod(process.env.CRYPTR_KEY);
+            decodedOtp = cryptr.decrypt(otpObj.otp);
+        }
+
+        /** Check if the otp matches */
+        if(otp === decodedOtp) {
+            return { verified: true, verifyCode: "verified" };
+        } else {
+            /** Increment the count */
+            let attempts = otpObj.attempts;
+            let maxAttempts = defaults.getValue("otp").max_attempts;
+            
+            if(attempts >= maxAttempts) {
+                return { verified: false, verifyCode: "max_attempts" }
+            } else {
+                attempts += 1;
+                otpObj.attempts = attempts;
+                await models.otp.update(otpObj);
+
+                if(attempts >= maxAttempts) {
+                    return { verified: false, verifyCode: "max_attempts" }
+                } else {
+                    return { verified: false, verifyCode: "incorrect_otp" }
+                }
+            }
+        }
+
     }
 }

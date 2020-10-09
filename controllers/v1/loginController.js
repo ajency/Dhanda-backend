@@ -39,10 +39,37 @@ module.exports = {
     },
 
     verifyOtp: async (req, res) => {
-        let { country_code, phone, otp, lang } = req.body;
+        try {
+            let { country_code, phone, lang } = req.body;
+            let enteredOtp = req.body.otp;
 
-        let data = {};
+            /** Fetch the latest OTP */
+            let { otp, otpMsgCode, otpObj } = await otpService.getLastValidOtpAndCount(phone, "login");
 
-        return res.status(200).send({ code: "business_details", message: "success", data: data });
+            if(otp === null) {
+                if(otpMsgCode === "no_otp")
+                    return res.status(200).send({ code: "error", message: "generate_otp" });
+                else if(otpMsgCode === "otp_expired")
+                    return res.status(200).send({ code: "error", message: "otp_expired" });
+                else if(otpMsgCode === "otp_invalid")
+                    return res.status(200).send({ code: "error", message: "otp_invalid" });
+            }
+
+            /** Verify the otp */
+            let { verified, verifyMsgCode } = await otpService.verfyOtp(enteredOtp, otpObj, otp);
+            if(!verified) {
+                if(verifyMsgCode === "max_attempts")
+                    return res.status(200).send({ code: "error", message: "max_attempts" });
+                else if(verifyMsgCode === "incorrect_otp")
+                    return res.status(200).send({ code: "error", message: "incorrect_otp" });
+            }
+            
+            let data = {};
+
+            return res.status(200).send({ code: "business_details", message: "success", data: data });
+        } catch(err) {
+            await logger.error("Exception in verify otp api: " + err);
+            res.status(200).send({ code: "error", message: "error" });
+        }
     }
 }
