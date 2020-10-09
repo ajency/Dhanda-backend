@@ -97,23 +97,23 @@ module.exports = class OtpService {
 
         /** Check if the otp matches */
         if(otp === decodedOtp) {
-            return { verified: true, verifyCode: "verified" };
+            return { verified: true, verifyMsgCode: "verified" };
         } else {
             /** Increment the count */
             let attempts = otpObj.attempts;
             let maxAttempts = defaults.getValue("otp").max_attempts;
             
             if(attempts >= maxAttempts) {
-                return { verified: false, verifyCode: "max_attempts" }
+                return { verified: false, verifyMsgCode: "max_attempts" }
             } else {
                 attempts += 1;
                 otpObj.attempts = attempts;
                 await models.otp.update(otpObj);
 
                 if(attempts >= maxAttempts) {
-                    return { verified: false, verifyCode: "max_attempts" }
+                    return { verified: false, verifyMsgCode: "max_attempts" }
                 } else {
-                    return { verified: false, verifyCode: "incorrect_otp" }
+                    return { verified: false, verifyMsgCode: "incorrect_otp" }
                 }
             }
         }
