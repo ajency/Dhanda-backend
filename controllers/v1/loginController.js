@@ -15,6 +15,9 @@ module.exports = {
             /** Save OTP */
             await otpService.saveOtp(phone, otp, "login");
 
+            /** Send OTP */
+            await otpService.sendOtp(phone, otp);
+
             res.status(200).send({ code: "success", message: "success" });
         } catch(err) {
             await logger.error("Exception in send otp api: " + err);

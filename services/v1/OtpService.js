@@ -30,4 +30,21 @@ module.exports = class OtpService {
             otp_type: otpType
         });
     }
+
+    async sendOtp(phone, otp) {
+        /** Generate OTP message with app hash */
+        let message = `<%23> ` + otp + ` is the OTP to verify your number with Dhanda App. It will expire in `
+            + defaults.getValue("otp").expiry; + ` minutes` + process.env.APP_HASH;
+
+        /** Send the sms */
+        // TODO: integrate with sms service once available, add whitelisted 
+        
+        // TODO: Remove this later
+        await logger.info("Sending this to " + phone + " : " + message);
+
+        /** Send an email if in sandbox mode */
+        if(process.env.OTP_SANDBOX === 'true') {
+            // TODO: send email via SES
+        }
+    }
 }
