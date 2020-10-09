@@ -15,5 +15,6 @@ router.get("/", defaultController.default);
 
 /** Open APIs */
 router.post("/login/sendOtp", loginController.sendOtp);
+router.post("/login/verifyOtp", loginController.verifyOtp);
 
 module.exports = router;

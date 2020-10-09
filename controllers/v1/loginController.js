@@ -36,5 +36,13 @@ module.exports = {
             await logger.error("Exception in send otp api: " + err);
             res.status(200).send({ code: "error", message: "error" });
         }
+    },
+
+    verifyOtp: async (req, res) => {
+        let { country_code, phone, otp, lang } = req.body;
+
+        let data = {};
+
+        return res.status(200).send({ code: "business_details", message: "success", data: data });
     }
 }
