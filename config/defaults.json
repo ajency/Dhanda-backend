@@ -10,7 +10,8 @@
             "from_email": "dhandhaapp@ajency.in",
             "to_email": [ "dhandhaapp@ajency.in" ],
             "cc_email": []
-        }
+        },
+        "token_expiry_mins": 43200
     },
     "production": {
         "otp": {
@@ -23,6 +24,7 @@
             "from_email": "",
             "to_email": [],
             "cc_email": []
-        }
+        },
+        "token_expiry_mins": 43200
     }
   }

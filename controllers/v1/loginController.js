@@ -1,6 +1,7 @@
 const logger = require("simple-node-logger").createSimpleLogger({ timestampFormat:'YYYY-MM-DD HH:mm:ss.SSS' });
 const otpService = new (require("../../services/v1/OtpService"));
 const userService = new (require("../../services/v1/UserService"));
+const authService = new (require("../../services/AuthService"));
 
 module.exports = {
     sendOtp: async (req, res) => {
@@ -77,9 +78,10 @@ module.exports = {
             }
 
             /** Generate access token */
+            let token = await authService.generateTokenForUser(user, true);
             
             let data = {
-                token: "xyz",
+                token: token,
                 lang: user.lang
             };
 
