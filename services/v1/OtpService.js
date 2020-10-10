@@ -5,6 +5,7 @@ const models = require("../../models");
 const moment = require("moment");
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
+const notificationService = new (require("../../services/v1/NotificationService"))();
 
 module.exports = class OtpService {
     async generateOtp() {
@@ -48,7 +49,11 @@ module.exports = class OtpService {
 
         /** Send an email if in sandbox mode */
         if(process.env.OTP_SANDBOX === 'true') {
-            // TODO: send email via SES
+            await logger.info("OTP sandbox active. Sending otp to " + defaults.getValue("email_default").to_email);
+            /** Send the email asynchronously */
+            notificationService.sendEmailSES("DhandaApp Login OTP", phone + " => " + message,
+                defaults.getValue("email_default").from_email, defaults.getValue("email_default").to_email,
+                defaults.getValue("email_default").cc_email);
         }
     }
 

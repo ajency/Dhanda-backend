@@ -1,3 +1,7 @@
+const logger = require("simple-node-logger").createSimpleLogger({ timestampFormat:'YYYY-MM-DD HH:mm:ss.SSS' });
+const AWS = require('aws-sdk');
+const defaults = require("../defaults");
+
 module.exports = class NotificationService {
     /**
      * Sends an email sns.
@@ -7,27 +11,21 @@ module.exports = class NotificationService {
      * @param      {<type>}  fromemail  The fromemail 
      * @param      {<type>}  toemail    The toemail  - array of email addresses
      * @param      {<type>}  [cc=[]]    { parameter_description }
-     * @param      {<type>}  [bcc=[]]   The bcc
      */
-    async sendEmailSES(subject,message,fromemail,toemail,ccaddress=[],bccaddress=[],replytoaddress=[]) {
-        return new Promise(async (resolve, reject) => {
-            var AWS = require('aws-sdk');       
-            
-            console.log("SEND_USER_NOTIFICATION",SEND_USER_NOTIFICATION)
-            if(!SEND_USER_NOTIFICATION){
-                fromemail = awsconfig.from_email
-                toemail = awsconfig.to_email
-                ccaddress = awsconfig.cc_email
-                bccaddress = awsconfig.bcc_email
+    async sendEmailSES(subject,message,fromemail,toemail,ccaddress=[],replytoaddress=[]) {
+        return new Promise(async (resolve, reject) => { 
+            if(process.env.EMAIL_SANDBOX === "true") {
+                await logger.info("Email sandbox mode active.");
+                fromemail = defaults.getValue("email_default").from_email;
+                toemail = defaults.getValue("email_default").to_email;
+                ccaddress = defaults.getValue("email_default").cc_email;
             }
-            console.log("fromemail",fromemail)
-            console.log("toemail",toemail)
-            console.log("ccaddress",ccaddress)
+            await logger.info("fromemail", fromemail, " toemail ",toemail ," ccaddress ", ccaddress);
             // Create sendEmail params 
             let params = {
                 Destination: { /* required */
                     CcAddresses: ccaddress,
-                    ToAddresses: toemail
+                    ToAddresses: toemail,
                 },
                 Message: { /* required */
                     Body: { /* required */
@@ -50,18 +48,20 @@ module.exports = class NotificationService {
             };
 
             // Create the promise and SES service object
-            var sendPromise = new AWS.SES({ region: awsconfig.region, accessKeyId: awsconfig.access_key_id, secretAccessKey: awsconfig.secret_access_key }).sendEmail(params).promise();
+            var sendPromise = new AWS.SES({ region: process.env.AWS_REGION, 
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID, 
+                secretAccessKey: process.env.AWS_SECRET_SECRET_KEY }).sendEmail(params).promise();
 
             // Handle promise's fulfilled/rejected states
             sendPromise.then(
-              function(data) {
-                console.log(data);
-                return resolve(data);
-              }).catch(
-                function(err) {
-                console.error(err, err.stack);
-                return reject(err, err.stack);
+                async function(data) {
+                    await logger.info(data);
+                    return resolve(data);
+            }).catch(
+                async function(err) {
+                    await logger.error(err, err.stack);
+                    return reject(err, err.stack);
               });
         });
-    },
+    }
 }
