@@ -40,7 +40,8 @@ module.exports = class OtpService {
             + moment().add(defaults.getValue("otp").expiry_sec, "seconds").format("HH:mm:ss") + ". " + process.env.APP_HASH;
 
         /** Send the sms */
-        // TODO: integrate with sms service once available, add whitelisted 
+        // TODO: integrate with sms service once available
+        // TODO: send to only whitelisted number if in sandbox mode
         
         // TODO: Remove this later
         await logger.info("Sending this to " + phone + " : " + message);
