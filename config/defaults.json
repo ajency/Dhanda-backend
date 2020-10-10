@@ -3,16 +3,16 @@
         "otp": {
             "length": 6,
             "expiry_sec": 300,
-            "max_allowed": 2,
-            "max_attempts": 30
+            "max_allowed": 1000,
+            "max_attempts": 3
         }
     },
     "production": {
         "otp": {
             "length": 6,
             "expiry_sec": 300,
-            "max_allowed": 2,
-            "max_attempts": 30
+            "max_allowed": 5,
+            "max_attempts": 3
         }
     }
   }

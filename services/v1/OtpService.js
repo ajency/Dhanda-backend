@@ -107,8 +107,7 @@ module.exports = class OtpService {
                 return { verified: false, verifyMsgCode: "max_attempts" }
             } else {
                 attempts += 1;
-                otpObj.attempts = attempts;
-                await models.otp.update(otpObj);
+                await models.otp.update({ attempts: attempts }, { where: { id: otpObj.id }});
 
                 if(attempts >= maxAttempts) {
                     return { verified: false, verifyMsgCode: "max_attempts" }

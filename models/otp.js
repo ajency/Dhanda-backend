@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   otp.init({
-    phone: DataTypes.INTEGER,
+    phone: DataTypes.STRING,
     otp: DataTypes.STRING,
     attempts: DataTypes.INTEGER,
     invalid: DataTypes.BOOLEAN,
