@@ -14,4 +14,8 @@ module.exports = class UserService {
         });
         return user;
     }
+
+    async updateUser(attributes, userId) {
+        await models.user.update(attributes, { where: { id: userId } });
+    }
 }
