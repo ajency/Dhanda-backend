@@ -11,8 +11,8 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      business.hasOne(models.user, { foreignKey: "user_id" });
-      business.hasOne(models.taxonomy, { foreignKey: "salary_month_txid" });
+      this.belongsTo(models.user, { foreignKey: "user_id" });
+      this.hasMany(models.taxonomy_label, { foreignKey: "business_id" });
     }
   };
   business.init({

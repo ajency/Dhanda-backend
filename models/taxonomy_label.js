@@ -11,8 +11,8 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      taxonomy_label.hasOne(models.business, { foreignKey: "business_id" });
-      taxonomy_label.hasOne(models.taxonomy, { foreignKey: "taxonomy_id" });
+      this.belongsTo(models.business, { foreignKey: "business_id" });
+      this.belongsTo(models.taxonomy, { foreignKey: "taxonomy_id" });
     }
   };
   taxonomy_label.init({
