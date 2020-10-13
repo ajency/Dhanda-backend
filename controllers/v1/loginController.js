@@ -6,10 +6,10 @@ const authService = new (require("../../services/AuthService"));
 module.exports = {
     sendOtp: async (req, res) => {
         try {
-            let { phone } = req.body;
+            let { countryCode, phone } = req.body;
 
             /** Check if there is a valid OTP already present */
-            let { otp, otpCount } = await otpService.getLastValidOtpAndCount(phone, "login");
+            let { otp, otpCount } = await otpService.getLastValidOtpAndCount(countryCode, phone, "login");
 
             /** Check if max tries have been exceeded */
             let canGenerateOtp = await otpService.canGenerateOtp(otpCount);
@@ -28,10 +28,10 @@ module.exports = {
             }
             
             /** Save OTP */
-            await otpService.saveOtp(phone, otp, "login");
+            await otpService.saveOtp(countryCode, phone, otp, "login");
 
             /** Send OTP */
-            await otpService.sendOtp(phone, otp);
+            await otpService.sendOtp(countryCode, phone, otp);
 
             res.status(200).send({ code: "verify_otp", message: "success" });
         } catch(err) {
@@ -46,7 +46,7 @@ module.exports = {
             let enteredOtp = req.body.otp;
 
             /** Fetch the latest OTP */
-            let { otp, otpMsgCode, otpObj } = await otpService.getLastValidOtpAndCount(phone, "login");
+            let { otp, otpMsgCode, otpObj } = await otpService.getLastValidOtpAndCount(countryCode, phone, "login");
 
             if(otp === null) {
                 if(otpMsgCode === "no_otp")

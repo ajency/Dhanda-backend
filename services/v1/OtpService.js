@@ -22,20 +22,21 @@ module.exports = class OtpService {
         return ("" + number).substring(add);
     }
 
-    async saveOtp(phone, otp, otpType) {  
+    async saveOtp(countryCode, phone, otp, otpType) {  
         /** Encrypt the OTP */
         let cryptr = new CryptrMod(process.env.CRYPTR_KEY);
         let encOtp = cryptr.encrypt(otp);
 
         /** Save otp to DB */
         await models.otp.create({
+            country_code: countryCode,
             phone: phone,
             otp: encOtp,
             otp_type: otpType
         });
     }
 
-    async sendOtp(phone, otp) {
+    async sendOtp(countryCode, phone, otp) {
         /** Generate OTP message with app hash */
         let message = `<#> ` + otp + ` is the OTP to verify your number with Dhanda App. Valid till ` 
             + moment().add(defaults.getValue("otp").expiry_sec, "seconds").format("HH:mm:ss") + ". " + process.env.APP_HASH;
@@ -57,10 +58,10 @@ module.exports = class OtpService {
         }
     }
 
-    async getLastValidOtpAndCount(phone, otpType) {
+    async getLastValidOtpAndCount(countryCode, phone, otpType) {
         /** Fetch the latest OTP for this phone */
         let otps = await models.otp.findAll({ where: { 
-            phone: phone, otp_type: otpType, created_at: {
+            country_code: countryCode, phone: phone, otp_type: otpType, created_at: {
                 [Op.between]: [ moment().subtract(1,"days"), moment() ]
             }},
             order: [ ['createdAt', 'DESC'] ] });

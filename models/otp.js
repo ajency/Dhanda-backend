@@ -14,6 +14,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   otp.init({
+    country_code: DataTypes.INTEGER,
     phone: DataTypes.STRING,
     otp: DataTypes.STRING,
     attempts: DataTypes.INTEGER,
