@@ -6,7 +6,7 @@ const b64 = require("base64url");
 
 /** Passport middleware */
 passport.use(new JWTStrategy({
-    secretOrKey: "admin123",
+    secretOrKey: process.env.JWT_SECRET,
     jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken()
 }, async (payload, done) => {
     try {
@@ -28,7 +28,8 @@ passport.use(new JWTStrategy({
             return done(null, false, {message: "Token expired."});
         }
 
-        return done(null, true);
+        /** Passing the user id instead of the user obj to avoid db call */
+        return done(null, authToken.get("user_id"));
       } catch (error) {
         done(error);
       }
