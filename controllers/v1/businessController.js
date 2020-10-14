@@ -4,7 +4,7 @@ const businessService = new (require("../../services/v1/BusinessService"));
 const userService = new (require("../../services/v1/UserService"));
 
 module.exports = {
-    addBusiness: async (req, res) => {
+    saveBusiness: async (req, res) => {
         try {
             /** Validate Request */
             let requestValid = helperService.validateRequiredRequestParams(req.body, 
@@ -29,15 +29,18 @@ module.exports = {
             
                 /** Update the user's name */
                 await userService.updateUser({ name: owner }, req.user);
+                
+                return res.status(200).send({ code: "success", message: "success" });
             } else {
                 /** Update the business */
                 let updateCount = await businessService.updateBusiness(refId, businessObj);
                 if(updateCount[0] === 0) {
                     return res.status(200).send({ code: "error", message: "business_not_found" });
                 }
+                return res.status(200).send({ code: "add_staff", message: "success" });
             }
 
-            return res.status(200).send({ code: "add_staff", message: "success" });
+            
         } catch(err) {
             await logger.error("Exception in add business api: ", err);
             res.status(200).send({ code: "error", message: "error" });
