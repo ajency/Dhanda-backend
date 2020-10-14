@@ -7,6 +7,7 @@ const passport = require("passport");
 const defaultController = require("../../controllers/v1/defaultController");
 const loginController = require("../../controllers/v1/loginController");
 const businessController = require("../../controllers/v1/businessController");
+const staffController = require("../../controllers/v1/staffController");
 
 /** API auth middleware */
 require("../../config/apiAuth")
@@ -20,9 +21,14 @@ router.post("/login/verifyOtp", loginController.verifyOtp);
 require("../../config/apiAuth")
 
 /** Protected Routes */
-router.post("/saveBusiness", passport.authenticate('jwt', { session: false }), businessController.addBusiness);
+/** Business */
+router.post("/saveBusiness", passport.authenticate('jwt', { session: false }), businessController.saveBusiness);
 router.get("/business", passport.authenticate('jwt', { session: false }), businessController.fetchBusiness);
 
+/** Staff */
+router.post("/saveStaff", passport.authenticate('jwt', { session: false }), staffController.saveStaff);
+
+/** Others */
 router.get("/taxonomy", passport.authenticate('jwt', { session: false }), defaultController.fetchTaxonomyValues);
 
 module.exports = router;
