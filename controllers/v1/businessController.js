@@ -46,8 +46,30 @@ module.exports = {
 
     fetchBusiness: async (req, res) => {
         try {
-            
-            return res.status(200).send({ code: "success", message: "success" });
+            let { refId } = req.query;
+
+            let business = null;
+            if(!refId) {
+                /** Fetch the default business of the user */
+                business = await userService.fetchDefaultBusinessForUser(req.user);
+            } else {
+                business = await businessService.fetchBusinessById(refId, true);
+            }
+
+            if(business === null) {
+                return res.status(200).send({ code: "error", message: "business_not_found" });
+            }
+
+            let data = {
+                "refId": business.reference_id,                                 
+                "owner": business.user.name,                     
+                "businessName": business.name,
+                "currency": business.currency,
+                "salaryMonthType": business.taxonomy.value,
+                "shiftHours": business.shiftHours
+            }
+
+            return res.status(200).send({ code: "success", message: "success", data: data });
         } catch(err) {
             await logger.error("Exception in fetch business api: ", err);
             res.status(200).send({ code: "error", message: "error" });

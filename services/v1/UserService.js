@@ -18,4 +18,10 @@ module.exports = class UserService {
     async updateUser(attributes, userId) {
         await models.user.update(attributes, { where: { id: userId } });
     }
+
+    async fetchDefaultBusinessForUser(userId) {
+        let business = await models.business.findOne({ where: { user_id: userId, default: true },
+            include: [ { model: models.user }, { model: models.taxonomy } ] });
+        return business;
+    }
 }

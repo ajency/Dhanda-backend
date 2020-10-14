@@ -63,4 +63,14 @@ module.exports = class BusinessService {
         }
         return await models.business.update(saveBusinessObj, { where: { reference_id: refId } });
     }
+
+    async fetchBusinessById(businessId, isRefId = false) {
+        if(isRefId) {
+            return await models.business.findOne({ where: { reference_id: businessId },
+                include: [ { model: models.user }, { model: models.taxonomy } ] });
+        } else {
+            return await models.business.findOne({ where: { id: businessId },
+                include: [ { model: models.user }, { model: models.taxonomy } ] });
+        }
+    }
 }
