@@ -2,6 +2,7 @@ const logger = require("simple-node-logger").createSimpleLogger({ timestampForma
 const defaults = require("../defaults");
 const models = require("../../models");
 const moment = require("moment");
+const helperService = new (require("../HelperService"));
 
 module.exports = class BusinessService {
     /**
@@ -28,6 +29,7 @@ module.exports = class BusinessService {
             value: businessObj.salaryMonthType } });
 
         return await models.business.create({
+            reference_id: "B" + helperService.generateReferenceId(),
             name: businessObj.name,
             currency: businessObj.currency,
             salary_month_txid: salaryMonthTaxonomy.id,

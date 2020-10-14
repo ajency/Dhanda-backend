@@ -20,6 +20,6 @@ router.post("/login/verifyOtp", loginController.verifyOtp);
 require("../../config/apiAuth")
 
 /** Protected Routes */
-router.post("/addBusiness", passport.authenticate('jwt', { session: false }), businessController.addBusiness);
+router.post("/saveBusiness", passport.authenticate('jwt', { session: false }), businessController.addBusiness);
 
 module.exports = router;

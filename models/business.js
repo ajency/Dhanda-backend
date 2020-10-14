@@ -16,6 +16,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   business.init({
+    reference_id: DataTypes.STRING,
     user_id: DataTypes.INTEGER,
     name: DataTypes.STRING,
     currency: DataTypes.STRING,

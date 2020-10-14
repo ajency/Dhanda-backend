@@ -99,4 +99,8 @@ module.exports = class HelperService {
     validateRequiredRequestParams(req, requierdParams) {
         return requierdParams.every(key => Object.keys(req).includes(key));
     }
+
+    generateReferenceId() {
+        return Math.floor(Math.random() * 100)+''+new Date().getTime();
+    }
 }
