@@ -39,4 +39,28 @@ module.exports = class BusinessService {
             active: true,
         });
     }
+
+    /**
+     * * Expected businessObj = {
+     *      name: businessName,
+     *      currency: currency,
+     *      salaryMonthType: salaryMonthType,
+     *      shiftHours: shiftHours
+     * }
+     * @param {*} refId 
+     * @param {*} businessObj 
+     */
+    async updateBusiness(refId, businessObj) {
+        /** Find the salary_month_txid */
+        let salaryMonthTaxonomy = await models.taxonomy.findOne({ where: { type: "business_salary_month",
+            value: businessObj.salaryMonthType } });
+        
+        let saveBusinessObj = {
+            name: businessObj.name,
+            currency: businessObj.currency,
+            salary_month_txid: salaryMonthTaxonomy.id,
+            shift_hours: businessObj.shiftHours,
+        }
+        return await models.business.update(saveBusinessObj, { where: { reference_id: refId } });
+    }
 }

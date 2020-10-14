@@ -13,7 +13,7 @@ module.exports = {
                 return res.status(200).send({ code: "error", message: "missing_params" });
             }
 
-            let { owner, businessName, currency, salaryMonthType, shiftHours } = req.body;
+            let { refId, owner, businessName, currency, salaryMonthType, shiftHours } = req.body;
 
             /** Create a new business */
             let businessObj = {
@@ -22,10 +22,20 @@ module.exports = {
                 salaryMonthType: salaryMonthType,
                 shiftHours: shiftHours
             } 
-            await businessService.createBusinessForUser(req.user, businessObj);
+
+            if(refId === null) {
+                /** Create a new business */
+                await businessService.createBusinessForUser(req.user, businessObj);
             
-            /** Update the user's name */
-            await userService.updateUser({ name: owner }, req.user);
+                /** Update the user's name */
+                await userService.updateUser({ name: owner }, req.user);
+            } else {
+                /** Update the business */
+                let updateCount = await businessService.updateBusiness(refId, businessObj);
+                if(updateCount[0] === 0) {
+                    return res.status(200).send({ code: "error", message: "business_not_found" });
+                }
+            }
 
             return res.status(200).send({ code: "add_staff", message: "success" });
         } catch(err) {
