@@ -30,14 +30,14 @@ module.exports = {
                 /** Update the user's name */
                 await userService.updateUser({ name: owner }, req.user);
                 
-                return res.status(200).send({ code: "success", message: "success" });
+                return res.status(200).send({ code: "add_staff", message: "success" });
             } else {
                 /** Update the business */
                 let updateCount = await businessService.updateBusiness(refId, businessObj);
                 if(updateCount[0] === 0) {
                     return res.status(200).send({ code: "error", message: "business_not_found" });
                 }
-                return res.status(200).send({ code: "add_staff", message: "success" });
+                return res.status(200).send({ code: "success", message: "success" });
             }
 
             
