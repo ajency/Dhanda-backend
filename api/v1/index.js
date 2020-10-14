@@ -21,6 +21,8 @@ require("../../config/apiAuth")
 
 /** Protected Routes */
 router.post("/saveBusiness", passport.authenticate('jwt', { session: false }), businessController.addBusiness);
+router.get("/business", passport.authenticate('jwt', { session: false }), businessController.fetchBusiness);
+
 router.get("/taxonomy", passport.authenticate('jwt', { session: false }), defaultController.fetchTaxonomyValues);
 
 module.exports = router;
