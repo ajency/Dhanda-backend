@@ -8,7 +8,7 @@
         },
         "email_default": {
             "from_email": "dhandhaapp@ajency.in",
-            "to_email": [ "sharang@ajency.in" ],
+            "to_email": [ "dhandhaapp@ajency.in" ],
             "cc_email": []
         },
         "token_expiry_mins": 43200
