@@ -16,6 +16,7 @@ require("../../config/apiAuth")
 router.get("/", defaultController.default);
 router.post("/login/sendOtp", loginController.sendOtp);
 router.post("/login/verifyOtp", loginController.verifyOtp);
+router.get("/init", defaultController.coldStart);
 
 /** API auth middleware */
 require("../../config/apiAuth")

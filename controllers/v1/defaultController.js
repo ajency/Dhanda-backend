@@ -36,5 +36,14 @@ module.exports = {
             await logger.error("Exception in fetch taxonomy api: ", err);
             res.status(200).send({ code: "error", message: "error" });
         }
+    },
+
+    coldStart: (req, res) => {
+        try {
+
+        } catch(err) {
+            await logger.error("Exception in cold start api: ", err);
+            res.status(200).send({ code: "error", message: "error" });
+        }
     }
 }
