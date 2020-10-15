@@ -1,4 +1,5 @@
 const models = require("../../models");
+const helperService = new (require("../HelperService"));
 
 module.exports = class UserService {
     async fetchUserByPhone(countryCode, phone) {
@@ -8,6 +9,7 @@ module.exports = class UserService {
 
     async createUser(countryCode, phone, lang) {
         let user = await models.user.create({
+            reference_id: "U" + helperService.generateReferenceId(),
             country_code: countryCode,
             phone: phone,
             lang: lang
