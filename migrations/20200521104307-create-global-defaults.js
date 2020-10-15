@@ -8,13 +8,13 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      data_type: {
+      type: {
         type: Sequelize.STRING
       },
-      data_value: {
+      value: {
         type: Sequelize.STRING
       },
-      meta_data: {
+      meta: {
         type: Sequelize.JSON
       },
       created_at: {
