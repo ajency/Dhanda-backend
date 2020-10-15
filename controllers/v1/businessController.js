@@ -23,14 +23,17 @@ module.exports = {
                 shiftHours: shiftHours
             } 
 
-            if(refId === null) {
+            if(!refId) {
                 /** Create a new business */
-                await businessService.createBusinessForUser(req.user, businessObj);
+                let business = await businessService.createBusinessForUser(req.user, businessObj);
             
                 /** Update the user's name */
                 await userService.updateUser({ name: owner }, req.user);
                 
-                return res.status(200).send({ code: "add_staff", message: "success" });
+                let data = {
+                    refId: business.reference_id
+                }
+                return res.status(200).send({ code: "add_staff", message: "success", data: data });
             } else {
                 /** Update the business */
                 let updateCount = await businessService.updateBusiness(refId, businessObj);
