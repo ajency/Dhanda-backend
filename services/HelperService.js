@@ -55,21 +55,8 @@ module.exports = class HelperService {
         return sign+(otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ","))+lastThree+decimals;
     }
 
-    getDefaultsValue(type) { 
-        return new Promise(async (resolve, reject) => {
-            models.global_defaults.findOne({ where: {data_type:type } }).then(function(token) {
-
-                if(token==null){
-                    return resolve(null);
-                }
-                else{
-                    // console.log(token.dataValues.data_value);
-                    return resolve(token.dataValues);
-                }
-               
-            })
-
-        });
+    async getDefaultsValue(type) { 
+        return await models.global_defaults.findOne({ where: { type: type } });
     }
 
     getFormattedCurrency(amount) {

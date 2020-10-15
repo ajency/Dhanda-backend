@@ -34,16 +34,19 @@ module.exports = {
             return res.status(200).send({ code: "success", message: "success", data: data });
         } catch(err) {
             await logger.error("Exception in fetch taxonomy api: ", err);
-            res.status(200).send({ code: "error", message: "error" });
+            return res.status(200).send({ code: "error", message: "error" });
         }
     },
 
-    coldStart: (req, res) => {
+    coldStart: async (req, res) => {
         try {
-
+            /** Fetch the cold start api defaults */
+            let coldStartApiDefaults = await helperService.getDefaultsValue("cold_start_api_defaults");
+            let data = (coldStartApiDefaults) ? coldStartApiDefaults.meta : null;
+            return res.status(200).send({ code: "login", message: "success", data: data });
         } catch(err) {
             await logger.error("Exception in cold start api: ", err);
-            res.status(200).send({ code: "error", message: "error" });
+            return res.status(200).send({ code: "error", message: "error" });
         }
     }
 }
