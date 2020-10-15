@@ -74,7 +74,7 @@ module.exports = {
             }
         } catch(err) {
             await logger.error("Exception in add business api: ", err);
-            res.status(200).send({ code: "error", message: "error" });
+            return res.status(200).send({ code: "error", message: "error" });
         }
     }
 }

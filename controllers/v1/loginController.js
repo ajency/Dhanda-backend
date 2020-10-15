@@ -36,7 +36,7 @@ module.exports = {
             res.status(200).send({ code: "verify_otp", message: "success" });
         } catch(err) {
             await logger.error("Exception in send otp api: ", err);
-            res.status(200).send({ code: "error", message: "error" });
+            return res.status(200).send({ code: "error", message: "error" });
         }
     },
 
@@ -88,7 +88,7 @@ module.exports = {
             return res.status(200).send({ code: code, message: "success", data: data });
         } catch(err) {
             await logger.error("Exception in verify otp api: ", err);
-            res.status(200).send({ code: "error", message: "error" });
+            return res.status(200).send({ code: "error", message: "error" });
         }
     }
 }
