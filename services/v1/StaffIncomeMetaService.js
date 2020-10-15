@@ -22,6 +22,7 @@ module.exports = class StaffIncomeMeta {
             staff_id: staffId,
             income_type_txid: incomeTypeTxId,
             income_sub_type_txid: incomeSubTypeTxId,
+            date: new Date(),
             amount: amount,
             description: description
         });

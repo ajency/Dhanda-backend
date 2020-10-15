@@ -20,6 +20,7 @@ module.exports = (sequelize, DataTypes) => {
     staff_id: DataTypes.INTEGER,
     income_type_txid: DataTypes.INTEGER,
     income_sub_type_txid: DataTypes.INTEGER,
+    date: DataTypes.DATE,
     amount: DataTypes.DECIMAL,
     description: DataTypes.TEXT
   }, {
