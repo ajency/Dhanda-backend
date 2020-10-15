@@ -13,13 +13,13 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       this.belongsTo(models.staff, { foreignKey: "staff_id" });
       this.belongsTo(models.taxonomy, { foreignKey: "income_type_txid" });
-      this.belongsTo(models.taxonomy, { foreignKey: "income_subtype_txid" });
+      this.belongsTo(models.taxonomy, { foreignKey: "income_sub_type_txid" });
     }
   };
   staff_income_meta.init({
     staff_id: DataTypes.INTEGER,
     income_type_txid: DataTypes.INTEGER,
-    income_subtype_txid: DataTypes.INTEGER,
+    income_sub_type_txid: DataTypes.INTEGER,
     amount: DataTypes.DECIMAL,
     description: DataTypes.TEXT
   }, {

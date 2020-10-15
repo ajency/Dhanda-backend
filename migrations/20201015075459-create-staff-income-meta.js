@@ -22,7 +22,7 @@ module.exports = {
           key: "id"
         }
       },
-      income_subtype_txid: {
+      income_sub_type_txid: {
         type: Sequelize.INTEGER,
         references: {
           model: "taxonomies",

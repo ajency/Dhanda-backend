@@ -11,4 +11,8 @@ module.exports = class TaxonomyService {
         let taxonomies = await models.taxonomy.findAll({ where: whereClause });
         return taxonomies;
     }
+
+    async findTaxonomy(type, value) {
+        return await models.taxonomy.findOne({ where: { type: type, value: value } });
+    }
 }

@@ -3,6 +3,7 @@ const defaults = require("../defaults");
 const models = require("../../models");
 const moment = require("moment");
 const helperService = new (require("../HelperService"));
+const taxonomyService = new (require("./TaxonomyService"));
 
 module.exports = class BusinessService {
     /**
@@ -25,8 +26,7 @@ module.exports = class BusinessService {
         }
 
         /** Find the salary_month_txid */
-        let salaryMonthTaxonomy = await models.taxonomy.findOne({ where: { type: "business_salary_month",
-            value: businessObj.salaryMonthType } });
+        let salaryMonthTaxonomy = await taxonomyService.findTaxonomy("business_salary_month", businessObj.salaryMonthType);
 
         return await models.business.create({
             reference_id: "B" + helperService.generateReferenceId(),
