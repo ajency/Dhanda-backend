@@ -15,7 +15,7 @@ module.exports = {
         type: Sequelize.STRING
       },
       meta_data: {
-        type: Sequelize.TEXT
+        type: Sequelize.JSON
       },
       created_at: {
         allowNull: false,
