@@ -25,6 +25,7 @@ router.get("/business", passport.authenticate('jwt', { session: false }), busine
 
 /** Staff */
 router.post("/saveStaff", passport.authenticate('jwt', { session: false }), staffController.saveStaff);
+router.get("/staff", passport.authenticate('jwt', { session: false }), )
 
 /** Others */
 router.get("/taxonomy", passport.authenticate('jwt', { session: false }), defaultController.fetchTaxonomyValues);

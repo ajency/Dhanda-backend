@@ -76,5 +76,15 @@ module.exports = {
             await logger.error("Exception in add business api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
+    },
+
+    fetchStaff: async (req, res) => {
+        try {
+            let { staffId } = req.query;
+
+        } catch(err) {
+            await logger.error("Exception in fetch staff api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
     }
 }
