@@ -1,6 +1,7 @@
 const logger = require("simple-node-logger").createSimpleLogger({ timestampFormat:'YYYY-MM-DD HH:mm:ss.SSS' });
 const helperService = new (require("../../services/HelperService"));
 const taxonomyService = new (require("../../services/v1/TaxonomyService"));
+const userService = new (require("../../services/v1/UserService"));
 
 module.exports = {
     default: (req, res) => {
@@ -42,8 +43,15 @@ module.exports = {
         try {
             /** Fetch the cold start api defaults */
             let coldStartApiDefaults = await helperService.getDefaultsValue("cold_start_api_defaults");
-            let data = (coldStartApiDefaults) ? coldStartApiDefaults.meta : null;
-            return res.status(200).send({ code: "login", message: "success", data: data });
+            let data = (coldStartApiDefaults) ? coldStartApiDefaults.meta : {};
+
+            /** Get the post login code for the user */
+            let postLoginObj = await userService.fetchPostLoginCodeForUserByToken(req.headers.authorization);
+            if(postLoginObj.hasOwnProperty("data")) {
+                data = { ...data, ...postLoginObj.data }
+            }
+
+            return res.status(200).send({ code: postLoginObj.code, message: "success", data: data });
         } catch(err) {
             await logger.error("Exception in cold start api: ", err);
             return res.status(200).send({ code: "error", message: "error" });

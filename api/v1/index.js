@@ -18,9 +18,6 @@ router.post("/login/sendOtp", loginController.sendOtp);
 router.post("/login/verifyOtp", loginController.verifyOtp);
 router.get("/init", defaultController.coldStart);
 
-/** API auth middleware */
-require("../../config/apiAuth")
-
 /** Protected Routes */
 /** Business */
 router.post("/saveBusiness", passport.authenticate('jwt', { session: false }), businessController.saveBusiness);

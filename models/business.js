@@ -14,6 +14,7 @@ module.exports = (sequelize, DataTypes) => {
       this.belongsTo(models.user, { foreignKey: "user_id" });
       this.hasMany(models.taxonomy_label, { foreignKey: "business_id" });
       this.belongsTo(models.taxonomy, { foreignKey: "salary_month_txid" });
+      this.hasMany(models.staff, { foreignKey: "business_id" })
     }
   };
   business.init({
