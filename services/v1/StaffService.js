@@ -31,7 +31,7 @@ module.exports = class StaffService {
             cycle_start_day: staffObj.salaryPayoutDay,
             cycle_start_date: staffObj.salaryPayoutDate,
             daily_shift_duration: staffObj.dailyShiftDuration
-        })
+        });
     }
 
     /**
