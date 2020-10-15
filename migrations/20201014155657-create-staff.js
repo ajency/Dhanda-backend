@@ -32,6 +32,12 @@ module.exports = {
       cycle_start_day: {
         type: Sequelize.INTEGER
       },
+      cycle_start_date: {
+        type: Sequelize.INTEGER
+      },
+      daily_shift_duration: {
+        type: Sequelize.INTEGER
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE

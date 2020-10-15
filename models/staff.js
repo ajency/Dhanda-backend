@@ -24,7 +24,9 @@ module.exports = (sequelize, DataTypes) => {
     phone: DataTypes.STRING,
     salary_type_txid: DataTypes.INTEGER,
     salary: DataTypes.INTEGER,
-    cycle_start_day: DataTypes.INTEGER
+    cycle_start_day: DataTypes.INTEGER,
+    cycle_start_date: DataTypes.INTEGER,
+    daily_shift_duration: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'staff',
