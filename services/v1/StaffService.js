@@ -1,6 +1,7 @@
 const logger = require("simple-node-logger").createSimpleLogger({ timestampFormat:'YYYY-MM-DD HH:mm:ss.SSS' });
 const models = require("../../models");
 const taxonomyService = new (require("./TaxonomyService"));
+const helperService = new (require("../HelperService"));
 
 module.exports = class StaffService {
     
@@ -20,6 +21,7 @@ module.exports = class StaffService {
         let salaryTypeTx = await taxonomyService.findTaxonomy("salary_type", staffObj.salaryType);
         
         return await models.staff.create({
+            reference_id: "S" + helperService.generateReferenceId(),
             business_id: businessId,
             name: staffObj.staffName,
             country_code: staffObj.countryCode,
