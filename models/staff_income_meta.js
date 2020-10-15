@@ -12,8 +12,8 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       this.belongsTo(models.staff, { foreignKey: "staff_id" });
-      this.belongsTo(models.taxonomy, { foreignKey: "income_type_txid" });
-      this.belongsTo(models.taxonomy, { foreignKey: "income_sub_type_txid" });
+      this.belongsTo(models.taxonomy, { foreignKey: "income_type_txid", as: "income_type" });
+      this.belongsTo(models.taxonomy, { foreignKey: "income_sub_type_txid", as: "income_sub_type" });
     }
   };
   staff_income_meta.init({

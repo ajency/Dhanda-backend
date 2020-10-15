@@ -3,6 +3,7 @@ const helperService = new (require("../../services/HelperService"));
 const staffService = new (require("../../services/v1/StaffService"));
 const staffIncomeMetaService = new (require("../../services/v1/StaffIncomeMetaService"));
 const businessService = new (require("../../services/v1/BusinessService"));
+const userService = new (require("../../services/v1/UserService"));
 
 module.exports = {
     saveStaff: async (req, res) => {
@@ -80,7 +81,75 @@ module.exports = {
 
     fetchStaff: async (req, res) => {
         try {
-            let { staffId } = req.query;
+            /** Validate Request */
+            /** Check if salary type is passed */
+            let requestValid = helperService.validateRequiredRequestParams(req.body, [ "refId" ]);
+            if(!requestValid) {
+                // TODO: uncomment this later
+                // return res.status(200).send({ code: "error", message: "missing_params" });
+            }
+
+            let { refId } = req.query;
+
+            // TODO: Remove this code later
+            if(!refId) {
+                /** Fetch the default business for user */
+                let business = await userService.fetchDefaultBusinessForUser(req.user);
+
+                /** Fetch staff for this business */
+                if(business === null) {
+                    return res.status(200).send({ code: "error", message: "staff_not_found" });
+                } else {
+                    let staffMembers = await staffService.fetchStaffForBusinessId(business.id);
+                    if(staffMembers.length === 0) {
+                        return res.status(200).send({ code: "error", message: "staff_not_found" });
+                    } else {
+                        /** Fetch the staff income meta */
+                        let staffIncomeMeta = await staffIncomeMetaService.fetchStaffWithIncomeType(staffMembers[0].id, "current_balance");
+
+                        return res.status(200).send({ code: "success", message: "sucess", data: {
+                                refId: staffMembers[0].reference_id,
+                                staffName: staffMembers[0].name,
+                                businessRefId: business.reference_id,
+                                countryCode: staffMembers[0].country_code,
+                                phone: staffMembers[0].phone,
+                                salaryType: staffMembers[0].taxonomy.value,
+                                salary: staffMembers[0].salary,
+                                salaryPayoutDate: staffMembers[0].cycle_start_date,
+                                dailyShiftDuration: staffMembers[0].daily_shift_duration,
+                                salaryPayoutDay: staffMembers[0].cycle_start_day,
+                                currentBalanceType: staffIncomeMeta.income_sub_type.value,
+                                pendingAmount: staffIncomeMeta.amount
+                        } });
+                    }
+                }
+            }
+            // ----------------------------------
+
+            let staff = await staffService.fetchStaff(refId, true);
+
+            if(staff === null) {
+                return res.status(200).send({ code: "error", message: "staff_not_found" });
+            }
+
+            /** Fetch the staff income meta */
+            let staffIncomeMeta = await staffIncomeMetaService.fetchStaffWithIncomeType(staff.id, "current_balance");
+            let data = {
+                refId: staff.reference_id,
+                staffName: staff.name,
+                businessRefId: staff.business.reference_id,
+                countryCode: staff.country_code,
+                phone: staff.phone,
+                salaryType: staff.taxonomy.value,
+                salary: staff.salary,
+                salaryPayoutDate: staff.cycle_start_date,
+                dailyShiftDuration: staff.daily_shift_duration,
+                salaryPayoutDay: staff.cycle_start_day,
+                currentBalanceType: staffIncomeMeta.income_sub_type.value,
+                pendingAmount: staffIncomeMeta.amount
+            }
+
+            return res.status(200).send({ code: "success", message: "success", data: data });
 
         } catch(err) {
             await logger.error("Exception in fetch staff api: ", err);

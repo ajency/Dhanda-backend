@@ -60,4 +60,23 @@ module.exports = class StaffService {
             daily_shift_duration: staffObj.dailyShiftDuration
         }, { where: { reference_id: refId }, returning: true });
     }
+
+    async fetchStaff(staffId, isRefId) {
+        if(isRefId) {
+            return await models.staff.findOne({ where: { reference_id: staffId }, include: [ 
+                { model: models.taxonomy },
+                { model: models.business } 
+            ] });
+        } else {
+            return await models.staff.findOne({ where: { id: staffId }, include: [ 
+                { model: models.taxonomy },
+                { model: models.business } 
+            ] });
+        }
+    }
+
+    async fetchStaffForBusinessId(businessId) {
+        return await models.staff.findAll({ where: { business_id: businessId },
+            include: [ { model: models.taxonomy } ] });
+    }
 }

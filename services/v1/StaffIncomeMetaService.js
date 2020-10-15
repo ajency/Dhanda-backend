@@ -54,4 +54,12 @@ module.exports = class StaffIncomeMeta {
             description: description
         }, { where: { id: latestStaffIncomeMeta.id }});
     }
+
+    /** To be used when there is only one entry for (incomeType, staffId) combination in staff income meta */
+    async fetchStaffWithIncomeType(staffId, incomeType) {
+        /** Fetch the income type taxonomy */
+        let incomeTypeTx = await taxonomyService.findTaxonomy("income_type", incomeType);
+        return await models.staff_income_meta.findOne({ where: { staff_id: staffId, income_type_txid: incomeTypeTx.id },
+            include: [ { model: models.taxonomy, as: "income_sub_type" } ] });
+    }
 }
