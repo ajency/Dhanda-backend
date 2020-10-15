@@ -29,16 +29,8 @@ module.exports = {
       },
       {
         type: "income_type",
-        value: "outstanding_balance",
-        default_label: "Outstanding Balance",
-        active: true,
-        created_at: new Date(),
-        updated_at: new Date()
-      },
-      {
-        type: "income_type",
-        value: "pending_dues",
-        default_label: "Pending Dues",
+        value: "current_balance",
+        default_label: "Current Balance",
         active: true,
         created_at: new Date(),
         updated_at: new Date()
@@ -51,8 +43,7 @@ module.exports = {
       { type: "income_type", value: "allowance" },
       { type: "income_type", value: "bonus" },
       { type: "income_type", value: "deduction" },
-      { type: "income_type", value: "outstanding_balance" },
-      { type: "income_type", value: "pending_dues" }
+      { type: "income_type", value: "current_balance" }
     ] });
   }
 };

@@ -57,15 +57,19 @@ module.exports = {
 
                 /** Add the current balance */
                 if(staff !== null && currentBalanceType !== "no_dues") {
-                    await staffIncomeMetaService.createStaffIncomeMeta(staff.id, currentBalanceType, null, pendingAmount);
+                    await staffIncomeMetaService.createStaffIncomeMeta(staff.id, "current_balance", currentBalanceType, pendingAmount);
                 }
                 return res.status(200).send({ code: "home", message: "success" });
             } else {
-                /** Update the business */
-                // // let updateCount = await businessService.updateBusiness(refId, businessObj);
-                // if(updateCount[0] === 0) {
-                //     return res.status(200).send({ code: "error", message: "business_not_found" });
-                // }
+                /** Update the Staff */
+                let updateCount = await staffService.updateStaff(refId, staffObj);
+
+                if(updateCount[0] === 0) {
+                    return res.status(200).send({ code: "error", message: "staff_not_found" });
+                }
+
+                /** Update the curent balance */
+                await staffIncomeMetaService.updateLatestStaffIncomeMeta(updateCount[1][0].id, "current_balance", currentBalanceType, pendingAmount);
                 return res.status(200).send({ code: "success", message: "success" });
             }
         } catch(err) {

@@ -29,6 +29,9 @@ module.exports = {
           key: "id"
         }
       },
+      date: {
+        type: Sequelize.DATE
+      },
       amount: {
         type: Sequelize.DECIMAL
       },

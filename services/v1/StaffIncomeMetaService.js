@@ -26,4 +26,31 @@ module.exports = class StaffIncomeMeta {
             description: description
         });
     }
+    
+    async updateLatestStaffIncomeMeta(staffId, incomeTypeSlug, incomeSubTypeSlug, amount, description = null) {
+        let incomeTypeTxId = null, incomeSubTypeTxId = null;
+        if(incomeTypeSlug) {
+            let incomeTypeTx = await taxonomyService.findTaxonomy("income_type", incomeTypeSlug);
+            if(incomeTypeTx !== null) {
+                incomeTypeTxId = incomeTypeTx.id;
+            }
+        }
+        if(incomeSubTypeSlug) {
+            let incomeSubTypeTx = await taxonomyService.findTaxonomy("income_sub_type", incomeSubTypeSlug);
+            if(incomeSubTypeTx !== null) {
+                incomeSubTypeTxId = incomeSubTypeTx.id;
+            }
+        }
+
+        /** Fetch the latest staff income meta */
+        let latestStaffIncomeMeta = await models.staff_income_meta.findOne({ where: 
+            { staff_id: staffId, income_type_txid: incomeTypeTxId },
+            order: [ ['date', 'DESC'] ] });
+
+        return models.staff_income_meta.update({
+            income_sub_type_txid: incomeSubTypeTxId,
+            amount: amount,
+            description: description
+        }, { where: { id: latestStaffIncomeMeta.id }});
+    }
 }
