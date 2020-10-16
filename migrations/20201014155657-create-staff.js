@@ -51,7 +51,7 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       daily_shift_duration: {
-        type: Sequelize.INTEGER
+        type: Sequelize.TIME
       },
       created_at: {
         allowNull: false,

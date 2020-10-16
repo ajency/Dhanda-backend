@@ -38,7 +38,7 @@ module.exports = {
         }
       },
       shift_hours: {
-        type: Sequelize.INTEGER
+        type: Sequelize.TIME
       },
       created_at: {
         allowNull: false,
