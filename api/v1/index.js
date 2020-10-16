@@ -22,6 +22,7 @@ router.get("/init", defaultController.coldStart);
 /** Business */
 router.post("/saveBusiness", passport.authenticate('jwt', { session: false }), businessController.saveBusiness);
 router.get("/business", passport.authenticate('jwt', { session: false }), businessController.fetchBusiness);
+router.get("/business/:businessRefId/attendance", passport.authenticate('jwt', { session: false }), businessController.fetchStaffAttendance);
 
 /** Staff */
 router.post("/saveStaff", passport.authenticate('jwt', { session: false }), staffController.saveStaff);
