@@ -72,7 +72,7 @@ module.exports = {
                 "businessName": business.name,
                 "currency": business.currency,
                 "salaryMonthType": business.taxonomy.value,
-                "shiftHours": business.shiftHours
+                "shiftHours": business.shift_hours
             }
 
             return res.status(200).send({ code: "success", message: "success", data: data });
