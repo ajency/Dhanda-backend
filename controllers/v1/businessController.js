@@ -11,19 +11,20 @@ module.exports = {
         try {
             /** Validate Request */
             let requestValid = helperService.validateRequiredRequestParams(req.body, 
-                    [ "owner", "businessName", "currency", "salaryMonthType", "shiftHours" ]);
+                    [ "owner", "businessName", "currency", "salaryMonthType", "shiftHours", "timezone" ]);
             if(!requestValid) {
                 return res.status(200).send({ code: "error", message: "missing_params" });
             }
 
-            let { refId, owner, businessName, currency, salaryMonthType, shiftHours } = req.body;
+            let { refId, owner, businessName, currency, salaryMonthType, shiftHours, timezone } = req.body;
 
             /** Create a new business */
             let businessObj = {
                 name: businessName,
                 currency: currency,
                 salaryMonthType: salaryMonthType,
-                shiftHours: shiftHours
+                shiftHours: shiftHours,
+                timezone: timezone
             } 
 
             if(!refId) {
@@ -124,6 +125,21 @@ module.exports = {
             let staffIds = staffMembers.map((staffMember) => { return staffMember.id });
             let staffAttendance = await attendanceService.fetchAttendanceByStaffIdsAndDate(staffIds, date);
 
+            /** Fetch the default start time for hourly staff */
+            let hourlyStaffIds = [];
+            for(let staffMember of staffMembers) { 
+                if(staffMember.salaryType.value === "hourly") { 
+                    hourlyStaffIds.push(staffMember.id);
+                }
+            }
+            let latestPunchInTimes = await attendanceService.fetchLatestPunchInTimeFor(hourlyStaffIds);
+
+            /** Generate default punch in time map */
+            let defaultPunchInMap = new Map();
+            for(let punchIn of latestPunchInTimes) {
+                defaultPunchInMap.set(punchIn.staff_id, punchIn.punch_in_time);
+            }
+
             /** Generate the attendance map for this business */
             let attendanceMap = new Map();
             for(let sa of staffAttendance) {
@@ -175,7 +191,8 @@ module.exports = {
                         status: att.dayStatus ? att.dayStatus.value : "",
                         note: att.meta.note ? att.meta.note : "",
                         punchIn: att.punch_in_time,
-                        punchOut: att.punch_out_time
+                        punchOut: att.punch_out_time,
+                        defaultPunchIn: defaultPunchInMap.has(staff.id) ? defaultPunchInMap.get(staff.id) : null
                     }
                 } else {
                     staffRes = {
@@ -184,7 +201,8 @@ module.exports = {
                         overtime: "",
                         lateFine: "",
                         status: "",
-                        note: ""
+                        note: "",
+                        defaultPunchIn: defaultPunchInMap.has(staff.id) ? defaultPunchInMap.get(staff.id) : null
                     }
                 }
 
