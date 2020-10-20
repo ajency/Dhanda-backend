@@ -204,6 +204,16 @@ module.exports = {
 
             let { date, overtime, overtimePay, clearOvertime } = req.body;
 
+            let params = {
+                overtime: clearOvertime ? null : overtime,
+                overtimePay: clearOvertime ? null : overtimePay,
+                updatedBy: req.user,
+                source: "user-action"
+            }
+
+            await attendanceService.createOrUpdateAttendance(staff.id, date, params);
+
+            return res.status(200).send({ code: "success", message: "success" });
         } catch(err) {
             await logger.error("Exception in save overtime api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
@@ -229,6 +239,16 @@ module.exports = {
 
             let { date, lateFineHours, lateFineAmount, clearLateFine } = req.body;
 
+            let params = {
+                lateFineHours: clearLateFine ? null : lateFineHours,
+                lateFineAmount: clearLateFine ? null : lateFineAmount,
+                updatedBy: req.user,
+                source: "user-action"
+            }
+
+            await attendanceService.createOrUpdateAttendance(staff.id, date, params);
+
+            return res.status(200).send({ code: "success", message: "success" });
         } catch(err) {
             await logger.error("Exception in save late fine api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
@@ -252,8 +272,17 @@ module.exports = {
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
             }
 
-            let { date, note, lateFineAmount, clearNote } = req.body;
+            let { date, note, clearNote } = req.body;
+
+            let params = {
+                note: clearNote ? null : note,
+                updatedBy: req.user,
+                source: "user-action"
+            }
+
+            await attendanceService.createOrUpdateAttendance(staff.id, date, params);
             
+            return res.status(200).send({ code: "success", message: "success" });
         } catch(err) {
             await logger.error("Exception in save note api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
