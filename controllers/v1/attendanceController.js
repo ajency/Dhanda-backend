@@ -149,5 +149,105 @@ module.exports = {
             await logger.error("Exception in fetch staff attendance api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
+    },
+
+    saveDayStatus: async (req,res) => {
+        try {
+            /** Validate Request */
+            let requestValid = helperService.validateRequiredRequestParams(req.body, 
+                    [ "date", "status" ]);
+            if(!requestValid) {
+                return res.status(200).send({ code: "error", message: "missing_params" });
+            }
+
+            let { staffRefId } = req.params;
+
+            /** Check if the staff exists */
+            let staff = await staffService.fetchStaff(staffRefId, true);
+            if(staff === null) {
+                return res.status(200).send({ code: "error", message: "staff_not_found" });
+            }
+
+            let { date, status } = req.body;
+            
+        } catch(err) {
+            await logger.error("Exception in save day status api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
+    },
+
+    saveOvertime: async (req,res) => {
+        try {
+            /** Validate Request */
+            let requestValid = helperService.validateRequiredRequestParams(req.body, 
+                    [ "date", "overtime", "overtimePay" ]);
+            if(!requestValid) {
+                return res.status(200).send({ code: "error", message: "missing_params" });
+            }
+
+            let { staffRefId } = req.params;
+
+            /** Check if the staff exists */
+            let staff = await staffService.fetchStaff(staffRefId, true);
+            if(staff === null) {
+                return res.status(200).send({ code: "error", message: "staff_not_found" });
+            }
+
+            let { date, overtime, overtimePay, clearOvertime } = req.body;
+
+        } catch(err) {
+            await logger.error("Exception in save overtime api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
+    },
+
+    saveLateFine: async (req,res) => {
+        try {
+            /** Validate Request */
+            let requestValid = helperService.validateRequiredRequestParams(req.body, 
+                    [ "date" ]);
+            if(!requestValid) {
+                return res.status(200).send({ code: "error", message: "missing_params" });
+            }
+
+            let { staffRefId } = req.params;
+
+            /** Check if the staff exists */
+            let staff = await staffService.fetchStaff(staffRefId, true);
+            if(staff === null) {
+                return res.status(200).send({ code: "error", message: "staff_not_found" });
+            }
+
+            let { date, lateFineHours, lateFineAmount, clearLateFine } = req.body;
+
+        } catch(err) {
+            await logger.error("Exception in save late fine api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
+    },
+
+    saveNote: async (req,res) => {
+        try {
+             /** Validate Request */
+            let requestValid = helperService.validateRequiredRequestParams(req.body, 
+                    [ "date", "note" ]);
+            if(!requestValid) {
+                return res.status(200).send({ code: "error", message: "missing_params" });
+            }
+
+            let { staffRefId } = req.params;
+
+            /** Check if the staff exists */
+            let staff = await staffService.fetchStaff(staffRefId, true);
+            if(staff === null) {
+                return res.status(200).send({ code: "error", message: "staff_not_found" });
+            }
+
+            let { date, note, lateFineAmount, clearNote } = req.body;
+            
+        } catch(err) {
+            await logger.error("Exception in save note api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
     }
 }
