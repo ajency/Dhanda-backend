@@ -113,7 +113,7 @@ module.exports = {
                                 businessRefId: business.reference_id,
                                 countryCode: staffMembers[0].country_code,
                                 phone: staffMembers[0].phone,
-                                salaryType: staffMembers[0].taxonomy.value,
+                                salaryType: staffMembers[0].salaryType.value,
                                 salary: staffMembers[0].salary,
                                 salaryPayoutDate: staffMembers[0].cycle_start_date,
                                 dailyShiftDuration: staffMembers[0].daily_shift_duration,

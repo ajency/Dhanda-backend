@@ -11,8 +11,8 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      this.belongsTo(models.staff, { foreignKey: "staff_id" });
-      this.belongsTo(models.taxonomy, { foreignKey: "day_status_txid" });
+      this.belongsTo(models.staff, { foreignKey: "staff_id", as: "staff" });
+      this.belongsTo(models.taxonomy, { foreignKey: "day_status_txid", as: "dayStatus" });
     }
   };
   attendance.init({
