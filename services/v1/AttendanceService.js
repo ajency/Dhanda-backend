@@ -49,9 +49,11 @@ module.exports = class AttendanceService {
         /** Fetch the entry for the day */
         let attEntry = await models.attendance.findOne({ where: { staff_id: staffId, date: date } });
 
-        let updateEntry = false;
+        let updateEntry = false, backupEntry = null;
+
         if(attEntry) {
             updateEntry = true;
+            backupEntry = attEntry;
         } else {
             attEntry = {};
         }
@@ -83,7 +85,7 @@ module.exports = class AttendanceService {
             attEntry.late_ine_amount = params.lateFineAmount;
         }
         if(params.hasOwnProperty("note")) {
-            let metaObj = JSON.parse(params.meta);
+            let metaObj = JSON.parse(attEntry.meta);
             metaObj.note = params.note;
             attEntry.meta = JSON.stringify(metaObj);
         }
@@ -95,7 +97,13 @@ module.exports = class AttendanceService {
         }
 
         if(updateEntry) {
-            await attEntry.save();
+            /** In case of update store the history in the meta column */
+            let metaObj = (attEntry.meta !== null && attEntry.meta !== undefined) ? attEntry.meta : {};
+            let history = metaObj.hasOwnProperty("history") ? metaObj.history : [];
+            history.push(backupEntry);
+            metaObj.history = history;
+            attEntry.meta = metaObj;
+            await models.attendance.update(JSON.parse(JSON.stringify(attEntry)) , { where: { id: attEntry.id } });
         } else {
             attEntry.staff_id = staffId;
             attEntry.date = date;
