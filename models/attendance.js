@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       this.belongsTo(models.staff, { foreignKey: "staff_id", as: "staff" });
       this.belongsTo(models.taxonomy, { foreignKey: "day_status_txid", as: "dayStatus" });
+      this.belongsTo(models.user, { foreignKey: "update_by", as: "updatedByUser" });
     }
   };
   attendance.init({
@@ -25,7 +26,9 @@ module.exports = (sequelize, DataTypes) => {
     overtime_pay: DataTypes.DOUBLE,
     late_fine_hours: DataTypes.TIME,
     late_fine_amount: DataTypes.DECIMAL,
-    meta: DataTypes.JSON
+    meta: DataTypes.JSON,
+    updated_by: Sequelize.INTEGER,
+    source: Sequelize.STRING
   }, {
     sequelize,
     modelName: 'attendance',

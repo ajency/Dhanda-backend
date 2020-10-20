@@ -46,6 +46,16 @@ module.exports = {
       meta: {
         type: Sequelize.JSON
       },
+      updated_by: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: "users",
+          key: "id"
+        }
+      },
+      source: {
+        type: Sequelize.STRING
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE
