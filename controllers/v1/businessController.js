@@ -109,6 +109,8 @@ module.exports = {
             let data = {
                 date: date,
                 businessName: business.name,
+                shiftHours: business.shift_hours,
+                currency: business.currency,
                 staffSummary: {},
                 monthlyStaff: [],
                 hourlyStaff: []
