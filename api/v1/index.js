@@ -8,6 +8,7 @@ const defaultController = require("../../controllers/v1/defaultController");
 const loginController = require("../../controllers/v1/loginController");
 const businessController = require("../../controllers/v1/businessController");
 const staffController = require("../../controllers/v1/staffController");
+const attendanceController = require("../../controllers/v1/attendanceController");
 
 /** API auth middleware */
 require("../../config/apiAuth")
@@ -22,7 +23,9 @@ router.get("/init", defaultController.coldStart);
 /** Business */
 router.post("/saveBusiness", passport.authenticate('jwt', { session: false }), businessController.saveBusiness);
 router.get("/business", passport.authenticate('jwt', { session: false }), businessController.fetchBusiness);
-router.get("/business/:businessRefId/attendance", passport.authenticate('jwt', { session: false }), businessController.fetchStaffAttendance);
+
+/** Attendance */
+router.get("/business/:businessRefId/attendance", passport.authenticate('jwt', { session: false }), attendanceController.fetchStaffAttendance);
 
 /** Staff */
 router.post("/saveStaff", passport.authenticate('jwt', { session: false }), staffController.saveStaff);
