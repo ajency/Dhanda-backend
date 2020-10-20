@@ -3,6 +3,7 @@ const moment = require("moment");
 const businessService = new (require("../../services/v1/BusinessService"));
 const staffService = new (require("../../services/v1/StaffService"));
 const attendanceService = new (require("../../services/v1/AttendanceService"));
+const helperService = new (require("../../services/HelperService"));
 
 module.exports = {
     fetchStaffAttendance: async (req, res) => {
@@ -169,7 +170,15 @@ module.exports = {
             }
 
             let { date, status } = req.body;
+            let params = {
+                dayStatus: status,
+                updatedBy: req.user,
+                source: "user-action"
+            }
+
+            await attendanceService.createOrUpdateAttendance(staff.id, date, params);
             
+            return res.status(200).send({ code: "success", message: "success" });
         } catch(err) {
             await logger.error("Exception in save day status api: ", err);
             return res.status(200).send({ code: "error", message: "error" });

@@ -64,7 +64,7 @@ module.exports = class StaffService {
     async fetchStaff(staffId, isRefId) {
         if(isRefId) {
             return await models.staff.findOne({ where: { reference_id: staffId }, include: [ 
-                { model: models.taxonomy },
+                { model: models.taxonomy, as: "salaryType" },
                 { model: models.business } 
             ] });
         } else {
