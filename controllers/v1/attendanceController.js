@@ -32,7 +32,7 @@ module.exports = {
                 businessName: business.name,
                 shiftHours: business.shift_hours,
                 currency: business.currency,
-                staffSummary: {},
+                staffStatusSummary: {},
                 monthlyStaff: [],
                 hourlyStaff: []
             }
@@ -81,29 +81,38 @@ module.exports = {
                     let hours = "";
                     if(staff.salaryType.value === "hourly") {
                         if(att.punch_in_time && att.punch_out_time) {
-                            let duration = moment(att.punch_in_time).diff(att.punch_out_time);
-                            hours = duration.asHours() + ":" + (duration.asMinutes() % 60) + ":" + (duration.asSeconds() % 60);
+                            let durationHours = "00" + moment(moment().format("YYYY-MM-DD ") + att.punch_out_time)
+                                        .diff(moment().format("YYYY-MM-DD ") + att.punch_in_time, 'hour');
+                            let durationMinutes = "00" + (moment(moment().format("YYYY-MM-DD ") + att.punch_out_time)
+                                                .diff(moment().format("YYYY-MM-DD ") + att.punch_in_time, 'minute')) % 60;
+                            let durationSeconds = "00" + (moment(moment().format("YYYY-MM-DD ") + att.punch_out_time)
+                                                .diff(moment().format("YYYY-MM-DD ") + att.punch_in_time, 'second')) % 60;
+                            hours =  durationHours.slice(-2) + ":" + durationMinutes.slice(-2) + ":" + durationSeconds.slice(-2);
+                            /** Update present total if hourly staff has both start time and end time */
+                            presentTotal += 1;
                         }
                     } else {
                         hours = business.shift_hours;
                     }
 
                     /** Update aggregate data */
-                    switch(att.dayStatus.value) {
-                        case "present":
-                            presentTotal += 1;
-                            break;
-                        case "absent":
-                            absentTotal += 1;
-                            break;
-                        case "half_day":
-                            halfDayTotal += 1;
-                            break;
-                        case "paid_holiday":
-                            paidHolidayTotal += 1;
-                            break;
-                        default:
-                            break;
+                    if(att.dayStatus) {
+                        switch(att.dayStatus.value) {
+                            case "present":
+                                presentTotal += 1;
+                                break;
+                            case "absent":
+                                absentTotal += 1;
+                                break;
+                            case "half_day":
+                                halfDayTotal += 1;
+                                break;
+                            case "paid_holiday":
+                                paidHolidayTotal += 1;
+                                break;
+                            default:
+                                break;
+                        }
                     }
 
                     staffRes = {
@@ -161,7 +170,7 @@ module.exports = {
         try {
             /** Validate Request */
             let requestValid = helperService.validateRequiredRequestParams(req.body, 
-                    [ "date", "status" ]);
+                    [ "date" ]);
             if(!requestValid) {
                 return res.status(200).send({ code: "error", message: "missing_params" });
             }
@@ -174,9 +183,11 @@ module.exports = {
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
             }
 
-            let { date, status } = req.body;
+            let { date, status, punchIn, punchOut } = req.body;
             let params = {
                 dayStatus: status,
+                punchIn: punchIn,
+                punchOut: punchOut,
                 updatedBy: req.user,
                 source: "user-action"
             }
@@ -186,8 +197,13 @@ module.exports = {
             let hours = "";
             if(staff.salaryType.value === "hourly") {
                 if(attendanceRecord.punch_in_time && attendanceRecord.punch_out_time) {
-                    let duration = moment(attendanceRecord.punch_in_time).diff(attendanceRecord.punch_out_time);
-                    hours = duration.asHours() + ":" + (duration.asMinutes() % 60) + ":" + (duration.asSeconds() % 60);
+                    let durationHours = "00" + moment(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_out_time)
+                                        .diff(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_in_time, 'hour');
+                    let durationMinutes = "00" + (moment(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_out_time)
+                                        .diff(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_in_time, 'minute')) % 60;
+                    let durationSeconds = "00" + (moment(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_out_time)
+                                        .diff(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_in_time, 'second')) % 60;
+                    hours =  durationHours.slice(-2) + ":" + durationMinutes.slice(-2) + ":" + durationSeconds.slice(-2);
                 }
             } else {
                 hours = staff.business.shift_hours;
@@ -203,8 +219,8 @@ module.exports = {
                 lateFineAmount: attendanceRecord.late_fine_amount ? attendanceRecord.late_fine_amount : "",
                 status: dayStatus ? dayStatus.value : "",
                 note: (attendanceRecord.meta && attendanceRecord.meta.note) ? attendanceRecord.meta.note : "",
-                punchIn: attendanceRecord.punch_in_time,
-                punchOut: attendanceRecord.punch_out_time,
+                punchIn: attendanceRecord.punch_in_time ? attendanceRecord.punch_in_time : "",
+                punchOut: attendanceRecord.punch_out_time ? attendanceRecord.punch_out_time : "",
                 defaultPunchIn: (latestPunchInTime.length > 0) ? latestPunchInTime[0].punch_in_time : null
             }
             
@@ -246,8 +262,13 @@ module.exports = {
             let hours = "";
             if(staff.salaryType.value === "hourly") {
                 if(attendanceRecord.punch_in_time && attendanceRecord.punch_out_time) {
-                    let duration = moment(attendanceRecord.punch_in_time).diff(attendanceRecord.punch_out_time);
-                    hours = duration.asHours() + ":" + (duration.asMinutes() % 60) + ":" + (duration.asSeconds() % 60);
+                    let durationHours = "00" + moment(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_out_time)
+                                        .diff(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_in_time, 'hour');
+                    let durationMinutes = "00" + (moment(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_out_time)
+                                        .diff(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_in_time, 'minute')) % 60;
+                    let durationSeconds = "00" + (moment(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_out_time)
+                                        .diff(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_in_time, 'second')) % 60;
+                    hours =  durationHours.slice(-2) + ":" + durationMinutes.slice(-2) + ":" + durationSeconds.slice(-2);
                 }
             } else {
                 hours = staff.business.shift_hours;
@@ -263,8 +284,8 @@ module.exports = {
                 lateFineAmount: attendanceRecord.late_fine_amount ? attendanceRecord.late_fine_amount : "",
                 status: dayStatus ? dayStatus.value : "",
                 note: (attendanceRecord.meta && attendanceRecord.meta.note) ? attendanceRecord.meta.note : "",
-                punchIn: attendanceRecord.punch_in_time,
-                punchOut: attendanceRecord.punch_out_time,
+                punchIn: attendanceRecord.punch_in_time ? attendanceRecord.punch_in_time : "",
+                punchOut: attendanceRecord.punch_out_time ? attendanceRecord.punch_out_time : "",
                 defaultPunchIn: (latestPunchInTime.length > 0) ? latestPunchInTime[0].punch_in_time : null
             }
             
@@ -306,8 +327,13 @@ module.exports = {
             let hours = "";
             if(staff.salaryType.value === "hourly") {
                 if(attendanceRecord.punch_in_time && attendanceRecord.punch_out_time) {
-                    let duration = moment(attendanceRecord.punch_in_time).diff(attendanceRecord.punch_out_time);
-                    hours = duration.asHours() + ":" + (duration.asMinutes() % 60) + ":" + (duration.asSeconds() % 60);
+                    let durationHours = "00" + moment(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_out_time)
+                                        .diff(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_in_time, 'hour');
+                    let durationMinutes = "00" + (moment(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_out_time)
+                                        .diff(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_in_time, 'minute')) % 60;
+                    let durationSeconds = "00" + (moment(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_out_time)
+                                        .diff(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_in_time, 'second')) % 60;
+                    hours =  durationHours.slice(-2) + ":" + durationMinutes.slice(-2) + ":" + durationSeconds.slice(-2);
                 }
             } else {
                 hours = staff.business.shift_hours;
@@ -323,8 +349,8 @@ module.exports = {
                 lateFineAmount: attendanceRecord.late_fine_amount ? attendanceRecord.late_fine_amount : "",
                 status: dayStatus ? dayStatus.value : "",
                 note: (attendanceRecord.meta && attendanceRecord.meta.note) ? attendanceRecord.meta.note : "",
-                punchIn: attendanceRecord.punch_in_time,
-                punchOut: attendanceRecord.punch_out_time,
+                punchIn: attendanceRecord.punch_in_time ? attendanceRecord.punch_in_time : "",
+                punchOut: attendanceRecord.punch_out_time ? attendanceRecord.punch_out_time : "",
                 defaultPunchIn: (latestPunchInTime.length > 0) ? latestPunchInTime[0].punch_in_time : null
             }
             
@@ -365,8 +391,13 @@ module.exports = {
             let hours = "";
             if(staff.salaryType.value === "hourly") {
                 if(attendanceRecord.punch_in_time && attendanceRecord.punch_out_time) {
-                    let duration = moment(attendanceRecord.punch_in_time).diff(attendanceRecord.punch_out_time);
-                    hours = duration.asHours() + ":" + (duration.asMinutes() % 60) + ":" + (duration.asSeconds() % 60);
+                    let durationHours = "00" + moment(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_out_time)
+                                        .diff(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_in_time, 'hour');
+                    let durationMinutes = "00" + (moment(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_out_time)
+                                        .diff(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_in_time, 'minute')) % 60;
+                    let durationSeconds = "00" + (moment(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_out_time)
+                                        .diff(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_in_time, 'second')) % 60;
+                    hours =  durationHours.slice(-2) + ":" + durationMinutes.slice(-2) + ":" + durationSeconds.slice(-2);
                 }
             } else {
                 hours = staff.business.shift_hours;
@@ -382,8 +413,8 @@ module.exports = {
                 lateFineAmount: attendanceRecord.late_fine_amount ? attendanceRecord.late_fine_amount : "",
                 status: dayStatus ? dayStatus.value : "",
                 note: (attendanceRecord.meta && attendanceRecord.meta.note) ? attendanceRecord.meta.note : "",
-                punchIn: attendanceRecord.punch_in_time,
-                punchOut: attendanceRecord.punch_out_time,
+                punchIn: attendanceRecord.punch_in_time ? attendanceRecord.punch_in_time : "",
+                punchOut: attendanceRecord.punch_out_time ? attendanceRecord.punch_out_time : "",
                 defaultPunchIn: (latestPunchInTime.length > 0) ? latestPunchInTime[0].punch_in_time : null
             }
             

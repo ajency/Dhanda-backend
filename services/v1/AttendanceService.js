@@ -25,8 +25,8 @@ module.exports = class AttendanceService {
     /**
      * Expected params = {
      *           dayStatus: present,
-     *           punchInTime: null,
-     *           punchOutTime: null,
+     *           punchIn: null,
+     *           punchOut: null,
      *           overtime: null,
      *           overtimePay: null,
      *           lateFineHours: null,
@@ -60,29 +60,33 @@ module.exports = class AttendanceService {
 
         /** Update the entry */
         if(params.hasOwnProperty("dayStatus")) {
-            let dayStatusTx = await taxonomyService.findTaxonomy("day_status", params.dayStatus);
-            attEntry.day_status_txid = dayStatusTx.id;
+            if(params.dayStatus) {
+                let dayStatusTx = await taxonomyService.findTaxonomy("day_status", params.dayStatus);
+                attEntry.day_status_txid = (dayStatusTx) ? dayStatusTx.id : null;
+            } else {
+                attEntry.day_status_txid = null;
+            }
         }
         if(params.hasOwnProperty("date")) {
             attEntry.date = date;
         }
-        if(params.hasOwnProperty("punchInTime")) {
-            attEntry.punch_in_time = params.punchInTime;
+        if(params.hasOwnProperty("punchIn")) {
+            attEntry.punch_in_time = (params.punchIn) ? params.punchIn : null;
         }
-        if(params.hasOwnProperty("punchOutTime")) {
-            attEntry.punch_out_time = params.punchOutTime;
+        if(params.hasOwnProperty("punchOut")) {
+            attEntry.punch_out_time = (params.punchOut) ? params.punchOut : null;
         }
         if(params.hasOwnProperty("overtime")) {
-            attEntry.overtime = params.overtime;
+            attEntry.overtime = (params.overtime) ? params.overtime : null;
         }
         if(params.hasOwnProperty("overtimePay")) {
-            attEntry.overtime_pay = params.overtimePay;
+            attEntry.overtime_pay = (params.overtimePay) ? params.overtimePay : null;
         }
         if(params.hasOwnProperty("lateFineHours")) {
-            attEntry.late_fine_hours = params.lateFineHours;
+            attEntry.late_fine_hours = (params.lateFineHours) ? params.lateFineHours : null;
         }
         if(params.hasOwnProperty("lateFineAmount")) {
-            attEntry.late_fine_amount = params.lateFineAmount;
+            attEntry.late_fine_amount = (params.lateFineAmount) ? params.lateFineAmount : null;
         }
         if(params.hasOwnProperty("note")) {
             let metaObj = attEntry.meta;
