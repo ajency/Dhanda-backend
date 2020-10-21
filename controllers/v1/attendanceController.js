@@ -85,7 +85,7 @@ module.exports = {
                             hours = duration.asHours() + ":" + (duration.asMinutes() % 60) + ":" + (duration.asSeconds() % 60);
                         }
                     } else {
-                        hours = business.shiftHours;
+                        hours = business.shift_hours;
                     }
 
                     /** Update aggregate data */
@@ -122,7 +122,7 @@ module.exports = {
                 } else {
                     staffRes = {
                         name: staff.name,
-                        hours: "",
+                        hours: (staff.salaryType.value === "hourly") ? "" : business.shift_hours,
                         overtime: "",
                         overtimePay: "",
                         lateFineHours: "",
@@ -190,7 +190,7 @@ module.exports = {
                     hours = duration.asHours() + ":" + (duration.asMinutes() % 60) + ":" + (duration.asSeconds() % 60);
                 }
             } else {
-                hours = staff.business.shiftHours;
+                hours = staff.business.shift_hours;
             }
             let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
             let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
