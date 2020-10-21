@@ -100,14 +100,20 @@ module.exports = class AttendanceService {
             /** In case of update store the history in the meta column */
             let metaObj = (attEntry.meta !== null && attEntry.meta !== undefined) ? attEntry.meta : {};
             let history = metaObj.hasOwnProperty("history") ? metaObj.history : [];
+            backupEntry = JSON.parse(JSON.stringify(backupEntry));
             history.push(backupEntry);
             metaObj.history = history;
             attEntry.meta = metaObj;
-            await models.attendance.update(JSON.parse(JSON.stringify(attEntry)) , { where: { id: attEntry.id } });
+            let updateRes = await models.attendance.update(JSON.parse(JSON.stringify(attEntry)) , { where: { id: attEntry.id }, returning: true });
+            if(updateRes[0] > 0) {
+                return updateRes[1][0];
+            } else {
+                return null;
+            }
         } else {
             attEntry.staff_id = staffId;
             attEntry.date = date;
-            await models.attendance.create(attEntry);
+            return await models.attendance.create(attEntry);
         }
     }
 }
