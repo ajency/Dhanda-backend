@@ -4,6 +4,7 @@ const businessService = new (require("../../services/v1/BusinessService"));
 const staffService = new (require("../../services/v1/StaffService"));
 const attendanceService = new (require("../../services/v1/AttendanceService"));
 const helperService = new (require("../../services/HelperService"));
+const taxonomyService = new (require("../../services/v1/TaxonomyService"));
 
 module.exports = {
     fetchStaffAttendance: async (req, res) => {
@@ -109,7 +110,9 @@ module.exports = {
                         name: staff.name,
                         hours: hours,
                         overtime: att.overtime ? att.overtime : "",
-                        lateFine: att.lateFine ? att.lateFine : "",
+                        overtimePay: att.overtime_pay ? att.overtime_pay : "",
+                        lateFineHours: att.late_fine_hours ? att.late_fine_hours : "",
+                        lateFineAmount: att.late_fine_amount ? att.late_fine_amount : "",
                         status: att.dayStatus ? att.dayStatus.value : "",
                         note: att.meta.note ? att.meta.note : "",
                         punchIn: att.punch_in_time,
@@ -121,7 +124,9 @@ module.exports = {
                         name: staff.name,
                         hours: "",
                         overtime: "",
-                        lateFine: "",
+                        overtimePay: "",
+                        lateFineHours: "",
+                        lateFineAmount: "",
                         status: "",
                         note: "",
                         defaultPunchIn: defaultPunchInMap.has(staff.id) ? defaultPunchInMap.get(staff.id) : null
@@ -188,12 +193,15 @@ module.exports = {
                 hours = staff.business.shiftHours;
             }
             let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
+            let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
             let data = {
                 name: staff.name,
                 hours: hours,
                 overtime: attendanceRecord.overtime ? attendanceRecord.overtime : "",
-                lateFine: attendanceRecord.late_fine ? attendanceRecord.late_fine : "",
-                status: status,
+                overtimePay: attendanceRecord.overtime_pay ? attendanceRecord.overtime_pay : "",
+                lateFineHours: attendanceRecord.late_fine_hours ? attendanceRecord.late_fine_hours : "",
+                lateFineAmount: attendanceRecord.late_fine_amount ? attendanceRecord.late_fine_amount : "",
+                status: dayStatus ? dayStatus.value : "",
                 note: (attendanceRecord.meta && attendanceRecord.meta.note) ? attendanceRecord.meta.note : "",
                 punchIn: attendanceRecord.punch_in_time,
                 punchOut: attendanceRecord.punch_out_time,
