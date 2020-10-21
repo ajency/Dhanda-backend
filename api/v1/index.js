@@ -9,6 +9,7 @@ const loginController = require("../../controllers/v1/loginController");
 const businessController = require("../../controllers/v1/businessController");
 const staffController = require("../../controllers/v1/staffController");
 const attendanceController = require("../../controllers/v1/attendanceController");
+const cronController = require("../../controllers/v1/cronController");
 
 /** API auth middleware */
 require("../../config/apiAuth")
@@ -37,5 +38,8 @@ router.get("/staff", passport.authenticate('jwt', { session: false }), staffCont
 
 /** Others */
 router.get("/taxonomy", passport.authenticate('jwt', { session: false }), defaultController.fetchTaxonomyValues);
+
+/** Crons */
+router.get("/cron/populateDailyAttendance", cronController.populateDailyAttendance);
 
 module.exports = router;

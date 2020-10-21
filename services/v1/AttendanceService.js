@@ -4,6 +4,8 @@ const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 const ormService = new (require("../OrmService"));
 const taxonomyService = new (require("../../services/v1/TaxonomyService"));
+const businessService = new (require("../../services/v1/BusinessService"));
+const staffService = new (require("../../services/v1/StaffService"));
 
 module.exports = class AttendanceService {
     async fetchAttendanceByStaffIdsAndDate(staffIds, date) {
@@ -122,5 +124,40 @@ module.exports = class AttendanceService {
             attEntry.date = date;
             return await models.attendance.create(attEntry);
         }
+    }
+
+    async populateStaffAttendanceFor(business, date, businessIsId = false) {
+        /** Fetch the business obj */
+        if(businessIsId) {
+            business = await businessService.fetchBusinessById(business);
+        }
+        
+        /** Fetch all the staff members */
+        let staffMembers = await staffService.fetchStaffForBusinessId(business.id);
+        let allStaffIds = staffMembers.map((s) => { return s.id});
+
+        /** Check if any attendance for any of the staff is already present */
+        let staffAttendance = await this.fetchAttendanceByStaffIdsAndDate(allStaffIds, date)
+        let staffAttMap = new Map();
+        for(let sa of staffAttendance) {
+            staffAttMap.set(sa.staff_id, sa);
+        }
+
+        /** Loop through all the staff members and generate the entries for bulk insert */
+        let bulkInsertEntries = [];
+        let dayStatusTx = await taxonomyService.findTaxonomy("day_status", "present");
+        for(let staff of staffMembers) {
+            if(!staffAttMap.has(staff.id)) {
+                bulkInsertEntries.push({
+                    staff_id: staff.id,
+                    day_status_txid: (staff.salaryType.value === "hourly") ? null : (dayStatusTx ? dayStatusTx.id : null),
+                    date: date,
+                    source: "cron"
+                });
+            }
+        }
+
+        /** Bulk insert these entries */
+        await models.attendance.bulkCreate(bulkInsertEntries);
     }
 }

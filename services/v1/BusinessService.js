@@ -4,6 +4,7 @@ const models = require("../../models");
 const moment = require("moment");
 const helperService = new (require("../HelperService"));
 const taxonomyService = new (require("./TaxonomyService"));
+const ormService = new (require("../OrmService"));
 
 module.exports = class BusinessService {
     /**
@@ -74,5 +75,13 @@ module.exports = class BusinessService {
             return await models.business.findOne({ where: { id: businessId },
                 include: [ { model: models.user }, { model: models.taxonomy } ] });
         }
+    }
+
+    async fetchDistinctBusinessTimezones() {
+        return await ormService.runRawSelectQuery("select distinct timezone from businesses where timezone is not null");
+    }
+
+    async fetchBusinessByTimezone(timezone) {
+        return await models.business.findAll({ where: { timezone: timezone } });
     }
 }

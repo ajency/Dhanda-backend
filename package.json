@@ -13,6 +13,7 @@
     "json-rules-engine": "^5.0.4",
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.29.1",
+    "node-cron": "^2.0.3",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "pg": "^8.4.0",
