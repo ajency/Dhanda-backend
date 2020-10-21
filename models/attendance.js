@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
     punch_in_time: DataTypes.TIME,
     punch_out_time: DataTypes.TIME,
     overtime: DataTypes.TIME,
-    overtime_pay: DataTypes.DOUBLE,
+    overtime_pay: DataTypes.DECIMAL,
     late_fine_hours: DataTypes.TIME,
     late_fine_amount: DataTypes.DECIMAL,
     meta: DataTypes.JSON,

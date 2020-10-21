@@ -35,7 +35,7 @@ module.exports = {
         type: Sequelize.TIME
       },
       overtime_pay: {
-        type: Sequelize.DOUBLE
+        type: Sequelize.DECIMAL
       },
       late_fine_hours: {
         type: Sequelize.TIME

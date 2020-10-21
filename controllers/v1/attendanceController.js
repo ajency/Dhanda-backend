@@ -241,9 +241,34 @@ module.exports = {
                 source: "user-action"
             }
 
-            await attendanceService.createOrUpdateAttendance(staff.id, date, params);
-
-            return res.status(200).send({ code: "success", message: "success" });
+            /** Populate the data object */
+            let attendanceRecord = await attendanceService.createOrUpdateAttendance(staff.id, date, params);
+            let hours = "";
+            if(staff.salaryType.value === "hourly") {
+                if(attendanceRecord.punch_in_time && attendanceRecord.punch_out_time) {
+                    let duration = moment(attendanceRecord.punch_in_time).diff(attendanceRecord.punch_out_time);
+                    hours = duration.asHours() + ":" + (duration.asMinutes() % 60) + ":" + (duration.asSeconds() % 60);
+                }
+            } else {
+                hours = staff.business.shift_hours;
+            }
+            let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
+            let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
+            let data = {
+                name: staff.name,
+                hours: hours,
+                overtime: attendanceRecord.overtime ? attendanceRecord.overtime : "",
+                overtimePay: attendanceRecord.overtime_pay ? attendanceRecord.overtime_pay : "",
+                lateFineHours: attendanceRecord.late_fine_hours ? attendanceRecord.late_fine_hours : "",
+                lateFineAmount: attendanceRecord.late_fine_amount ? attendanceRecord.late_fine_amount : "",
+                status: dayStatus ? dayStatus.value : "",
+                note: (attendanceRecord.meta && attendanceRecord.meta.note) ? attendanceRecord.meta.note : "",
+                punchIn: attendanceRecord.punch_in_time,
+                punchOut: attendanceRecord.punch_out_time,
+                defaultPunchIn: (latestPunchInTime.length > 0) ? latestPunchInTime[0].punch_in_time : null
+            }
+            
+            return res.status(200).send({ code: "success", message: "success", data: data });
         } catch(err) {
             await logger.error("Exception in save overtime api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
@@ -276,9 +301,34 @@ module.exports = {
                 source: "user-action"
             }
 
-            await attendanceService.createOrUpdateAttendance(staff.id, date, params);
-
-            return res.status(200).send({ code: "success", message: "success" });
+            /** Populate the data object */
+            let attendanceRecord = await attendanceService.createOrUpdateAttendance(staff.id, date, params);
+            let hours = "";
+            if(staff.salaryType.value === "hourly") {
+                if(attendanceRecord.punch_in_time && attendanceRecord.punch_out_time) {
+                    let duration = moment(attendanceRecord.punch_in_time).diff(attendanceRecord.punch_out_time);
+                    hours = duration.asHours() + ":" + (duration.asMinutes() % 60) + ":" + (duration.asSeconds() % 60);
+                }
+            } else {
+                hours = staff.business.shift_hours;
+            }
+            let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
+            let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
+            let data = {
+                name: staff.name,
+                hours: hours,
+                overtime: attendanceRecord.overtime ? attendanceRecord.overtime : "",
+                overtimePay: attendanceRecord.overtime_pay ? attendanceRecord.overtime_pay : "",
+                lateFineHours: attendanceRecord.late_fine_hours ? attendanceRecord.late_fine_hours : "",
+                lateFineAmount: attendanceRecord.late_fine_amount ? attendanceRecord.late_fine_amount : "",
+                status: dayStatus ? dayStatus.value : "",
+                note: (attendanceRecord.meta && attendanceRecord.meta.note) ? attendanceRecord.meta.note : "",
+                punchIn: attendanceRecord.punch_in_time,
+                punchOut: attendanceRecord.punch_out_time,
+                defaultPunchIn: (latestPunchInTime.length > 0) ? latestPunchInTime[0].punch_in_time : null
+            }
+            
+            return res.status(200).send({ code: "success", message: "success", data: data });
         } catch(err) {
             await logger.error("Exception in save late fine api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
@@ -310,9 +360,34 @@ module.exports = {
                 source: "user-action"
             }
 
-            await attendanceService.createOrUpdateAttendance(staff.id, date, params);
+            /** Populate the data object */
+            let attendanceRecord = await attendanceService.createOrUpdateAttendance(staff.id, date, params);
+            let hours = "";
+            if(staff.salaryType.value === "hourly") {
+                if(attendanceRecord.punch_in_time && attendanceRecord.punch_out_time) {
+                    let duration = moment(attendanceRecord.punch_in_time).diff(attendanceRecord.punch_out_time);
+                    hours = duration.asHours() + ":" + (duration.asMinutes() % 60) + ":" + (duration.asSeconds() % 60);
+                }
+            } else {
+                hours = staff.business.shift_hours;
+            }
+            let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
+            let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
+            let data = {
+                name: staff.name,
+                hours: hours,
+                overtime: attendanceRecord.overtime ? attendanceRecord.overtime : "",
+                overtimePay: attendanceRecord.overtime_pay ? attendanceRecord.overtime_pay : "",
+                lateFineHours: attendanceRecord.late_fine_hours ? attendanceRecord.late_fine_hours : "",
+                lateFineAmount: attendanceRecord.late_fine_amount ? attendanceRecord.late_fine_amount : "",
+                status: dayStatus ? dayStatus.value : "",
+                note: (attendanceRecord.meta && attendanceRecord.meta.note) ? attendanceRecord.meta.note : "",
+                punchIn: attendanceRecord.punch_in_time,
+                punchOut: attendanceRecord.punch_out_time,
+                defaultPunchIn: (latestPunchInTime.length > 0) ? latestPunchInTime[0].punch_in_time : null
+            }
             
-            return res.status(200).send({ code: "success", message: "success" });
+            return res.status(200).send({ code: "success", message: "success", data: data });
         } catch(err) {
             await logger.error("Exception in save note api: ", err);
             return res.status(200).send({ code: "error", message: "error" });

@@ -82,12 +82,12 @@ module.exports = class AttendanceService {
             attEntry.late_fine_hours = params.lateFineHours;
         }
         if(params.hasOwnProperty("lateFineAmount")) {
-            attEntry.late_ine_amount = params.lateFineAmount;
+            attEntry.late_fine_amount = params.lateFineAmount;
         }
         if(params.hasOwnProperty("note")) {
-            let metaObj = JSON.parse(attEntry.meta);
+            let metaObj = attEntry.meta;
             metaObj.note = params.note;
-            attEntry.meta = JSON.stringify(metaObj);
+            attEntry.meta = metaObj;
         }
         if(params.hasOwnProperty("updatedBy")) {
             attEntry.updated_by = params.updatedBy;
