@@ -26,7 +26,7 @@ app.use((req, res) => {
 /** Cron */
 cron.schedule(" */30 * * * * ", async () => {
 	await logger.info("Running populate daily attendance cron")
-	attendanceController.populateDailyAttendance();
+	cronController.populateDailyAttendance();
 })
 
 app.listen(process.env.PORT);
