@@ -12,7 +12,9 @@ module.exports = class BusinessService {
      *      name: businessName,
      *      currency: currency,
      *      salaryMonthType: salaryMonthType,
-     *      shiftHours: shiftHours
+     *      shiftHours: shiftHours,
+     *      timezone: timezone,
+     *      countryCode: countryCode
      * }
      * @param {*} userId 
      * @param {*} businessObj 
@@ -38,7 +40,8 @@ module.exports = class BusinessService {
             user_id: userId,
             default: def,
             active: true,
-            timezone: businessObj.timezone
+            timezone: businessObj.timezone,
+            country_code: businessObj.countryCode
         });
     }
 
@@ -47,7 +50,9 @@ module.exports = class BusinessService {
      *      name: businessName,
      *      currency: currency,
      *      salaryMonthType: salaryMonthType,
-     *      shiftHours: shiftHours
+     *      shiftHours: shiftHours,
+     *      timezone: timezone,
+     *      countryCode: countryCode
      * }
      * @param {*} refId 
      * @param {*} businessObj 
@@ -62,7 +67,8 @@ module.exports = class BusinessService {
             currency: businessObj.currency,
             salary_month_txid: salaryMonthTaxonomy.id,
             shift_hours: businessObj.shiftHours,
-            timezone: businessObj.timezone
+            timezone: businessObj.timezone,
+            country_code: businessObj.countryCode
         }
         return await models.business.update(saveBusinessObj, { where: { reference_id: refId } });
     }

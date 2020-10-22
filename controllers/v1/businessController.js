@@ -11,12 +11,12 @@ module.exports = {
         try {
             /** Validate Request */
             let requestValid = helperService.validateRequiredRequestParams(req.body, 
-                    [ "owner", "businessName", "currency", "salaryMonthType", "shiftHours", "timezone" ]);
+                    [ "owner", "businessName", "currency", "salaryMonthType", "shiftHours"/*, "timezone", "countryCode"*/ ]);
             if(!requestValid) {
                 return res.status(200).send({ code: "error", message: "missing_params" });
             }
 
-            let { refId, owner, businessName, currency, salaryMonthType, shiftHours, timezone } = req.body;
+            let { refId, owner, businessName, currency, salaryMonthType, shiftHours, timezone, countryCode } = req.body;
 
             /** Create a new business */
             let businessObj = {
@@ -24,7 +24,8 @@ module.exports = {
                 currency: currency,
                 salaryMonthType: salaryMonthType,
                 shiftHours: shiftHours,
-                timezone: timezone
+                timezone: timezone,
+                countryCode: countryCode
             } 
 
             if(!refId) {
@@ -35,7 +36,8 @@ module.exports = {
                 await userService.updateUser({ name: owner }, req.user);
                 
                 let data = {
-                    refId: business.reference_id
+                    refId: business.reference_id,
+                    countryCode: business.country_code
                 }
                 return res.status(200).send({ code: "add_staff", message: "success", data: data });
             } else {
