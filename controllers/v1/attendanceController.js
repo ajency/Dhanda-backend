@@ -116,6 +116,7 @@ module.exports = {
                     }
 
                     staffRes = {
+                        refId: staff.reference_id,
                         name: staff.name,
                         hours: hours,
                         overtime: att.overtime ? att.overtime : "",
@@ -130,6 +131,7 @@ module.exports = {
                     }
                 } else {
                     staffRes = {
+                        refId: staff.reference_id,
                         name: staff.name,
                         hours: (staff.salaryType.value === "hourly") ? "" : business.shift_hours,
                         overtime: "",
@@ -211,6 +213,7 @@ module.exports = {
             let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
             let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
             let data = {
+                refId: staff.reference_id,
                 name: staff.name,
                 hours: hours,
                 overtime: attendanceRecord.overtime ? attendanceRecord.overtime : "",
@@ -276,6 +279,7 @@ module.exports = {
             let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
             let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
             let data = {
+                refId: staff.reference_id,
                 name: staff.name,
                 hours: hours,
                 overtime: attendanceRecord.overtime ? attendanceRecord.overtime : "",
@@ -341,6 +345,7 @@ module.exports = {
             let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
             let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
             let data = {
+                refId: staff.reference_id,
                 name: staff.name,
                 hours: hours,
                 overtime: attendanceRecord.overtime ? attendanceRecord.overtime : "",
@@ -405,6 +410,7 @@ module.exports = {
             let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
             let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
             let data = {
+                refId: staff.reference_id,
                 name: staff.name,
                 hours: hours,
                 overtime: attendanceRecord.overtime ? attendanceRecord.overtime : "",
