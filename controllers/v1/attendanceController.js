@@ -124,7 +124,7 @@ module.exports = {
                         lateFineHours: att.late_fine_hours ? att.late_fine_hours : "",
                         lateFineAmount: att.late_fine_amount ? att.late_fine_amount : "",
                         status: att.dayStatus ? att.dayStatus.value : "",
-                        note: att.meta.note ? att.meta.note : "",
+                        note: (att.meta && att.meta.note) ? att.meta.note : "",
                         punchIn: att.punch_in_time,
                         punchOut: att.punch_out_time,
                         defaultPunchIn: defaultPunchInMap.has(staff.id) ? defaultPunchInMap.get(staff.id) : null
