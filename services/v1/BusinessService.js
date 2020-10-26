@@ -36,7 +36,7 @@ module.exports = class BusinessService {
             name: businessObj.name,
             currency: businessObj.currency,
             salary_month_txid: salaryMonthTaxonomy.id,
-            shift_hours: businessObj.shiftHours,
+            shift_hours: businessObj.shiftHours ? businessObj.shiftHours : null,
             user_id: userId,
             default: def,
             active: true,
@@ -66,7 +66,7 @@ module.exports = class BusinessService {
             name: businessObj.name,
             currency: businessObj.currency,
             salary_month_txid: salaryMonthTaxonomy.id,
-            shift_hours: businessObj.shiftHours,
+            shift_hours: businessObj.shiftHours ? businessObj.shiftHours : null,
             timezone: businessObj.timezone,
             country_code: businessObj.countryCode
         }

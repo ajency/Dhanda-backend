@@ -27,10 +27,10 @@ module.exports = class StaffService {
             country_code: staffObj.countryCode,
             phone: staffObj.phone,
             salary_type_txid: salaryTypeTx.id,
-            salary: staffObj.salary,
-            cycle_start_day: staffObj.salaryPayoutDay,
-            cycle_start_date: staffObj.salaryPayoutDate,
-            daily_shift_duration: staffObj.dailyShiftDuration
+            salary: staffObj.salary ? staffObj.salary : null,
+            cycle_start_day: staffObj.salaryPayoutDay ? staffObj.salaryPayoutDay : null,
+            cycle_start_date: staffObj.salaryPayoutDate ? staffObj.salaryPayoutDate : null,
+            daily_shift_duration: staffObj.dailyShiftDuration ? staffObj.dailyShiftDuration : null
         });
     }
 
@@ -54,10 +54,10 @@ module.exports = class StaffService {
             country_code: staffObj.countryCode,
             phone: staffObj.phone,
             salary_type_txid: salaryTypeTx.id,
-            salary: staffObj.salary,
-            cycle_start_day: staffObj.salaryPayoutDay,
-            cycle_start_date: staffObj.salaryPayoutDate,
-            daily_shift_duration: staffObj.dailyShiftDuration
+            salary: staffObj.salary ? staffObj.salary : null,
+            cycle_start_day: staffObj.salaryPayoutDay ? staffObj.salaryPayoutDay : null,
+            cycle_start_date: staffObj.salaryPayoutDate ? staffObj.salaryPayoutDate : null,
+            daily_shift_duration: staffObj.dailyShiftDuration ? staffObj.dailyShiftDuration : null
         }, { where: { reference_id: refId }, returning: true });
     }
 
