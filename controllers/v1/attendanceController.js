@@ -92,7 +92,11 @@ module.exports = {
                             presentTotal += 1;
                         }
                     } else {
-                        hours = business.shift_hours;
+                        if(att.dayStatus && att.dayStatus.value === "half_day") {
+                            hours = helperService.getHalfDayHours(business.shift_hours)
+                        } else {
+                            hours = business.shift_hours;
+                        }
                     }
 
                     /** Update aggregate data */

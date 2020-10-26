@@ -90,4 +90,22 @@ module.exports = class HelperService {
     generateReferenceId() {
         return Math.floor(Math.random() * 100)+''+new Date().getTime();
     }
+
+    /**
+     * 
+     * @param {*} shiftHoursString  "10:00:00"
+     */
+    getHalfDayHours(shiftHoursString) {
+        if(!shiftHoursString) {
+            return "";
+        }
+        let shiftHoursExplode = shiftHoursString.split(":");
+
+        let seconds = (shiftHoursExplode[0] * 60 * 60) + (shiftHoursExplode[1] * 60) + (shiftHoursExplode[2] * 1);
+        seconds = Math.round(seconds / 2);
+
+        /** Convert this to the shift hours string */
+        return (("00" + Math.floor(seconds / (60 * 60))).slice(-2)) + ":" + (("00" + (Math.floor(seconds % (60 * 60) / 60))).slice(-2)) 
+            + ":" + (("00" + (seconds % (60 * 60) % 60)).slice(-2));
+    }
 }
