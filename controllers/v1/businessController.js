@@ -11,7 +11,7 @@ module.exports = {
         try {
             /** Validate Request */
             let requestValid = helperService.validateRequiredRequestParams(req.body, 
-                    [ "owner", "businessName", "currency", "salaryMonthType", "shiftHours"/*, "timezone", "countryCode"*/ ]);
+                    [ "businessName", "currency", "salaryMonthType", "shiftHours"/*, "timezone", "countryCode"*/ ]);
             if(!requestValid) {
                 return res.status(200).send({ code: "error", message: "missing_params" });
             }
@@ -32,8 +32,10 @@ module.exports = {
                 /** Create a new business */
                 let business = await businessService.createBusinessForUser(req.user, businessObj);
             
-                /** Update the user's name */
-                await userService.updateUser({ name: owner }, req.user);
+                /** Update the user's name if passed */
+                if(owner) {
+                    await userService.updateUser({ name: owner }, req.user);
+                }
                 
                 let data = {
                     refId: business.reference_id,
