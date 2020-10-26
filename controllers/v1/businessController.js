@@ -39,7 +39,9 @@ module.exports = {
                 
                 let data = {
                     refId: business.reference_id,
-                    countryCode: business.country_code
+                    countryCode: business.country_code,
+                    currency: business.currency,
+                    shiftHours: business.shift_hours
                 }
                 return res.status(200).send({ code: "add_staff", message: "success", data: data });
             } else {

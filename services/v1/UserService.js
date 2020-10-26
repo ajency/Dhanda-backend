@@ -66,7 +66,8 @@ module.exports = class UserService {
                     return { code: "add_staff", data: { 
                         businessRefId: business.reference_id,
                         currency: business.currency,
-                        countryCode: business.country_code
+                        countryCode: business.country_code,
+                        shiftHours: business.shift_hours
                     } };
                 }
             }
@@ -74,7 +75,8 @@ module.exports = class UserService {
             return { code: "home", data: { 
                 businessRefId: defaultBusiness.reference_id,
                 currency: defaultBusiness.currency,
-                countryCode: defaultBusiness.country_code
+                countryCode: defaultBusiness.country_code,
+                shiftHours: defaultBusiness.shift_hours
             } };
         } catch(err) {
             await logger.info("Error while finding post login code by token: ", err); // for debugging in the future
