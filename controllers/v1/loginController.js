@@ -72,10 +72,10 @@ module.exports = {
             /** Create a new user if not present */
             if(user === null) {
                 user = await userService.createUser(countryCode, phone, lang);
-                code = "business_details";
-            } else {
-                code = "home";
-            }
+                // code = "business_details";
+            } /*else {
+                // code = "home";
+            }*/
 
             /** Generate access token */
             let token = await authService.generateTokenForUser(user, true);
@@ -84,6 +84,12 @@ module.exports = {
                 token: token,
                 lang: user.lang
             };
+
+            let postLoginObj = await userService.fetchPostLoginCodeForUserByToken("Bearer " + token);
+            let code = postLoginObj.code;
+            if(postLoginObj.hasOwnProperty("data")) {
+                data = { ...data, ...postLoginObj.data }
+            }
 
             return res.status(200).send({ code: code, message: "success", data: data });
         } catch(err) {
