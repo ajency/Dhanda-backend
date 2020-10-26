@@ -57,17 +57,25 @@ module.exports = class UserService {
             }
 
             /** Check if the default business has staff added to it */
-            let defaultBusinessRefId = null;
+            let defaultBusiness = null;
             for(let business of user.businesses) {
                 if(business.default) {
-                    defaultBusinessRefId = business.reference_id;
+                    defaultBusiness = business;
                 }
                 if(business.default && business.staffs.length === 0) {
-                    return { code: "add_staff", data: { businessRefId: business.reference_id } };
+                    return { code: "add_staff", data: { 
+                        businessRefId: business.reference_id,
+                        currency: business.currency,
+                        countryCode: business.country_code
+                    } };
                 }
             }
 
-            return { code: "home", data: { businessRefId: defaultBusinessRefId } };
+            return { code: "home", data: { 
+                businessRefId: defaultBusiness.reference_id,
+                currency: defaultBusiness.currency,
+                countryCode: defaultBusiness.country_code
+            } };
         } catch(err) {
             await logger.info("Error while finding post login code by token: ", err); // for debugging in the future
             return { code: "login" };
