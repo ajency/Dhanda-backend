@@ -13,6 +13,7 @@ module.exports = {
             let requestValid = helperService.validateRequiredRequestParams(req.body, 
                     [ "businessName", "currency", "salaryMonthType", "shiftHours"/*, "timezone", "countryCode"*/ ]);
             if(!requestValid) {
+                await logger.info("Save business api - missing params.");
                 return res.status(200).send({ code: "error", message: "missing_params" });
             }
 
@@ -48,6 +49,7 @@ module.exports = {
                 /** Update the business */
                 let updateCount = await businessService.updateBusiness(refId, businessObj);
                 if(updateCount[0] === 0) {
+                    await logger.info("Save business - business not found: " + refId);
                     return res.status(200).send({ code: "error", message: "business_not_found" });
                 }
                 return res.status(200).send({ code: "success", message: "success" });
@@ -73,6 +75,7 @@ module.exports = {
             }
 
             if(business === null) {
+                await logger.info("Save business - business not found: " + refId);
                 return res.status(200).send({ code: "error", message: "business_not_found" });
             }
 

@@ -12,6 +12,7 @@ module.exports = {
             /** Check if salary type is passed */
             let requestValid = helperService.validateRequiredRequestParams(req.body, [ "businessRefId", "salaryType", "currentBalanceType" ]);
             if(!requestValid) {
+                await logger.info("Save staff - missing parameters");
                 return res.status(200).send({ code: "error", message: "missing_params" });
             }
 
@@ -28,6 +29,7 @@ module.exports = {
             }
 
             if(!requestValid) {
+                await logger.info("Save staff - missing parameters.");
                 return res.status(200).send({ code: "error", message: "missing_params" });
             }            
 
@@ -49,6 +51,7 @@ module.exports = {
             let businessObj = await businessService.fetchBusinessById(businessRefId, true);
             
             if(businessObj === null) {
+                await logger.info("Save staff - business not found: " + businessRefId);
                 return res.status(200).send({ code: "error", message: "business_not_found" });
             }
 
@@ -66,6 +69,7 @@ module.exports = {
                 let updateCount = await staffService.updateStaff(refId, staffObj);
 
                 if(updateCount[0] === 0) {
+                    await logger.info("Save staff - staff not found: " + refId);
                     return res.status(200).send({ code: "error", message: "staff_not_found" });
                 }
 
@@ -91,17 +95,19 @@ module.exports = {
 
             let { refId } = req.query;
 
-            // TODO: Remove this code later
+            // TODO: Remove this code later after we have listing
             if(!refId) {
                 /** Fetch the default business for user */
                 let business = await userService.fetchDefaultBusinessForUser(req.user);
 
                 /** Fetch staff for this business */
                 if(business === null) {
+                    await logger.info("Save staff - staff not found because of no default business for user: " + req.user);
                     return res.status(200).send({ code: "error", message: "staff_not_found" });
                 } else {
                     let staffMembers = await staffService.fetchStaffForBusinessId(business.id);
                     if(staffMembers.length === 0) {
+                        await logger.info("Save staff - no staff members present for default business for user: " + req.user);
                         return res.status(200).send({ code: "error", message: "staff_not_found" });
                     } else {
                         /** Fetch the staff income meta */
@@ -129,6 +135,7 @@ module.exports = {
             let staff = await staffService.fetchStaff(refId, true);
 
             if(staff === null) {
+                await logger.info("Save staff - staff not found: " + refId);
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
             }
 

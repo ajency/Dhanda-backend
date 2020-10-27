@@ -14,6 +14,7 @@ module.exports = {
             /** Fetch the business by reference id */
             let business = await businessService.fetchBusinessById(businessRefId, true);
             if(!business) {
+                await logger.info("Fetch staff attendance - business not found: " + businessRefId);
                 return res.status(200).send({ code: "error", message: "business_not_found" });
             }
 
@@ -178,6 +179,7 @@ module.exports = {
             let requestValid = helperService.validateRequiredRequestParams(req.body, 
                     [ "date" ]);
             if(!requestValid) {
+                await logger.info("Save day status - missing params");
                 return res.status(200).send({ code: "error", message: "missing_params" });
             }
 
@@ -186,6 +188,7 @@ module.exports = {
             /** Check if the staff exists */
             let staff = await staffService.fetchStaff(staffRefId, true);
             if(staff === null) {
+                await logger.info("Save day status - staff not found: " + staffRefId);
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
             }
 
@@ -244,6 +247,7 @@ module.exports = {
             let requestValid = helperService.validateRequiredRequestParams(req.body, 
                     [ "date", "overtime", "overtimePay" ]);
             if(!requestValid) {
+                await logger.info("Save overtime - missing params");
                 return res.status(200).send({ code: "error", message: "missing_params" });
             }
 
@@ -252,6 +256,7 @@ module.exports = {
             /** Check if the staff exists */
             let staff = await staffService.fetchStaff(staffRefId, true);
             if(staff === null) {
+                await logger.info("Save overtime - staff not found: " + staffRefId);
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
             }
 
@@ -310,6 +315,7 @@ module.exports = {
             let requestValid = helperService.validateRequiredRequestParams(req.body, 
                     [ "date" ]);
             if(!requestValid) {
+                await logger.info("Save late fine - missing params");
                 return res.status(200).send({ code: "error", message: "missing_params" });
             }
 
@@ -318,6 +324,7 @@ module.exports = {
             /** Check if the staff exists */
             let staff = await staffService.fetchStaff(staffRefId, true);
             if(staff === null) {
+                await logger.info("Save overtime - staff not found: " + staffRefId);
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
             }
 
@@ -376,6 +383,7 @@ module.exports = {
             let requestValid = helperService.validateRequiredRequestParams(req.body, 
                     [ "date", "note" ]);
             if(!requestValid) {
+                await logger.info("Save note - missing params");
                 return res.status(200).send({ code: "error", message: "missing_params" });
             }
 
@@ -384,6 +392,7 @@ module.exports = {
             /** Check if the staff exists */
             let staff = await staffService.fetchStaff(staffRefId, true);
             if(staff === null) {
+                await logger.info("Save note - staff not found: " + staffRefId);
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
             }
 
