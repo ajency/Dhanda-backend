@@ -112,7 +112,7 @@ module.exports = {
                             case "half_day":
                                 halfDayTotal += 1;
                                 break;
-                            case "paid_holiday":
+                            case "paid_leave":
                                 paidHolidayTotal += 1;
                                 break;
                             default:

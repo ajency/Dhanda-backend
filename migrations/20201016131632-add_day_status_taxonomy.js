@@ -29,7 +29,7 @@ module.exports = {
       },
       {
         type: "day_status",
-        value: "paid_holiday",
+        value: "paid_leave",
         default_label: "Paid Holiday",
         active: true,
         created_at: new Date(),
@@ -43,7 +43,7 @@ module.exports = {
       { type: "day_status", value: "present" },
       { type: "day_status", value: "absent" },
       { type: "day_status", value: "half_day" },
-      { type: "day_status", value: "paid_holiday" }
+      { type: "day_status", value: "paid_leave" }
     ] });
   }
 };
