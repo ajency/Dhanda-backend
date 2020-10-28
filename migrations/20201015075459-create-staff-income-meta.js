@@ -30,7 +30,7 @@ module.exports = {
         }
       },
       date: {
-        type: Sequelize.DATE
+        type: Sequelize.DATEONLY
       },
       amount: {
         type: Sequelize.DECIMAL
