@@ -91,7 +91,7 @@ module.exports = class AttendanceService {
             attEntry.late_fine_amount = (params.lateFineAmount) ? params.lateFineAmount : null;
         }
         if(params.hasOwnProperty("note")) {
-            let metaObj = attEntry.meta;
+            let metaObj = attEntry.meta ? attEntry.meta : {};
             metaObj.note = params.note;
             attEntry.meta = metaObj;
         }
