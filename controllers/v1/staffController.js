@@ -4,6 +4,7 @@ const staffService = new (require("../../services/v1/StaffService"));
 const staffIncomeMetaService = new (require("../../services/v1/StaffIncomeMetaService"));
 const businessService = new (require("../../services/v1/BusinessService"));
 const userService = new (require("../../services/v1/UserService"));
+const ormService = new (require("../../services/OrmService"));
 
 module.exports = {
     saveStaff: async (req, res) => {
@@ -63,6 +64,12 @@ module.exports = {
                 if(staff !== null && currentBalanceType !== "no_dues") {
                     await staffIncomeMetaService.createStaffIncomeMeta(staff.id, "current_balance", currentBalanceType, pendingAmount);
                 }
+
+                /** Update the business country code if not present */
+                if(!businessObj.country_code) {
+                    await ormService.updateModel("business", businessObj.id, { country_code: countryCode });
+                }
+
                 return res.status(200).send({ code: "home", message: "success" });
             } else {
                 /** Update the Staff */

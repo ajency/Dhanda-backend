@@ -14,4 +14,8 @@ module.exports = class OrmService {
             }
         );
 	}
+
+	async updateModel(modelName, id, data) {
+		return await models[modelName].update(data, { where: { id: id } });
+	}
 }
