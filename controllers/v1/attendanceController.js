@@ -460,11 +460,18 @@ module.exports = {
 
             /** Check if the date range is valid */
             if(toDate.isAfter(fromDate)) {
-                await logger.info("Fetch single staff attendance - from_date is after to_date");
+                await logger.info("Fetch single staff attendance - from_date is after to_date. from: " + from + " to: " + to);
                 return res.status(200).send({ code: "error", message: "invalid_date_range" });
             }
 
             let { staffRefId } = req.params;
+
+            /** Fetch the staff */
+            let staff = await staffService.fetchStaff(staffRefId, true);
+            if(staff) {
+                await logger.info("Fetch single staff attendance - staff not found for reference id: " + staffRefId);
+                return res.status(200).send({ code: "error", message: "staff_not_found" });
+            }
 
             let data = {};
 
