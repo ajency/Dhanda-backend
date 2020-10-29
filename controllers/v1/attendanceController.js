@@ -7,7 +7,7 @@ const helperService = new (require("../../services/HelperService"));
 const taxonomyService = new (require("../../services/v1/TaxonomyService"));
 
 module.exports = {
-    fetchStaffAttendance: async (req, res) => {
+    fetchBusinessStaffAttendance: async (req, res) => {
         try {
             let { businessRefId } = req.params;
 
@@ -379,7 +379,7 @@ module.exports = {
 
     saveNote: async (req,res) => {
         try {
-             /** Validate Request */
+            /** Validate Request */
             let requestValid = helperService.validateRequiredRequestParams(req.body, 
                     [ "date", "note" ]);
             if(!requestValid) {
@@ -440,6 +440,37 @@ module.exports = {
             return res.status(200).send({ code: "success", message: "success", data: data });
         } catch(err) {
             await logger.error("Exception in save note api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
+    },
+
+    fetchSingleStaffAttendance: async (req, res) {
+        try {
+            /** Validate Request */
+            let requestValid = helperService.validateRequiredRequestParams(req.query, 
+                [ "from", "to" ]);
+            if(!requestValid) {
+                await logger.info("Fetch single staff attendance - missing params");
+                return res.status(200).send({ code: "error", message: "missing_params" });
+            }
+
+            let { from, to } = req.query;
+            let fromDate = moment(from);
+            let toDate = moment(to);
+
+            /** Check if the date range is valid */
+            if(toDate.isAfter(fromDate)) {
+                await logger.info("Fetch single staff attendance - from_date is after to_date");
+                return res.status(200).send({ code: "error", message: "invalid_date_range" });
+            }
+
+            let { staffRefId } = req.params;
+
+            let data = {};
+
+            return res.status(200).send({ code: "success", message: "success", data: data });
+        } catch(err) {
+            await logger.error("Exception in fetch single staff attendance api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
     }
