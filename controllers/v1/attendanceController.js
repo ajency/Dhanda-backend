@@ -444,7 +444,7 @@ module.exports = {
         }
     },
 
-    fetchSingleStaffAttendance: async (req, res) {
+    fetchSingleStaffAttendance: async (req, res) => {
         try {
             /** Validate Request */
             let requestValid = helperService.validateRequiredRequestParams(req.query, 
@@ -459,7 +459,7 @@ module.exports = {
             let toDate = moment(to);
 
             /** Check if the date range is valid */
-            if(toDate.isAfter(fromDate)) {
+            if(toDate.isBefore(fromDate)) {
                 await logger.info("Fetch single staff attendance - from_date is after to_date. from: " + from + " to: " + to);
                 return res.status(200).send({ code: "error", message: "invalid_date_range" });
             }
@@ -468,12 +468,88 @@ module.exports = {
 
             /** Fetch the staff */
             let staff = await staffService.fetchStaff(staffRefId, true);
-            if(staff) {
+            if(!staff) {
                 await logger.info("Fetch single staff attendance - staff not found for reference id: " + staffRefId);
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
             }
 
-            let data = {};
+            /** Fetch the attendance during the period */
+            let attendance = await attendanceService.fetchStaffAttendanceForPeriod(staff.id, fromDate.format("YYYY-MM-DD"), toDate.format("YYYY-MM-DD"));
+
+            /** Generate the response */
+            let data = {
+                name: staff.name,
+                shifthours: staff.daily_shift_duration,
+                currency: staff.business.currency
+            };
+            let statusSummary = {
+                present: 0,
+                absent: 0,
+                halfDay: 0,
+                paidLeave: 0
+            };
+            
+            let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
+            let dayStatusMap = new Map();
+            let attendanceList = [];
+            for(let attendanceRecord of attendance) {
+                let hours = "";
+                if(staff.salaryType.value === "hourly") {
+                    if(attendanceRecord.punch_in_time && attendanceRecord.punch_out_time) {
+                        let durationHours = "00" + moment(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_out_time)
+                                            .diff(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_in_time, 'hour');
+                        let durationMinutes = "00" + (moment(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_out_time)
+                                            .diff(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_in_time, 'minute')) % 60;
+                        let durationSeconds = "00" + (moment(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_out_time)
+                                            .diff(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_in_time, 'second')) % 60;
+                        hours =  durationHours.slice(-2) + ":" + durationMinutes.slice(-2) + ":" + durationSeconds.slice(-2);
+                    }
+                } else {
+                    hours = staff.business.shift_hours;
+                }
+                if(!dayStatusMap.has(attendanceRecord.day_status_txid)) {
+                    let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
+                    dayStatusMap.set(attendanceRecord.day_status_txid, dayStatus);
+                }
+                
+                attendanceList.push({
+                    date: attendanceRecord.date,
+                    name: staff.name,
+                    hours: hours,
+                    overtime: attendanceRecord.overtime ? attendanceRecord.overtime : "",
+                    overtimePay: attendanceRecord.overtime_pay ? attendanceRecord.overtime_pay : "",
+                    lateFineHours: attendanceRecord.late_fine_hours ? attendanceRecord.late_fine_hours : "",
+                    lateFineAmount: attendanceRecord.late_fine_amount ? attendanceRecord.late_fine_amount : "",
+                    status: dayStatusMap.get(attendanceRecord.day_status_txid) ? dayStatusMap.get(attendanceRecord.day_status_txid).value : "",
+                    note: (attendanceRecord.meta && attendanceRecord.meta.note) ? attendanceRecord.meta.note : "",
+                    punchIn: attendanceRecord.punch_in_time ? attendanceRecord.punch_in_time : "",
+                    punchOut: attendanceRecord.punch_out_time ? attendanceRecord.punch_out_time : "",
+                    defaultPunchIn: (latestPunchInTime.length > 0) ? latestPunchInTime[0].punch_in_time : null
+                });
+
+                /** Update aggregate data */
+                if(dayStatusMap.get(attendanceRecord.day_status_txid)) {
+                    switch(dayStatusMap.get(attendanceRecord.day_status_txid).value) {
+                        case "present":
+                            statusSummary.present += 1;
+                            break;
+                        case "absent":
+                            statusSummary.absent += 1;
+                            break;
+                        case "half_day":
+                            statusSummary.halfDay += 1;
+                            break;
+                        case "paid_leave":
+                            statusSummary.paidLeave += 1;
+                            break;
+                        default:
+                            break;
+                    }
+                }                
+            }
+
+            data.statusSummary = statusSummary;
+            data.attendance = attendanceList;
 
             return res.status(200).send({ code: "success", message: "success", data: data });
         } catch(err) {

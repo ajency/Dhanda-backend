@@ -31,7 +31,7 @@ router.post("/staff/:staffRefId/attendance/status", passport.authenticate('jwt',
 router.post("/staff/:staffRefId/attendance/overtime", passport.authenticate('jwt', { session: false }), attendanceController.saveOvertime);
 router.post("/staff/:staffRefId/attendance/lateFine", passport.authenticate('jwt', { session: false }), attendanceController.saveLateFine);
 router.post("/staff/:staffRefId/attendance/note", passport.authenticate('jwt', { session: false }), attendanceController.saveNote);
-router.post("/staff/:staffRefId/attendance", passport.authenticate('jwt', { session: false }), attendanceController.fetchSingleStaffAttendance);
+router.get("/staff/:staffRefId/attendance", passport.authenticate('jwt', { session: false }), attendanceController.fetchSingleStaffAttendance);
 
 /** Staff */
 router.post("/saveStaff", passport.authenticate('jwt', { session: false }), staffController.saveStaff);

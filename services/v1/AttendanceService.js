@@ -160,4 +160,14 @@ module.exports = class AttendanceService {
         /** Bulk insert these entries */
         await models.attendance.bulkCreate(bulkInsertEntries);
     }
+
+    async fetchStaffAttendanceForPeriod(staffId, fromDate, toDate) {
+        return await models.attendance.findAll({
+            where: { 
+                staff_id: staffId,
+                date: { [Op.between]: [ fromDate, toDate ] }
+            },
+            order: [ [ "date", "desc" ] ]
+        });
+    }
 }
