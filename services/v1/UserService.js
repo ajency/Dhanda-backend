@@ -65,6 +65,7 @@ module.exports = class UserService {
                 if(business.default && business.staffs.length === 0) {
                     return { code: "add_staff", data: { 
                         businessRefId: business.reference_id,
+                        businessName: business.name,
                         currency: business.currency,
                         countryCode: business.country_code,
                         shiftHours: business.shift_hours
@@ -74,6 +75,7 @@ module.exports = class UserService {
 
             return { code: "home", data: { 
                 businessRefId: defaultBusiness.reference_id,
+                businessName: defaultBusiness.name,
                 currency: defaultBusiness.currency,
                 countryCode: defaultBusiness.country_code,
                 shiftHours: defaultBusiness.shift_hours
