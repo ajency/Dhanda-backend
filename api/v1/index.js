@@ -33,6 +33,9 @@ router.post("/staff/:staffRefId/attendance/lateFine", passport.authenticate('jwt
 router.post("/staff/:staffRefId/attendance/note", passport.authenticate('jwt', { session: false }), attendanceController.saveNote);
 router.get("/staff/:staffRefId/attendance", passport.authenticate('jwt', { session: false }), attendanceController.fetchSingleStaffAttendance);
 
+/** Admin */
+router.post("/business/:businessRefId/admin/invite", passport.authenticate('jwt', { session: false }), businessController.inviteAdmin);
+
 /** Staff */
 router.post("/saveStaff", passport.authenticate('jwt', { session: false }), staffController.saveStaff);
 router.get("/staff", passport.authenticate('jwt', { session: false }), staffController.fetchStaff);

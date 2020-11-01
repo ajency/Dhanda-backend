@@ -93,5 +93,33 @@ module.exports = {
             await logger.error("Exception in fetch business api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
+    },
+
+    inviteAdmin: async (req, res) => {
+        try {
+            /** Validate Request */
+            let requestValid = helperService.validateRequiredRequestParams(req.body, 
+               [ "name", "countryCode", "phone" ]);
+            if(!requestValid) {
+                await logger.info("Invite admin api - missing params.");
+                return res.status(200).send({ code: "error", message: "missing_params" });
+            }
+
+            /** Fetch the business by the reference id */
+            let { businessRefId } = req.params;
+            let business = await businessService.fetchBusinessById(businessRefId, true);
+
+            if(business === null) {
+                await logger.info("Invite admin api - business not found: " + businessRefId);
+                return res.status(200).send({ code: "error", message: "business_not_found" });
+            }
+
+            let data = {};
+
+            return res.status(200).send({ code: "success", message: "success", data: data });
+        } catch {
+            await logger.error("Exception in invite admin api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
     }
 }
