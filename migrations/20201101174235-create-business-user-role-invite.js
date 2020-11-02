@@ -41,7 +41,7 @@ module.exports = {
         type: Sequelize.BOOLEAN
       },
       invited_by: {
-        type: INTEGER,
+        type: Sequelize.INTEGER,
         references: {
           model: "users",
           key: "id"

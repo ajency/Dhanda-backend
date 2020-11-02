@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       this.belongsTo(models.role, { foreignKey: "role_id", as: "role"});
       this.belongsTo(models.user, { foreignKey: "user_id", as: "user"});
+      this.belongsTo(models.business, { foreignKey: "business_id", as: "business" });
     }
   };
   business_user_role.init({

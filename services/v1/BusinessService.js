@@ -91,7 +91,7 @@ module.exports = class BusinessService {
         return await models.business.findAll({ where: { timezone: timezone } });
     }
 
-    async createRoleInviteForUser(businessId, roleName, countryCode, phone, name) {
+    async createRoleInviteForUser(businessId, roleName, countryCode, phone, name, invitedByUserId) {
         /** Fetch the role */
         let role = await models.role.findOne({ where: { name: roleName } });
         return await models.business_user_role_invite.create({
@@ -101,7 +101,8 @@ module.exports = class BusinessService {
             country_code: countryCode,
             phone: phone,
             name: name,
-            deleted: false
+            deleted: false,
+            invited_by: invitedByUserId
         });
     }
 
@@ -112,7 +113,9 @@ module.exports = class BusinessService {
         }
         
         let whereClause = {
-            role_id: role.id
+            role_id: role.id,
+            deleted: false,
+            accepted: null
         };
         if(businessId) {
             whereClause.business_id = businessId;
@@ -124,7 +127,9 @@ module.exports = class BusinessService {
             whereClause.phone = phone;
         }
 
-        return await models.business_user_role_invite.findAll({ where: whereClause });
+        return await models.business_user_role_invite.findAll({ where: whereClause, 
+            include: [ { model: models.business, as: "business" },
+                { model: models.user, as: "invitedBy" } ] });
     }
 
     async fetchAdminListForBusiness(business, isObj = false) {
@@ -145,7 +150,7 @@ module.exports = class BusinessService {
         });
 
         /** Fetch the admins */
-        let roleUsers = await this.fetchUsersByRoleForBusiness(business.id, "business_admin");
+        let roleUsers = await this.fetchBusUserRoleByRoleForBusiness("business_admin", business.id);
         for(let roleUser of roleUsers) {
             adminList.push({
                 name: roleUser.user.name,
@@ -174,15 +179,23 @@ module.exports = class BusinessService {
         return adminList;
     }
 
-    async fetchUsersByRoleForBusiness(businessId, roleName) {
+    async fetchBusUserRoleByRoleForBusiness(roleName, businessId = null, userId = null) {
         let role = await models.role.findOne({ where: { name: roleName } });
         if(!role) {
             return [];
         }
-        return await models.business_user_role.findAll({ where: {
-            business_id: businessId,
+        let whereClause = {
             role_id: role.id,
             deleted: false
-        }, include: [ { model: models.user, as: "user" } ] });
+        }
+        if(businessId) {
+            whereClause.business_id = businessId;
+        }
+        if(userId) {
+            whereClause.user_id = userId;
+        }
+
+        return await models.business_user_role.findAll({ where: whereClause, include: [ { model: models.user, as: "user" },
+            { model: models.business, as: "business" } ] });
     }
 }

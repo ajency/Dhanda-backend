@@ -3,6 +3,7 @@ const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 const helperService = new (require("../HelperService"));
 const jwt = require("jsonwebtoken");
+const businessService = new (require("./BusinessService"));
 const logger = require("simple-node-logger").createSimpleLogger({ timestampFormat:'YYYY-MM-DD HH:mm:ss.SSS' });
 
 module.exports = class UserService {
@@ -61,6 +62,28 @@ module.exports = class UserService {
             /** If no user is found */
             if(!user) {
                 return { code: "login" };
+            }
+
+            /** Check if this user is an admin of any business */
+            let businessUserRoleEntries = await businessService.fetchBusUserRoleByRoleForBusiness("business_admin", null, user.id);
+            if(businessUserRoleEntries.length > 0) {
+                return { code: "home", data: { 
+                    businessRefId: businessUserRoleEntries[0].business.reference_id,
+                    businessName: businessUserRoleEntries[0].business.name,
+                    currency: businessUserRoleEntries[0].business.currency,
+                    countryCode: businessUserRoleEntries[0].business.country_code,
+                    shiftHours: businessUserRoleEntries[0].business.shift_hours
+                } };
+            }
+
+            /** Check if this user is invited to any business */
+            let userInvites = await businessService.fetchRoleInvitesFor("business_admin", null, user.country_code, user.phone);
+            if(userInvites.length > 0) {
+                return { code: "business_invite", data: { 
+                    inviterBusinessName: userInvites[0].business.name,
+                    inviterName: userInvites[0].invitedBy.name,
+                    inviteRefId: userInvites[0].reference_id
+                } };
             }
 
             /** If there are no businesses */

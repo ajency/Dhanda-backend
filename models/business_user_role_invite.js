@@ -12,6 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       this.belongsTo(models.role, {foreignKey: "role_id", as: "role" });
       this.belongsTo(models.user, { foreignKey: "invited_by", as: "invitedBy" });
+      this.belongsTo(models.business, { foreignKey: "business_id", as: "business" });
     }
   };
   business_user_role_invite.init({

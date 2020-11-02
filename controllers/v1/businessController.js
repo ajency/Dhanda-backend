@@ -84,8 +84,8 @@ module.exports = {
             let adminList = await businessService.fetchAdminListForBusiness(business, true);
 
             let data = {
-                "refId": business.reference_id,                                 
-                "owner": business.user.name,                     
+                "refId": business.reference_id,
+                "owner": business.user.name,
                 "businessName": business.name,
                 "currency": business.currency,
                 "salaryMonthType": business.taxonomy.value,
@@ -143,7 +143,7 @@ module.exports = {
             }
 
             /** Create an entry in the invite table */
-            await businessService.createRoleInviteForUser(business.id, "business_admin", countryCode, phone, name);
+            await businessService.createRoleInviteForUser(business.id, "business_admin", countryCode, phone, name, req.user);
 
             /** Send an SMS (for now sending email) */
             notificationService.sendEmailSES("You have been invited to a business!", "+" + countryCode + "-" 
