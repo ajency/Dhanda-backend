@@ -11,6 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       this.belongsTo(models.role, {foreignKey: "role_id", as: "role" });
+      this.belongsTo(models.user, { foreignKey: "invited_by", as: "invitedBy" });
     }
   };
   business_user_role_invite.init({
@@ -21,7 +22,8 @@ module.exports = (sequelize, DataTypes) => {
     phone: DataTypes.STRING,
     name: DataTypes.STRING,
     accepted: DataTypes.BOOLEAN,
-    deleted: DataTypes.BOOLEAN
+    deleted: DataTypes.BOOLEAN,
+    invited_by: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'business_user_role_invite',

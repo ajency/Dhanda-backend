@@ -40,6 +40,13 @@ module.exports = {
       deleted: {
         type: Sequelize.BOOLEAN
       },
+      invited_by: {
+        type: INTEGER,
+        references: {
+          model: "users",
+          key: "id"
+        }
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE
