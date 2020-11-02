@@ -90,4 +90,34 @@ module.exports = class BusinessService {
     async fetchBusinessByTimezone(timezone) {
         return await models.business.findAll({ where: { timezone: timezone } });
     }
+
+    async createRoleInviteForUser(businessId, roleName, countryCode, phone, name) {
+        /** Fetch the role */
+        let role = await models.role.findOne({ where: { name: roleName } });
+        return await models.business_user_role_invite.create({
+            reference_id: "INV" + helperService.generateReferenceId(),
+            business_id: businessId,
+            role_id: (role) ? role.id : null,
+            country_code: countryCode,
+            phone: phone,
+            name: name,
+            deleted: false
+        });
+    }
+
+    async fetchRoleInvitesForUser(businessId, roleName, countryCode, phone) {
+        let role = await models.role.findOne({ where: { name: roleName } });
+        let whereClause = {
+            role_id: role.id,
+            country_code: countryCode,
+            phone: phone
+        };
+        if(businessId) {
+            whereClause.business_id = businessId;
+        }
+        if(!role) {
+            return [];
+        }
+        return await models.business_user_role_invite.findAll({ where: whereClause });
+    }
 }

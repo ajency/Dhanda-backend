@@ -1,4 +1,6 @@
 const models = require("../../models");
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 const helperService = new (require("../HelperService"));
 const jwt = require("jsonwebtoken");
 const logger = require("simple-node-logger").createSimpleLogger({ timestampFormat:'YYYY-MM-DD HH:mm:ss.SSS' });
@@ -6,6 +8,16 @@ const logger = require("simple-node-logger").createSimpleLogger({ timestampForma
 module.exports = class UserService {
     async fetchUserByPhone(countryCode, phone) {
         let user = await models.user.findOne({ where: { country_code: countryCode, phone: phone } });
+        return user;
+    }
+
+    async fetchUserAndBusinessAdminByPhone(countryCode, phone) {
+        let user = await models.user.findOne({ where: { country_code: countryCode, phone: phone },
+            include: [ { model: models.business, as: "businesses" },
+                { separate: true, model: models.business_user_role, as: "businessUserRoles", 
+                    where: { deleted: false },
+                    include: [ { model: models.role, as: "role", where: { name: "business_admin" } } ] }
+            ] } );
         return user;
     }
 
@@ -43,7 +55,7 @@ module.exports = class UserService {
             /** Fetch the user details based on the reference id */
             let user = await models.user.findOne({ where: { reference_id: payload.user.refId },
                 include: [
-                    { model: models.business, include: [ { model: models.staff } ] }
+                    { model: models.business, as: "businesses", include: [ { model: models.staff } ] }
                 ] });
 
             /** If no user is found */

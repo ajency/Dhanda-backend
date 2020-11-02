@@ -5,6 +5,8 @@ const businessService = new (require("../../services/v1/BusinessService"));
 const userService = new (require("../../services/v1/UserService"));
 const staffService = new (require("../../services/v1/StaffService"));
 const attendanceService = new (require("../../services/v1/AttendanceService"));
+const notificationService = new (require("../../services/v1/NotificationService"));
+const defaults = require("../../services/defaults");
 
 module.exports = {
     saveBusiness: async (req, res) => {
@@ -114,10 +116,40 @@ module.exports = {
                 return res.status(200).send({ code: "error", message: "business_not_found" });
             }
 
-            let data = {};
+            let { countryCode, phone, name } = req.body;
 
-            return res.status(200).send({ code: "success", message: "success", data: data });
-        } catch {
+            /** Fetch the staff */
+            let user = await userService.fetchUserAndBusinessAdminByPhone(countryCode, phone);
+
+            if(user) {
+                if(user.businesses.length > 0) {
+                    await logger.info("Invite admin api - user already an owner of a business. user: " + countryCode + " " + phone);
+                    return res.status(200).send({ code: "error", message: "user_already_owner" });
+                }
+                if(user.businessUserRoles.length > 0) {
+                    await logger.info("Invite admin api - user already an admin of a business. user: " + countryCode + " " + phone);
+                    return res.status(200).send({ code: "error", message: "user_already_admin" });
+                }
+            }
+
+            /** Check to see if this user is already invited to any business */
+            let userRoleInvites = await businessService.fetchRoleInvitesForUser(null, "business_admin", countryCode, phone);
+            if(userRoleInvites.length > 0) {
+                await logger.info("Invite admin api - user already invited to be an admin of a business. user: " + countryCode + " " + phone);
+                return res.status(200).send({ code: "error", message: "user_already_invited" });
+            }
+
+            /** Create an entry in the invite table */
+            await businessService.createRoleInviteForUser(business.id, "business_admin", countryCode, phone, name);
+
+            /** Send an SMS (for now sending email) */
+            notificationService.sendEmailSES("You have been invited to a business!", "+" + countryCode + "-" 
+                    + phone + " <b>Download the app:</b> play.google.com/Dhandha-App",
+                defaults.getValue("email_default").from_email, defaults.getValue("email_default").to_email,
+                defaults.getValue("email_default").cc_email);
+
+            return res.status(200).send({ code: "success", message: "success" });
+        } catch(err) {
             await logger.error("Exception in invite admin api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
