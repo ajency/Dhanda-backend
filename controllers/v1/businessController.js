@@ -156,5 +156,26 @@ module.exports = {
             await logger.error("Exception in invite admin api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
+    },
+
+    adminInviteResponse: async (req, res) => {
+        try {
+            /** Validate Request */
+            let requestValid = helperService.validateRequiredRequestParams(req.query,
+               [ "response" ]);
+            if(!requestValid) {
+                await logger.info("Respond to invite api - missing params.");
+                return res.status(200).send({ code: "error", message: "missing_params" });
+            }
+  
+            let data = {};
+  
+            return res.status(200).send({ code: "success", message: "success", data: data });
+        } catch(err) {
+            await logger.error("Exception in respond to invite api api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
+    }
+ 
     }
 }

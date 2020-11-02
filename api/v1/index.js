@@ -35,6 +35,7 @@ router.get("/staff/:staffRefId/attendance", passport.authenticate('jwt', { sessi
 
 /** Admin */
 router.post("/business/:businessRefId/admin/invite", passport.authenticate('jwt', { session: false }), businessController.inviteAdmin);
+router.post("/invite/:inviteRefId", passport.authenticate('jwt', { session: false }), businessController.adminInviteResponse);
 
 /** Staff */
 router.post("/saveStaff", passport.authenticate('jwt', { session: false }), staffController.saveStaff);
