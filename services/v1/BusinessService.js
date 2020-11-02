@@ -105,19 +105,84 @@ module.exports = class BusinessService {
         });
     }
 
-    async fetchRoleInvitesForUser(businessId, roleName, countryCode, phone) {
+    async fetchRoleInvitesFor(roleName, businessId = null, countryCode = null, phone = null) {
         let role = await models.role.findOne({ where: { name: roleName } });
+        if(!role) {
+            return [];
+        }
+        
         let whereClause = {
-            role_id: role.id,
-            country_code: countryCode,
-            phone: phone
+            role_id: role.id
         };
         if(businessId) {
             whereClause.business_id = businessId;
         }
+        if(countryCode) {
+            whereClause.country_code = countryCode;
+        }
+        if(phone) {
+            whereClause.phone = phone;
+        }
+
+        return await models.business_user_role_invite.findAll({ where: whereClause });
+    }
+
+    async fetchAdminListForBusiness(business, isObj = false) {
+        let adminList = [];
+
+        if(!isObj) {
+            business = this.fetchBusinessById(business)
+        }
+
+        /** Add the owner to the list */
+        adminList.push({
+            name: business.user.name,
+            countryCode: business.user.country_code,
+            phone: business.user.phone,
+            owner: true,
+            invited: false,
+            inviteRefId: null
+        });
+
+        /** Fetch the admins */
+        let roleUsers = await this.fetchUsersByRoleForBusiness(business.id, "business_admin");
+        for(let roleUser of roleUsers) {
+            adminList.push({
+                name: roleUser.user.name,
+                countryCode: roleUser.user.country_code,
+                phone: roleUser.user.phone,
+                owner: false,
+                invited: false,
+                inviteRefId: null
+            });
+        }
+
+        /** Fetch the invited numbers */
+        let roleInvites = await this.fetchRoleInvitesFor("business_admin", business.id);
+
+        for(let roleInvite of roleInvites) {
+            adminList.push({
+                name: roleInvite.name,
+                countryCode: roleInvite.country_code,
+                phone: roleInvite.phone,
+                owner: false,
+                invited: true,
+                inviteRefId: roleInvite.reference_id
+            });
+        }
+
+        return adminList;
+    }
+
+    async fetchUsersByRoleForBusiness(businessId, roleName) {
+        let role = await models.role.findOne({ where: { name: roleName } });
         if(!role) {
             return [];
         }
-        return await models.business_user_role_invite.findAll({ where: whereClause });
+        return await models.business_user_role.findAll({ where: {
+            business_id: businessId,
+            role_id: role.id,
+            deleted: false
+        }, include: [ { model: models.user, as: "user" } ] });
     }
 }

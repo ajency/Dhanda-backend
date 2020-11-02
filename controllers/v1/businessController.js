@@ -81,13 +81,16 @@ module.exports = {
                 return res.status(200).send({ code: "error", message: "business_not_found" });
             }
 
+            let adminList = await businessService.fetchAdminListForBusiness(business, true);
+
             let data = {
                 "refId": business.reference_id,                                 
                 "owner": business.user.name,                     
                 "businessName": business.name,
                 "currency": business.currency,
                 "salaryMonthType": business.taxonomy.value,
-                "shiftHours": business.shift_hours
+                "shiftHours": business.shift_hours,
+                "admin": adminList
             }
 
             return res.status(200).send({ code: "success", message: "success", data: data });
@@ -133,7 +136,7 @@ module.exports = {
             }
 
             /** Check to see if this user is already invited to any business */
-            let userRoleInvites = await businessService.fetchRoleInvitesForUser(null, "business_admin", countryCode, phone);
+            let userRoleInvites = await businessService.fetchRoleInvitesFor("business_admin", null, countryCode, phone);
             if(userRoleInvites.length > 0) {
                 await logger.info("Invite admin api - user already invited to be an admin of a business. user: " + countryCode + " " + phone);
                 return res.status(200).send({ code: "error", message: "user_already_invited" });
