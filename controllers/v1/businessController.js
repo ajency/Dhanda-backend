@@ -213,5 +213,38 @@ module.exports = {
             return res.status(200).send({ code: "error", message: "error" });
         }
 
+    },
+
+    resendInvite: async (req, res) => {
+        try {
+            let data = {};
+            return res.status(200).send({ code: "success", message: "success", data: data });
+        } catch(err) {
+            await logger.error("Exception in fetch business api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
+ 
+    },
+    
+    deleteInvite: async (req, res) => {
+        try {
+            let data = {};
+            return res.status(200).send({ code: "success", message: "success", data: data });
+        } catch(err) {
+            await logger.error("Exception in fetch business api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
+
+    },
+
+    removeAdmin: async (req, res) => {
+        try {
+            let data = {};
+            return res.status(200).send({ code: "success", message: "success", data: data });
+        } catch(err) {
+            await logger.error("Exception in fetch business api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
+ 
     }
 }
