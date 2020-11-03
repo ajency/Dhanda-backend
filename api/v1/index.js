@@ -36,8 +36,8 @@ router.get("/staff/:staffRefId/attendance", passport.authenticate('jwt', { sessi
 /** Admin */
 router.post("/business/:businessRefId/admin/invite", passport.authenticate('jwt', { session: false }), businessController.inviteAdmin);
 router.post("/invite/:inviteRefId", passport.authenticate('jwt', { session: false }), businessController.adminInviteResponse);
-router.post("/business/:businessRefId/admin/invite/:inviteRefId/resend", passport.authenticate('jwt', { session: false }), businessController.resendInvite);
-router.delete("/business/:businessRefId/admin/invite/:inviteRefId", passport.authenticate('jwt', { session: false }), businessController.deleteInvite);
+router.post("/business/admin/invite/:inviteRefId/resend", passport.authenticate('jwt', { session: false }), businessController.resendInvite);
+router.delete("/business/admin/invite/:inviteRefId", passport.authenticate('jwt', { session: false }), businessController.deleteInvite);
 router.delete("/business/:businessRefId/admin/:adminRefId", passport.authenticate('jwt', { session: false }), businessController.removeAdmin);
 
 /** Staff */

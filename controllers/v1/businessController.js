@@ -147,10 +147,7 @@ module.exports = {
             await businessService.createRoleInviteForUser(business.id, "business_admin", countryCode, phone, name, req.user);
 
             /** Send an SMS (for now sending email) */
-            notificationService.sendEmailSES("You have been invited to a business!", "+" + countryCode + "-" 
-                    + phone + " <b>Download the app:</b> play.google.com/Dhandha-App",
-                defaults.getValue("email_default").from_email, defaults.getValue("email_default").to_email,
-                defaults.getValue("email_default").cc_email);
+            notificationService.sendBusinessAdminInvite({ countryCode: countryCode, phone: phone });
 
             return res.status(200).send({ code: "success", message: "success" });
         } catch(err) {
@@ -217,21 +214,40 @@ module.exports = {
 
     resendInvite: async (req, res) => {
         try {
-            let data = {};
-            return res.status(200).send({ code: "success", message: "success", data: data });
+            /** Fetch the invite by the reference id */
+            let invite = await businessService.fetchBusinessRoleInviteById(req.params.inviteRefId, true);
+
+            if(!invite) {
+                await logger.info("Resend admin invite api - invite not found. ref_id: " + req.params.inviteRefId);
+                return res.status(200).send({ code: "error", message: "invite_not_found" });
+            }
+            
+            /** Send notification */
+            notificationService.sendBusinessAdminInvite({ countryCode: invite.country_code, phone: invite.phone });
+            return res.status(200).send({ code: "success", message: "success" });
         } catch(err) {
-            await logger.error("Exception in fetch business api: ", err);
+            await logger.error("Exception in resend admin invite api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
  
     },
-    
+
     deleteInvite: async (req, res) => {
         try {
-            let data = {};
-            return res.status(200).send({ code: "success", message: "success", data: data });
+            /** Fetch the invite by the reference id */
+            let invite = await businessService.fetchBusinessRoleInviteById(req.params.inviteRefId, true);
+
+            if(!invite) {
+                await logger.info("Delete admin invite api - invite not found. ref_id: " + req.params.inviteRefId);
+                return res.status(200).send({ code: "error", message: "invite_not_found" });
+            }
+
+            /** Delete the invite */
+            await ormService.updateModel("business_user_role_invite", invite.id, { deleted: true });
+
+            return res.status(200).send({ code: "success", message: "success" });
         } catch(err) {
-            await logger.error("Exception in fetch business api: ", err);
+            await logger.error("Exception in delete admin invite api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
 
@@ -239,10 +255,34 @@ module.exports = {
 
     removeAdmin: async (req, res) => {
         try {
-            let data = {};
-            return res.status(200).send({ code: "success", message: "success", data: data });
+            /** Fetch the admin user */
+            let adminUser = await userService.fetchUserById(req.params.adminRefId, true);
+
+            if(!adminUser) {
+                await logger.info("Remove admin api - admin user not found. ref_id: " + req.params.adminRefId);
+                return res.status(200).send({ code: "error", message: "admin_not_found" });
+            }
+
+            /** Fetch business */
+            let business = await businessService.fetchBusinessById(req.params.businessRefId, true);
+            if(!business) {
+                await logger.info("Remove admin api - business not found. ref_id: " + req.params.businessRefId);
+                return res.status(200).send({ code: "error", message: "business_not_found" });
+            }
+
+            /** Check if the user is an admin of this business */
+            let businessUserRoles = await businessService.fetchBusUserRoleByRoleForBusiness("business_admin", business.id, adminUser.id);
+            if(businessUserRoles.length === 0) {
+                await logger.info("Remove admin api - user is not an admin. ref_id: " + req.params.businessRefId);
+                return res.status(200).send({ code: "error", message: "user_not_admin" });
+            }
+
+            /** Delete the business user role */
+            await ormService.updateModel("business_user_role", businessUserRoles[0].id, { deleted: true });
+
+            return res.status(200).send({ code: "success", message: "success" });
         } catch(err) {
-            await logger.error("Exception in fetch business api: ", err);
+            await logger.error("Exception in remove admin api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
  

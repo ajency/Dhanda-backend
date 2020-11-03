@@ -120,4 +120,14 @@ module.exports = class UserService {
             return { code: "login" };
         }
     }
+
+    async fetchUserById(userId, isRef = false) {
+        let whereClause = {};
+        if(isRef) {
+            whereClause = { reference_id: userId };
+        } else {
+            whereClause = { id: userId };
+        }
+        return models.user.findOne({ where: whereClause });
+    }
 }
