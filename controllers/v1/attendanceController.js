@@ -92,11 +92,11 @@ module.exports = {
                             /** Update present total if hourly staff has both start time and end time */
                             presentTotal += 1;
                         }
-                    } else {
+                    } else if(staff.salaryType.value !== "work_basis") {
                         if(att.dayStatus && att.dayStatus.value === "half_day") {
-                            hours = helperService.getHalfDayHours(business.shift_hours)
+                            hours = helperService.getHalfDayHours(staff.daily_shift_duration)
                         } else {
-                            hours = business.shift_hours;
+                            hours = staff.daily_shift_duration;
                         }
                     }
 
@@ -138,12 +138,12 @@ module.exports = {
                     staffRes = {
                         refId: staff.reference_id,
                         name: staff.name,
-                        hours: (staff.salaryType.value === "hourly") ? "" : business.shift_hours,
+                        hours: (staff.salaryType.value === "hourly") ? "" : (staff.daily_shift_duration ? staff.daily_shift_duration : ""),
                         overtime: "",
                         overtimePay: "",
                         lateFineHours: "",
                         lateFineAmount: "",
-                        status: "",
+                        status: (staff.salaryType.value === "hourly") ? "absent" : "present",
                         note: "",
                         defaultPunchIn: defaultPunchInMap.has(staff.id) ? defaultPunchInMap.get(staff.id) : null
                     }
@@ -214,8 +214,8 @@ module.exports = {
                                         .diff(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_in_time, 'second')) % 60;
                     hours =  durationHours.slice(-2) + ":" + durationMinutes.slice(-2) + ":" + durationSeconds.slice(-2);
                 }
-            } else {
-                hours = staff.business.shift_hours;
+            } else if(staff.salaryType.value !== "work_basis") {
+                hours = staff.daily_shift_duration;
             }
             let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
             let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
@@ -282,8 +282,8 @@ module.exports = {
                                         .diff(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_in_time, 'second')) % 60;
                     hours =  durationHours.slice(-2) + ":" + durationMinutes.slice(-2) + ":" + durationSeconds.slice(-2);
                 }
-            } else {
-                hours = staff.business.shift_hours;
+            } else if(staff.salaryType.value !== "work_basis") {
+                hours = staff.daily_shift_duration;
             }
             let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
             let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
@@ -350,8 +350,8 @@ module.exports = {
                                         .diff(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_in_time, 'second')) % 60;
                     hours =  durationHours.slice(-2) + ":" + durationMinutes.slice(-2) + ":" + durationSeconds.slice(-2);
                 }
-            } else {
-                hours = staff.business.shift_hours;
+            } else if(staff.salaryType.value !== "work_basis") {
+                hours = staff.daily_shift_duration;
             }
             let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
             let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
@@ -417,8 +417,8 @@ module.exports = {
                                         .diff(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_in_time, 'second')) % 60;
                     hours =  durationHours.slice(-2) + ":" + durationMinutes.slice(-2) + ":" + durationSeconds.slice(-2);
                 }
-            } else {
-                hours = staff.business.shift_hours;
+            } else if(staff.salaryType.value !== "work_basis") {
+                hours = staff.daily_shift_duration;
             }
             let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
             let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
