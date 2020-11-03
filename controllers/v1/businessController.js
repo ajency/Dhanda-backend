@@ -7,6 +7,7 @@ const staffService = new (require("../../services/v1/StaffService"));
 const attendanceService = new (require("../../services/v1/AttendanceService"));
 const notificationService = new (require("../../services/v1/NotificationService"));
 const defaults = require("../../services/defaults");
+const ormService = new (require("../../services/OrmService"));
 
 module.exports = {
     saveBusiness: async (req, res) => {
@@ -175,16 +176,38 @@ module.exports = {
                 return res.status(200).send({ code: "error", message: "invite_not_found" });
             }
 
+            if(invite.accepted !== null) {
+                await logger.info("Respond to invite api - already responded to invite.");
+                return res.status(200).send({ code: "error", message: "already_responded" });
+            }
+
+            /** Extra layer of checking to see if this is the invited user */
+            let user = await ormService.fetchModelById("user", req.user);
+            if(invite.country_code !== user.country_code || invite.phone !== user.phone) {
+                await logger.info("Respond to invite api - responding to a wrong invite.");
+                return res.status(200).send({ code: "error", message: "wrong_invite" });
+            }
+
             /** Update the invite details */
-            // if(response) {
-
-            // } else {
-
-            // }
-
-            let data = {};
-  
-            return res.status(200).send({ code: "success", message: "success", data: data });
+            let { response } = req.query;
+            let accepted = (response === "accept") ? true : false;
+            await ormService.updateModel("business_user_role_invite", invite.id, { accepted: accepted });
+            if(accepted) {
+                /** Add this user to the business admin */
+                await businessService.createBusinessUserRole(invite.business_id, user.id, invite.role_id);
+                let data = { 
+                    businessRefId: invite.business.reference_id,
+                    businessName: invite.business.name,
+                    currency: invite.business.currency,
+                    countryCode: invite.business.country_code,
+                    shiftHours: invite.business.shift_hours
+                };
+                return res.status(200).send({ code: "home", message: "success", data: data });
+            } else {
+                /** Get the post login code for the user */
+                let postLoginObj = await userService.fetchPostLoginCodeForUserByToken(req.headers.authorization);
+                return res.status(200).send({ code: postLoginObj.code, message: "success", data: postLoginObj.data });
+            }
         } catch(err) {
             await logger.error("Exception in respond to invite api api: ", err);
             return res.status(200).send({ code: "error", message: "error" });

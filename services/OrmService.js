@@ -18,4 +18,8 @@ module.exports = class OrmService {
 	async updateModel(modelName, id, data) {
 		return await models[modelName].update(data, { where: { id: id } });
 	}
+
+	async fetchModelById(modelName, id) {
+		return await models[modelName].findOne({ where: { id: id } });
+	}
 }

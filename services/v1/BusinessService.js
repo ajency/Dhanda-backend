@@ -211,4 +211,12 @@ module.exports = class BusinessService {
                 { model: models.business, as: "business" } ] });
     }
 
+    async createBusinessUserRole(businessId, userId, roleId) {
+        return await models.business_user_role.create({
+            business_id: businessId,
+            user_id: userId,
+            role_id: roleId,
+            deleted: false
+        });
+    }
 }
