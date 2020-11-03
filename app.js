@@ -18,7 +18,7 @@ const app = express();
 app.use(express.json());
 
 /** Log the request response in dev env */
-if(process.env.NODE_ENV === "development") {
+if(process.env.LOG_REQ_RES === "true") {
 	morganBody(app)
 }
 
