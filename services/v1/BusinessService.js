@@ -90,4 +90,125 @@ module.exports = class BusinessService {
     async fetchBusinessByTimezone(timezone) {
         return await models.business.findAll({ where: { timezone: timezone } });
     }
+
+    async createRoleInviteForUser(businessId, roleName, countryCode, phone, name, invitedByUserId) {
+        /** Fetch the role */
+        let role = await models.role.findOne({ where: { name: roleName } });
+        return await models.business_user_role_invite.create({
+            reference_id: "INV" + helperService.generateReferenceId(),
+            business_id: businessId,
+            role_id: (role) ? role.id : null,
+            country_code: countryCode,
+            phone: phone,
+            name: name,
+            deleted: false,
+            invited_by: invitedByUserId
+        });
+    }
+
+    async fetchRoleInvitesFor(roleName, businessId = null, countryCode = null, phone = null) {
+        let role = await models.role.findOne({ where: { name: roleName } });
+        if(!role) {
+            return [];
+        }
+        
+        let whereClause = {
+            role_id: role.id,
+            deleted: false,
+            accepted: null
+        };
+        if(businessId) {
+            whereClause.business_id = businessId;
+        }
+        if(countryCode) {
+            whereClause.country_code = countryCode;
+        }
+        if(phone) {
+            whereClause.phone = phone;
+        }
+
+        return await models.business_user_role_invite.findAll({ where: whereClause, 
+            include: [ { model: models.business, as: "business" },
+                { model: models.user, as: "invitedBy" } ] });
+    }
+
+    async fetchAdminListForBusiness(business, isObj = false) {
+        let adminList = [];
+
+        if(!isObj) {
+            business = this.fetchBusinessById(business)
+        }
+
+        /** Add the owner to the list */
+        adminList.push({
+            name: business.user.name,
+            countryCode: business.user.country_code,
+            phone: business.user.phone,
+            owner: true,
+            invited: false,
+            inviteRefId: null
+        });
+
+        /** Fetch the admins */
+        let roleUsers = await this.fetchBusUserRoleByRoleForBusiness("business_admin", business.id);
+        for(let roleUser of roleUsers) {
+            adminList.push({
+                name: roleUser.user.name,
+                countryCode: roleUser.user.country_code,
+                phone: roleUser.user.phone,
+                owner: false,
+                invited: false,
+                inviteRefId: null
+            });
+        }
+
+        /** Fetch the invited numbers */
+        let roleInvites = await this.fetchRoleInvitesFor("business_admin", business.id);
+
+        for(let roleInvite of roleInvites) {
+            adminList.push({
+                name: roleInvite.name,
+                countryCode: roleInvite.country_code,
+                phone: roleInvite.phone,
+                owner: false,
+                invited: true,
+                inviteRefId: roleInvite.reference_id
+            });
+        }
+
+        return adminList;
+    }
+
+    async fetchBusUserRoleByRoleForBusiness(roleName, businessId = null, userId = null) {
+        let role = await models.role.findOne({ where: { name: roleName } });
+        if(!role) {
+            return [];
+        }
+        let whereClause = {
+            role_id: role.id,
+            deleted: false
+        }
+        if(businessId) {
+            whereClause.business_id = businessId;
+        }
+        if(userId) {
+            whereClause.user_id = userId;
+        }
+
+        return await models.business_user_role.findAll({ where: whereClause, include: [ { model: models.user, as: "user" },
+            { model: models.business, as: "business" } ] });
+    }
+
+    async fetchBusinessRoleInviteById(id, isRef = false) {
+        let whereClause = {};
+        if(isRef) {
+            whereClause = { reference_id: id };
+        } else {
+            whereClause = { id: id };
+        }
+        return await models.business_user_role_invite.findOne({ where: whereClause, 
+            include: [ { model: models.role, as: "role" },
+                { model: models.business, as: "business" } ] });
+    }
+
 }

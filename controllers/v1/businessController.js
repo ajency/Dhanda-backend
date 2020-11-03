@@ -93,5 +93,98 @@ module.exports = {
             await logger.error("Exception in fetch business api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
+
+    },
+
+    inviteAdmin: async (req, res) => {
+        try {
+            /** Validate Request */
+            let requestValid = helperService.validateRequiredRequestParams(req.body, 
+               [ "name", "countryCode", "phone" ]);
+            if(!requestValid) {
+                await logger.info("Invite admin api - missing params.");
+                return res.status(200).send({ code: "error", message: "missing_params" });
+            }
+
+            /** Fetch the business by the reference id */
+            let { businessRefId } = req.params;
+            let business = await businessService.fetchBusinessById(businessRefId, true);
+
+            if(business === null) {
+                await logger.info("Invite admin api - business not found: " + businessRefId);
+                return res.status(200).send({ code: "error", message: "business_not_found" });
+            }
+
+            let { countryCode, phone, name } = req.body;
+
+            /** Fetch the staff */
+            let user = await userService.fetchUserAndBusinessAdminByPhone(countryCode, phone);
+
+            if(user) {
+                if(user.businesses.length > 0) {
+                    await logger.info("Invite admin api - user already an owner of a business. user: " + countryCode + " " + phone);
+                    return res.status(200).send({ code: "error", message: "user_already_owner" });
+                }
+                if(user.businessUserRoles.length > 0) {
+                    await logger.info("Invite admin api - user already an admin of a business. user: " + countryCode + " " + phone);
+                    return res.status(200).send({ code: "error", message: "user_already_admin" });
+                }
+            }
+
+            /** Check to see if this user is already invited to any business */
+            let userRoleInvites = await businessService.fetchRoleInvitesFor("business_admin", null, countryCode, phone);
+            if(userRoleInvites.length > 0) {
+                await logger.info("Invite admin api - user already invited to be an admin of a business. user: " + countryCode + " " + phone);
+                return res.status(200).send({ code: "error", message: "user_already_invited" });
+            }
+
+            /** Create an entry in the invite table */
+            await businessService.createRoleInviteForUser(business.id, "business_admin", countryCode, phone, name, req.user);
+
+            /** Send an SMS (for now sending email) */
+            notificationService.sendEmailSES("You have been invited to a business!", "+" + countryCode + "-" 
+                    + phone + " <b>Download the app:</b> play.google.com/Dhandha-App",
+                defaults.getValue("email_default").from_email, defaults.getValue("email_default").to_email,
+                defaults.getValue("email_default").cc_email);
+
+            return res.status(200).send({ code: "success", message: "success" });
+        } catch(err) {
+            await logger.error("Exception in invite admin api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
+    },
+
+    adminInviteResponse: async (req, res) => {
+        try {
+            /** Validate Request */
+            let requestValid = helperService.validateRequiredRequestParams(req.query,
+               [ "response" ]);
+            if(!requestValid) {
+                await logger.info("Respond to invite api - missing params.");
+                return res.status(200).send({ code: "error", message: "missing_params" });
+            }
+
+            /** Fetch the invite */
+            let invite = await businessService.fetchBusinessRoleInviteById(req.params.inviteRefId, true);
+            if(!invite) {
+                await logger.info("Respond to invite api - invite not found.");
+                return res.status(200).send({ code: "error", message: "invite_not_found" });
+            }
+
+            /** Update the invite details */
+            // if(response) {
+
+            // } else {
+
+            // }
+
+            let data = {};
+  
+            return res.status(200).send({ code: "success", message: "success", data: data });
+        } catch(err) {
+            await logger.error("Exception in respond to invite api api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
+
     }
 }

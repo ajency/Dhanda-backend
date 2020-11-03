@@ -3,6 +3,7 @@ const path = require('path');
 const cron = require('node-cron');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 const logger = require("simple-node-logger").createSimpleLogger({ timestampFormat:'YYYY-MM-DD HH:mm:ss.SSS' });
+const morganBody = require("morgan-body");
 
 /** Controllers */
 const cronController = require("./controllers/v1/cronController");
@@ -13,9 +14,13 @@ if(process.env.TLS_CHECK != 0){
 
 /** Initialize Express */
 const express = require("express");
-const attendanceController = require('./controllers/v1/attendanceController');
 const app = express();
 app.use(express.json());
+
+/** Log the request response in dev env */
+if(process.env.NODE_ENV === "development") {
+	morganBody(app)
+}
 
 /** Routes */
 app.use("/api", require("./api"));
