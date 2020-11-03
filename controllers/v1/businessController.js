@@ -167,7 +167,21 @@ module.exports = {
                 await logger.info("Respond to invite api - missing params.");
                 return res.status(200).send({ code: "error", message: "missing_params" });
             }
-  
+
+            /** Fetch the invite */
+            let invite = await businessService.fetchBusinessRoleInviteById(req.params.inviteRefId, true);
+            if(!invite) {
+                await logger.info("Respond to invite api - invite not found.");
+                return res.status(200).send({ code: "error", message: "invite_not_found" });
+            }
+
+            /** Update the invite details */
+            // if(response) {
+
+            // } else {
+
+            // }
+
             let data = {};
   
             return res.status(200).send({ code: "success", message: "success", data: data });
@@ -175,7 +189,6 @@ module.exports = {
             await logger.error("Exception in respond to invite api api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
-    }
- 
+
     }
 }

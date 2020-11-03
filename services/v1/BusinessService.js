@@ -198,4 +198,17 @@ module.exports = class BusinessService {
         return await models.business_user_role.findAll({ where: whereClause, include: [ { model: models.user, as: "user" },
             { model: models.business, as: "business" } ] });
     }
+
+    async fetchBusinessRoleInviteById(id, isRef = false) {
+        let whereClause = {};
+        if(isRef) {
+            whereClause = { reference_id: id };
+        } else {
+            whereClause = { id: id };
+        }
+        return await models.business_user_role_invite.findOne({ where: whereClause, 
+            include: [ { model: models.role, as: "role" },
+                { model: models.business, as: "business" } ] });
+    }
+
 }
