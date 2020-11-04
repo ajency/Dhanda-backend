@@ -27,7 +27,8 @@ module.exports = (sequelize, DataTypes) => {
     salary_month_txid: DataTypes.INTEGER,
     shift_hours: DataTypes.TIME,
     timezone: DataTypes.STRING,
-    country_code: DataTypes.STRING
+    country_code: DataTypes.STRING,
+    country: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'business',
