@@ -137,6 +137,11 @@ module.exports = {
                         defaultPunchIn: defaultPunchInMap.has(staff.id) ? defaultPunchInMap.get(staff.id) : null
                     }
                 } else {
+                    if(staff.salaryType.value === "hourly") {
+                        absentTotal += 1;
+                    } else {
+                        presentTotal += 1;
+                    }
                     staffRes = {
                         refId: staff.reference_id,
                         name: staff.name,
