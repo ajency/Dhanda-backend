@@ -91,6 +91,8 @@ module.exports = {
                             hours =  durationHours.slice(-2) + ":" + durationMinutes.slice(-2) + ":" + durationSeconds.slice(-2);
                             /** Update present total if hourly staff has both start time and end time */
                             presentTotal += 1;
+                        } else {
+                            absentTotal += 1;
                         }
                     } else if(staff.salaryType.value !== "work_basis") {
                         if(att.dayStatus && att.dayStatus.value === "half_day") {
