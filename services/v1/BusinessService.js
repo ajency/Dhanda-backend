@@ -68,7 +68,8 @@ module.exports = class BusinessService {
             salary_month_txid: salaryMonthTaxonomy.id,
             shift_hours: businessObj.shiftHours ? businessObj.shiftHours : null,
             timezone: businessObj.timezone,
-            country_code: businessObj.countryCode
+            country_code: businessObj.countryCode,
+            country: businessObj.country
         }
         return await models.business.update(saveBusinessObj, { where: { reference_id: refId } });
     }
