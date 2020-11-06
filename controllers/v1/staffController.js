@@ -81,7 +81,9 @@ module.exports = {
                 }
 
                 /** Update the curent balance */
-                await staffIncomeMetaService.updateLatestStaffIncomeMeta(updateCount[1][0].id, "current_balance", currentBalanceType, pendingAmount);
+                if(currentBalanceType !== "no_dues") {
+                    await staffIncomeMetaService.updateOrCreateLatestStaffIncomeMeta(updateCount[1][0].id, "current_balance", currentBalanceType, pendingAmount);
+                }
                 return res.status(200).send({ code: "success", message: "success" });
             }
         } catch(err) {

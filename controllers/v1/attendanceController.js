@@ -125,7 +125,7 @@ module.exports = {
                     staffRes = {
                         refId: staff.reference_id,
                         name: staff.name,
-                        hours: hours,
+                        hours: hours ? hours : "",
                         overtime: att.overtime ? att.overtime : "",
                         overtimePay: att.overtime_pay ? att.overtime_pay : "",
                         lateFineHours: att.late_fine_hours ? att.late_fine_hours : "",
@@ -229,7 +229,7 @@ module.exports = {
             let data = {
                 refId: staff.reference_id,
                 name: staff.name,
-                hours: hours,
+                hours: hours ? hours : "",
                 overtime: attendanceRecord.overtime ? attendanceRecord.overtime : "",
                 overtimePay: attendanceRecord.overtime_pay ? attendanceRecord.overtime_pay : "",
                 lateFineHours: attendanceRecord.late_fine_hours ? attendanceRecord.late_fine_hours : "",
@@ -297,7 +297,7 @@ module.exports = {
             let data = {
                 refId: staff.reference_id,
                 name: staff.name,
-                hours: hours,
+                hours: hours ? hours : "",
                 overtime: attendanceRecord.overtime ? attendanceRecord.overtime : "",
                 overtimePay: attendanceRecord.overtime_pay ? attendanceRecord.overtime_pay : "",
                 lateFineHours: attendanceRecord.late_fine_hours ? attendanceRecord.late_fine_hours : "",
@@ -365,7 +365,7 @@ module.exports = {
             let data = {
                 refId: staff.reference_id,
                 name: staff.name,
-                hours: hours,
+                hours: hours ? hours : "",
                 overtime: attendanceRecord.overtime ? attendanceRecord.overtime : "",
                 overtimePay: attendanceRecord.overtime_pay ? attendanceRecord.overtime_pay : "",
                 lateFineHours: attendanceRecord.late_fine_hours ? attendanceRecord.late_fine_hours : "",
@@ -432,7 +432,7 @@ module.exports = {
             let data = {
                 refId: staff.reference_id,
                 name: staff.name,
-                hours: hours,
+                hours: hours ? hours : "",
                 overtime: attendanceRecord.overtime ? attendanceRecord.overtime : "",
                 overtimePay: attendanceRecord.overtime_pay ? attendanceRecord.overtime_pay : "",
                 lateFineHours: attendanceRecord.late_fine_hours ? attendanceRecord.late_fine_hours : "",

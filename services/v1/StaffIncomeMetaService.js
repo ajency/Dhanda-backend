@@ -18,7 +18,7 @@ module.exports = class StaffIncomeMeta {
             }
         }
 
-        return models.staff_income_meta.create({
+        return await models.staff_income_meta.create({
             staff_id: staffId,
             income_type_txid: incomeTypeTxId,
             income_sub_type_txid: incomeSubTypeTxId,
@@ -28,7 +28,7 @@ module.exports = class StaffIncomeMeta {
         });
     }
     
-    async updateLatestStaffIncomeMeta(staffId, incomeTypeSlug, incomeSubTypeSlug, amount, description = null) {
+    async updateOrCreateLatestStaffIncomeMeta(staffId, incomeTypeSlug, incomeSubTypeSlug, amount, description = null) {
         let incomeTypeTxId = null, incomeSubTypeTxId = null;
         if(incomeTypeSlug) {
             let incomeTypeTx = await taxonomyService.findTaxonomy("income_type", incomeTypeSlug);
@@ -48,11 +48,15 @@ module.exports = class StaffIncomeMeta {
             { staff_id: staffId, income_type_txid: incomeTypeTxId },
             order: [ ['date', 'DESC'] ] });
 
-        return models.staff_income_meta.update({
-            income_sub_type_txid: incomeSubTypeTxId,
-            amount: amount,
-            description: description
-        }, { where: { id: latestStaffIncomeMeta.id }});
+        if(latestStaffIncomeMeta) {
+            return await models.staff_income_meta.update({
+                income_sub_type_txid: incomeSubTypeTxId,
+                amount: amount,
+                description: description
+            }, { where: { id: latestStaffIncomeMeta.id }});
+        } else {
+            return await this.createStaffIncomeMeta(staffId, incomeTypeSlug, incomeTypeSlug, amount, description);
+        }
     }
 
     /** To be used when there is only one entry for (incomeType, staffId) combination in staff income meta */
