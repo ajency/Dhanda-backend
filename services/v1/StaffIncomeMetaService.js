@@ -55,7 +55,7 @@ module.exports = class StaffIncomeMeta {
                 description: description
             }, { where: { id: latestStaffIncomeMeta.id }});
         } else {
-            return await this.createStaffIncomeMeta(staffId, incomeTypeSlug, incomeTypeSlug, amount, description);
+            return await this.createStaffIncomeMeta(staffId, incomeTypeSlug, incomeSubTypeSlug, amount, description);
         }
     }
 
