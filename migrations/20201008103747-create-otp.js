@@ -1,27 +1,32 @@
 'use strict';
 module.exports = {
-  up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('auth_tokens', {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.createTable('otps', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      user_id: {
+      country_code: {
         type: Sequelize.INTEGER
       },
-      token_id: {
+      phone: {
         type: Sequelize.STRING
       },
-      type: {
+      otp: {
         type: Sequelize.STRING
+      },
+      attempts: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
       },
       invalid: {
-        type: Sequelize.BOOLEAN
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
       },
-      valid_till: {
-        type: Sequelize.DATE
+      otp_type: {
+        type: Sequelize.STRING
       },
       created_at: {
         allowNull: false,
@@ -33,7 +38,7 @@ module.exports = {
       }
     });
   },
-  down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('auth_tokens');
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable('otps');
   }
 };
