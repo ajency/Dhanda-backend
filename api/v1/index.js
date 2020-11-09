@@ -48,6 +48,6 @@ router.get("/staff", passport.authenticate('jwt', { session: false }), staffCont
 router.get("/taxonomy", passport.authenticate('jwt', { session: false }), defaultController.fetchTaxonomyValues);
 
 /** Crons */
-router.get("/cron/populateDailyAttendance", cronController.populateDailyAttendance);
+router.get("/cron/populateDailyAttendanceAndPayroll", cronController.populateDailyAttendanceAndPayroll);
 
 module.exports = router;

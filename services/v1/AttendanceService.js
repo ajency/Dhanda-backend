@@ -2,6 +2,7 @@ const logger = require("simple-node-logger").createSimpleLogger({ timestampForma
 const models = require("../../models");
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
+const moment = require("moment");
 const ormService = new (require("../OrmService"));
 const taxonomyService = new (require("../../services/v1/TaxonomyService"));
 const businessService = new (require("../../services/v1/BusinessService"));
@@ -10,6 +11,12 @@ const staffService = new (require("../../services/v1/StaffService"));
 module.exports = class AttendanceService {
     async fetchAttendanceByStaffIdsAndDate(staffIds, date) {
         return await models.attendance.findAll({ where: { staff_id: { [Op.in]: staffIds }, date: date },
+            include: [ { model: models.taxonomy, as: "dayStatus" } ] });
+    }
+
+    async fetchAttendanceByStaffIdsForPeriod(staffIds, startDate, endDate) {
+        return await models.attendance.findAll({ where: { staff_id: { [Op.in]: staffIds }, date: { [Op.between]: startDate, endDate } },
+            order: [ [ "staff_id", "asc" ], [ "date", "asc" ] ],
             include: [ { model: models.taxonomy, as: "dayStatus" } ] });
     }
 
@@ -169,5 +176,93 @@ module.exports = class AttendanceService {
             },
             order: [ [ "date", "desc" ] ]
         });
+    }
+
+    async updateStaffPayrollFor(business, date, businessIsId = false) {
+        /** Fetch the business obj */
+        if(businessIsId) {
+            business = await businessService.fetchBusinessById(business);
+        }
+        
+        /** Fetch all the staff members */
+        let staffMembers = await staffService.fetchStaffForBusinessId(business.id);
+        let monthlyStaffIds = [];
+        let weeklyStaffIds = [];
+        let allStaffIds = staffMembers.map((s) => { 
+            if(s.salaryType) {
+                if(s.salaryType.value === "weekly") {
+                    weeklyStaffIds.push(s.id);
+                } else {
+                    monthlyStaffIds.push(s.id);
+                }
+            }
+            return s.id
+        });
+
+        /** Compute the monthly and weekly period start and end dates */
+        let dateObj = moment(date);
+        let monthlyStartDate = dateObj.startOf("month").format("YYYY-MM-DD");
+        let monthlyEndDate = dateObj.endOf("month").format("YYYY-MM-DD");
+        let weeklyStartDate = dateObj.startOf("week").add(1, "days").format("YYYY-MM-DD");
+        let weeklyEndDate = dateObj.endOf("week").add(1, "days").format("YYYY-MM-DD");
+
+        /** Fetch the staff attendance for the monthly staff in one query */
+        let monthlyStaffAttMap = new Map();
+        let monthlyStaffAtt = await this.fetchAttendanceByStaffIdsForPeriod(monthlyStaffIds, monthlyStartDate, monthlyEndDate);
+        for(let att of monthlyStaffAtt) {
+            let attArr = [];
+            if(monthlyStaffAttMap.has(att.staff_id)) {
+                attArr = monthlyStaffAttMap.get(att.staff_id);
+            }
+            attArr.push(att);
+            monthlyStaffAttMap.set(att.staff_id, attArr);
+        }
+
+        /** Fetch the staff attendance for the weekly staff in one query */
+        let weeklyStaffAttMap = new Map();
+        let weeklyStaffAtt = await this.fetchAttendanceByStaffIdsForPeriod(weeklyStaffIds, weeklyStartDate, weeklyEndDate);
+        for(let att of weeklyStaffAtt) {
+            let attArr = [];
+            if(weeklyStaffAttMap.has(att.staff_id)) {
+                attArr = weeklyStaffAttMap.get(att.staff_id);
+            }
+            attArr.push(att);
+            weeklyStaffAttMap.set(att.staff_id, attArr);
+        }
+
+        /** Loop through each staff member and calculate the attendance */
+        for(let staff of staffMembers) {
+            if(staff.salaryType && staff.salaryType.value === "weekly") {
+                this.createOrUpdateStaffPayroll(staff, "weekly", weeklyStartDate, weeklyEndDate, weeklyStaffAttMap.get(staff.id));
+            } else {
+                this.createOrUpdateStaffPayroll(staff, "monthly", monthlyStartDate, monthlyEndDate, monthlyStaffAttMap.get(staff.id));
+            }
+        }
+    }
+
+    async createOrUpdateStaffPayroll(staff, periodType, periodStart, periodEnd, periodAttendance = null, staffIsId = false) {
+        if(staffIsId) {
+            staff = await staffService.fetchStaff(staff, false);
+        }
+
+        // todo: remove this test code
+        await models.staff_salary_period.create({
+            business_id: staff.business_id,
+            staff_id: staff.id,
+            period_type: periodType,
+            period_start: periodStart,
+            period_end: periodEnd,
+            period_status: "in_progress",
+            locked: false,
+            total_present: 10,
+            total_paid_leave: 10,
+            total_half_day: 10,
+            total_absent: 10,
+            present_salary: 10000,
+            paid_leave_salary: 10000,
+            half_day_salary: 10000,
+            total_salary: 10000,
+        });
+
     }
 }
