@@ -13,6 +13,7 @@ module.exports = {
             /** Validate Request */
             let requestValid = helperService.validateRequiredRequestParams(req.query, [ "type" ]);
             if(!requestValid) {
+                await logger.info("Fetch taxonomy values - missing params");
                 return res.status(200).send({ code: "error", message: "missing_params" });
             }
 
@@ -20,6 +21,7 @@ module.exports = {
             let taxonomies = await taxonomyService.fetchTaxonomyForType(req.query.type, true);
 
             if(taxonomies.length === 0) {
+                await logger.info("Fetch taxonomy values - taxonomies not found for: " + req.query.type);
                 return res.status(200).send({ code: "error", message: "taxonomy_not_found" });
             }
 

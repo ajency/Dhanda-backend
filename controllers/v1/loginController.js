@@ -14,6 +14,7 @@ module.exports = {
             /** Check if max tries have been exceeded */
             let canGenerateOtp = await otpService.canGenerateOtp(otpCount);
             if(!canGenerateOtp) {
+                await logger.info("Send otp - otp limit reached");
                 return res.status(200).send({ code: "error", message: "otp_limit_reached" });
             }
 
@@ -49,21 +50,31 @@ module.exports = {
             let { otp, otpMsgCode, otpObj } = await otpService.getLastValidOtpAndCount(countryCode, phone, "login");
 
             if(otp === null) {
-                if(otpMsgCode === "no_otp")
+                if(otpMsgCode === "no_otp") {
+                    await logger.info("Verify otp - generate otp");
                     return res.status(200).send({ code: "error", message: "generate_otp" });
-                else if(otpMsgCode === "otp_expired")
+                }
+                else if(otpMsgCode === "otp_expired") {
+                    await logger.info("Verify otp - otp expired");
                     return res.status(200).send({ code: "error", message: "otp_expired" });
-                else if(otpMsgCode === "otp_invalid")
+                }
+                else if(otpMsgCode === "otp_invalid") {
+                    await logger.info("Verify otp - invalid otp");
                     return res.status(200).send({ code: "error", message: "otp_invalid" });
+                }
             }
 
             /** Verify the otp */
             let { verified, verifyMsgCode } = await otpService.verfyOtp(enteredOtp, otpObj, otp);
             if(!verified) {
-                if(verifyMsgCode === "max_attempts")
+                if(verifyMsgCode === "max_attempts") {
+                    await logger.info("Verify otp - max attempts for otp done");
                     return res.status(200).send({ code: "error", message: "max_attempts" });
-                else if(verifyMsgCode === "incorrect_otp")
+                }
+                else if(verifyMsgCode === "incorrect_otp") {
+                    await logger.info("Verify otp - incorrect otp");
                     return res.status(200).send({ code: "error", message: "incorrect_otp" });
+                }
             }
 
             /** Check if the user exists */
@@ -72,10 +83,10 @@ module.exports = {
             /** Create a new user if not present */
             if(user === null) {
                 user = await userService.createUser(countryCode, phone, lang);
-                code = "business_details";
-            } else {
-                code = "home";
-            }
+                // code = "business_details";
+            } /*else {
+                // code = "home";
+            }*/
 
             /** Generate access token */
             let token = await authService.generateTokenForUser(user, true);
@@ -84,6 +95,12 @@ module.exports = {
                 token: token,
                 lang: user.lang
             };
+
+            let postLoginObj = await userService.fetchPostLoginCodeForUserByToken("Bearer " + token);
+            let code = postLoginObj.code;
+            if(postLoginObj.hasOwnProperty("data")) {
+                data = { ...data, ...postLoginObj.data }
+            }
 
             return res.status(200).send({ code: code, message: "success", data: data });
         } catch(err) {

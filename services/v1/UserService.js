@@ -1,6 +1,7 @@
 const models = require("../../models");
 const helperService = new (require("../HelperService"));
 const jwt = require("jsonwebtoken");
+const logger = require("simple-node-logger").createSimpleLogger({ timestampFormat:'YYYY-MM-DD HH:mm:ss.SSS' });
 
 module.exports = class UserService {
     async fetchUserByPhone(countryCode, phone) {
@@ -56,13 +57,29 @@ module.exports = class UserService {
             }
 
             /** Check if the default business has staff added to it */
+            let defaultBusiness = null;
             for(let business of user.businesses) {
+                if(business.default) {
+                    defaultBusiness = business;
+                }
                 if(business.default && business.staffs.length === 0) {
-                    return { code: "add_staff", data: { businessRefId: business.reference_id } };
+                    return { code: "add_staff", data: { 
+                        businessRefId: business.reference_id,
+                        businessName: business.name,
+                        currency: business.currency,
+                        countryCode: business.country_code,
+                        shiftHours: business.shift_hours
+                    } };
                 }
             }
 
-            return { code: "home" };
+            return { code: "home", data: { 
+                businessRefId: defaultBusiness.reference_id,
+                businessName: defaultBusiness.name,
+                currency: defaultBusiness.currency,
+                countryCode: defaultBusiness.country_code,
+                shiftHours: defaultBusiness.shift_hours
+            } };
         } catch(err) {
             await logger.info("Error while finding post login code by token: ", err); // for debugging in the future
             return { code: "login" };

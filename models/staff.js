@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       this.belongsTo(models.business, { foreignKey: "business_id" });
       this.belongsTo(models.user, { foreignKey: "user_id" });
-      this.belongsTo(models.taxonomy, { foreignKey: "salary_type_txid" });
+      this.belongsTo(models.taxonomy, { foreignKey: "salary_type_txid", as: "salaryType" });
     }
   };
   staff.init({

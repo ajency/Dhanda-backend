@@ -15,4 +15,11 @@ module.exports = class TaxonomyService {
     async findTaxonomy(type, value) {
         return await models.taxonomy.findOne({ where: { type: type, value: value } });
     }
+
+    async findTaxonomyById(id) {
+        if(!id) {
+            return null;
+        }
+        return await models.taxonomy.findOne({ where: { id: id } });
+    }
 }

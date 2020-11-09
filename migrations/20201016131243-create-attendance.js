@@ -1,7 +1,7 @@
 'use strict';
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('staff_income_meta', {
+    await queryInterface.createTable('attendances', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -15,14 +15,7 @@ module.exports = {
           key: "id"
         }
       },
-      income_type_txid: {
-        type: Sequelize.INTEGER,
-        references: {
-          model: "taxonomies",
-          key: "id"
-        }
-      },
-      income_sub_type_txid: {
+      day_status_txid: {
         type: Sequelize.INTEGER,
         references: {
           model: "taxonomies",
@@ -32,11 +25,36 @@ module.exports = {
       date: {
         type: Sequelize.DATEONLY
       },
-      amount: {
+      punch_in_time: {
+        type: Sequelize.TIME
+      },
+      punch_out_time: {
+        type: Sequelize.TIME
+      },
+      overtime: {
+        type: Sequelize.TIME
+      },
+      overtime_pay: {
         type: Sequelize.DECIMAL
       },
-      description: {
-        type: Sequelize.TEXT
+      late_fine_hours: {
+        type: Sequelize.TIME
+      },
+      late_fine_amount: {
+        type: Sequelize.DECIMAL
+      },
+      meta: {
+        type: Sequelize.JSON
+      },
+      updated_by: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: "users",
+          key: "id"
+        }
+      },
+      source: {
+        type: Sequelize.STRING
       },
       created_at: {
         allowNull: false,
@@ -49,6 +67,6 @@ module.exports = {
     });
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('staff_income_meta');
+    await queryInterface.dropTable('attendances');
   }
 };
