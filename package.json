@@ -4,7 +4,6 @@
   "description": "",
   "main": "app.js",
   "dependencies": {
-    "aws-sdk": "^2.769.0",
     "axios": "^0.20.0",
     "base64url": "^3.0.1",
     "cryptr": "^6.0.2",
@@ -13,8 +12,6 @@
     "json-rules-engine": "^5.0.4",
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.29.1",
-    "morgan-body": "^2.5.2",
-    "node-cron": "^2.0.3",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "pg": "^8.4.0",

@@ -2,17 +2,17 @@ const jwt = require("jsonwebtoken");
 const models = require("../models");
 const b64 = require("base64url");
 const defaults = require("./defaults");
-const moment = require('moment');
-const logger = require("simple-node-logger").createSimpleLogger({ timestampFormat:'YYYY-MM-DD HH:mm:ss.SSS' });
+var moment = require('moment');
 
-module.exports = class AuthService {
+module.exports = {
     /**
      * Params:
      * user             can be an id or an object
+     * type             web, app
      * userIsObject     default false, should be sent as true if 'user' is
      *                  the user object
      */
-    async generateTokenForUser(user, userIsObject = false) {
+    generateTokenForUser: async (user, type, userIsObject = false) => {
         try {
             /** Fetch the user information */
             if(!userIsObject) {
@@ -24,15 +24,19 @@ module.exports = class AuthService {
             const payload  = {
                 refId: user.get("reference_id")
             }
-            const token = jwt.sign({user: payload}, process.env.JWT_SECRET);
+            const token = jwt.sign({user: payload}, "admin123");
 
             /** Update the token into the DB */
-            let validTill = moment().add(defaults.getValue('token_expiry_mins'), "minutes").format("YYYY/MM/DD HH:mm:ss");
-
+            let validTill = moment().format("YYYY/MM/DD HH:mm:ss");
+            if(type === "app") {
+                validTill = moment().add(defaults.getValue('appTokenExpiry'), "minutes").format("YYYY/MM/DD HH:mm:ss");
+            } else {
+                validTill = moment().add(defaults.getValue('webTokenExpiry'), "minutes").format("YYYY/MM/DD HH:mm:ss");
+            }
             let userAuthToken = {
-                token_id: b64.encode(JSON.stringify(jwt.verify(token, process.env.JWT_SECRET))),
+                token_id: b64.encode(JSON.stringify(jwt.verify(token, "admin123"))),
                 user_id: user.get("id"),
-                type: "app",
+                type: type,
                 invalid: false,
                 valid_till: validTill
             };
@@ -40,7 +44,7 @@ module.exports = class AuthService {
 
             return token;
         } catch(e) {
-            await logger.info("Error while generating token: ", e);
+            console.log("Error while generating token:", e);
             return null;
         }
     }

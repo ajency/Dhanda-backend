@@ -8,20 +8,20 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      type: {
+      data_type: {
         type: Sequelize.STRING
       },
-      value: {
+      data_value: {
         type: Sequelize.STRING
       },
-      meta: {
-        type: Sequelize.JSON
+      meta_data: {
+        type: Sequelize.TEXT
       },
-      created_at: {
+      createdAt: {
         allowNull: false,
         type: Sequelize.DATE
       },
-      updated_at: {
+      updatedAt: {
         allowNull: false,
         type: Sequelize.DATE
       }
