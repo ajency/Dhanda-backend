@@ -1,27 +1,24 @@
 'use strict';
 module.exports = {
-  up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('auth_tokens', {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.createTable('taxonomies', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      user_id: {
-        type: Sequelize.INTEGER
-      },
-      token_id: {
-        type: Sequelize.STRING
-      },
       type: {
         type: Sequelize.STRING
       },
-      invalid: {
-        type: Sequelize.BOOLEAN
+      value: {
+        type: Sequelize.STRING
       },
-      valid_till: {
-        type: Sequelize.DATE
+      default_label: {
+        type: Sequelize.STRING
+      },
+      active: {
+        type: Sequelize.BOOLEAN
       },
       created_at: {
         allowNull: false,
@@ -33,7 +30,7 @@ module.exports = {
       }
     });
   },
-  down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('auth_tokens');
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable('taxonomies');
   }
 };

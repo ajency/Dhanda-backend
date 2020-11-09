@@ -1,0 +1,30 @@
+{
+    "development": {
+        "otp": {
+            "length": 4,
+            "expiry_sec": 300,
+            "max_allowed": 1000,
+            "max_attempts": 3
+        },
+        "email_default": {
+            "from_email": "dhandhaapp@ajency.in",
+            "to_email": [ "dhandhaapp@ajency.in" ],
+            "cc_email": []
+        },
+        "token_expiry_mins": 43200
+    },
+    "production": {
+        "otp": {
+            "length": 4,
+            "expiry_sec": 300,
+            "max_allowed": 5,
+            "max_attempts": 3
+        },
+        "email_default": {
+            "from_email": "",
+            "to_email": [],
+            "cc_email": []
+        },
+        "token_expiry_mins": 43200
+    }
+  }
