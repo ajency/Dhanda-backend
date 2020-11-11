@@ -22,6 +22,13 @@ module.exports = {
           key: "id"
         }
       },
+      staff_salary_type_txid: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: "taxonomies",
+          key: "id"
+        }
+      },
       period_type: {
         type: Sequelize.STRING
       },
@@ -30,6 +37,9 @@ module.exports = {
       },
       period_end: {
         type: Sequelize.DATEONLY
+      },
+      period_salary: {
+        type: Sequelize.DECIMAL
       },
       period_status: {
         type: Sequelize.STRING
@@ -49,6 +59,9 @@ module.exports = {
       total_absent: {
         type: Sequelize.INTEGER
       },
+      total_hours: {
+        type: Sequelize.STRING
+      },
       present_salary: {
         type: Sequelize.DECIMAL
       },
@@ -56,6 +69,9 @@ module.exports = {
         type: Sequelize.DECIMAL
       },
       half_day_salary: {
+        type: Sequelize.DECIMAL
+      },
+      total_hourly_salary: {
         type: Sequelize.DECIMAL
       },
       total_salary: {
