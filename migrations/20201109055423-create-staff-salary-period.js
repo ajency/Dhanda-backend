@@ -71,7 +71,7 @@ module.exports = {
       half_day_salary: {
         type: Sequelize.DECIMAL
       },
-      total_hourly_salary: {
+      total_hour_salary: {
         type: Sequelize.DECIMAL
       },
       total_salary: {
