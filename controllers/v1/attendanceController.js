@@ -5,6 +5,7 @@ const staffService = new (require("../../services/v1/StaffService"));
 const attendanceService = new (require("../../services/v1/AttendanceService"));
 const helperService = new (require("../../services/HelperService"));
 const taxonomyService = new (require("../../services/v1/TaxonomyService"));
+const awsService = new (require("../../services/AwsService"));
 
 module.exports = {
     fetchBusinessStaffAttendance: async (req, res) => {
@@ -210,6 +211,10 @@ module.exports = {
 
             /** Populate the data object */
             let attendanceRecord = await attendanceService.createOrUpdateAttendance(staff.id, date, params);
+            
+            /** Put a job in update salary queue */
+            awsService.addUpdateSalaryJob({ staffId: staffId, date: date });
+            
             let hours = "";
             if(staff.salaryType.value === "hourly") {
                 if(attendanceRecord.punch_in_time && attendanceRecord.punch_out_time) {
@@ -278,6 +283,10 @@ module.exports = {
 
             /** Populate the data object */
             let attendanceRecord = await attendanceService.createOrUpdateAttendance(staff.id, date, params);
+
+            /** Put a job in update salary queue */
+            awsService.addUpdateSalaryJob({ staffId: staffId, date: date });
+
             let hours = "";
             if(staff.salaryType.value === "hourly") {
                 if(attendanceRecord.punch_in_time && attendanceRecord.punch_out_time) {
@@ -346,6 +355,10 @@ module.exports = {
 
             /** Populate the data object */
             let attendanceRecord = await attendanceService.createOrUpdateAttendance(staff.id, date, params);
+
+            /** Put a job in update salary queue */
+            awsService.addUpdateSalaryJob({ staffId: staffId, date: date });
+
             let hours = "";
             if(staff.salaryType.value === "hourly") {
                 if(attendanceRecord.punch_in_time && attendanceRecord.punch_out_time) {
