@@ -6,6 +6,7 @@ const staffService = new (require("./v1/StaffService"));
 const attendanceService = new (require("./v1/AttendanceService"));
 const businessService = new (require("./v1/BusinessService"));
 const moment = require("moment");
+const models = require("../models");
 
 aws.config.update({
     region: awsConfig.credentials.region,
@@ -68,17 +69,23 @@ module.exports = class AwsService {
         try {
             let sqsConsumer = Consumer.create({
                 queueUrl: awsConfig.queue.updateSalary.queueUrl,
+                attributeNames: [ "ApproximateReceiveCount" ],
                 handleMessage: async (message) => {
                     await logger.info("Update Salary Comsumer :: Processing message: " + JSON.stringify(message));
 
-                    try {
-                        /** Verify all required params are there */
-                        let params = JSON.parse(message.Body);
-                        if(!params.staffId || !params.date) {
-                            // TODO: Save to failed queue
-                            return;
+                    let approximateReceiveCount = message.Attributes.ApproximateReceiveCount;
+
+                    /** Verify all required params are there */
+                    let params = JSON.parse(message.Body);
+                    if(!params.staffId || !params.date) {
+                        await this.saveFailedJob("update_salary", params);
+                        if(approximateReceiveCount < parseInt(awsConfig.queueMaxTries)) {
+                            throw new Error("Update salary failed, keeping job in queue.");
                         }
-                        
+                        return;
+                    }
+
+                    try {
                         /** Fetch the staff information */
                         let staff = await staffService.fetchStaff(params.staffId);
 
@@ -102,7 +109,9 @@ module.exports = class AwsService {
                         }
                     } catch(err) {
                         await logger.info("Update Salary Consumer :: Error in handleMessage: ", err);
-                        // TODO: Save to failed queue
+                        if(approximateReceiveCount < parseInt(awsConfig.queueMaxTries)) {
+                            throw new Error("Update salary failed, keeping job in queue.");
+                        }
                     }
 
                 },
@@ -114,11 +123,15 @@ module.exports = class AwsService {
             })
             sqsConsumer.on('processing_error', async (err) => {
                 await logger.info("Update salary processing error: ", err)
-                // TODO: Save to failed queue
             });
             return sqsConsumer;
         } catch(err) {
             await logger.info("Exception in update salary SQS consumer: ", err);
         }
+    }
+
+    async saveFailedJob(queue, payload) {
+        await logger.info("Adding job to failed_jobs for: " + queue);
+        await models.failed_jobs.create({ queue: queue, payload: payload });
     }
 }
