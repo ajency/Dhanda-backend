@@ -4,6 +4,7 @@ const cron = require('node-cron');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 const logger = require("simple-node-logger").createSimpleLogger({ timestampFormat:'YYYY-MM-DD HH:mm:ss.SSS' });
 const morganBody = require("morgan-body");
+const awsService = new (require("./services/AwsService"));
 
 /** Controllers */
 const cronController = require("./controllers/v1/cronController");
@@ -27,6 +28,11 @@ app.use("/api", require("./api"));
 app.use((req, res) => {
 	res.status(404).send("ERR: 404");
 });
+
+/** SQS Consumers */
+if(process.env.SQSENV && process.env.SQSENV != 'local'){
+	awsService.runSqsConsumers();
+}
 
 /** Cron */
 cron.schedule(" */30 * * * * ", async () => {

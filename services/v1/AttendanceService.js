@@ -240,9 +240,9 @@ module.exports = class AttendanceService {
         /** Loop through each staff member and calculate the attendance */
         for(let staff of staffMembers) {
             if(staff.salaryType && staff.salaryType.value === "weekly") {
-                this.createOrUpdateStaffPayroll(staff, "weekly", weeklyStartDate, weeklyEndDate, businessMonthDays, weeklyStaffAttMap.get(staff.id));
+                await this.createOrUpdateStaffPayroll(staff, "weekly", weeklyStartDate, weeklyEndDate, businessMonthDays, weeklyStaffAttMap.get(staff.id));
             } else {
-                this.createOrUpdateStaffPayroll(staff, "monthly", monthlyStartDate, monthlyEndDate, businessMonthDays, monthlyStaffAttMap.get(staff.id));
+                await this.createOrUpdateStaffPayroll(staff, "monthly", monthlyStartDate, monthlyEndDate, businessMonthDays, monthlyStaffAttMap.get(staff.id));
             }
         }
     }

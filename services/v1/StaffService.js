@@ -69,7 +69,7 @@ module.exports = class StaffService {
             ] });
         } else {
             return await models.staff.findOne({ where: { id: staffId }, include: [ 
-                { model: models.taxonomy },
+                { model: models.taxonomy, as: "salaryType" },
                 { model: models.business } 
             ] });
         }

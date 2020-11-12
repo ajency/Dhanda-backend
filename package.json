@@ -21,7 +21,8 @@
     "pg-hstore": "^2.3.3",
     "sequelize": "^6.3.5",
     "sequelize-cli": "^6.2.0",
-    "simple-node-logger": "^18.12.24"
+    "simple-node-logger": "^18.12.24",
+    "sqs-consumer": "^5.4.0"
   },
   "devDependencies": {},
   "scripts": {
