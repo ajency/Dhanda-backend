@@ -8,7 +8,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      queue_name: {
+      queue: {
         type: Sequelize.STRING
       },
       payload: {

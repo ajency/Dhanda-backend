@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   failed_jobs.init({
-    queue_name: DataTypes.STRING,
+    queue: DataTypes.STRING,
     payload: DataTypes.JSON
   }, {
     sequelize,
