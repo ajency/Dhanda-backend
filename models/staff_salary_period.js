@@ -34,6 +34,8 @@ module.exports = (sequelize, DataTypes) => {
     paid_leave_salary: DataTypes.DECIMAL,
     half_day_salary: DataTypes.DECIMAL,
     total_hour_salary: DataTypes.DECIMAL,
+    total_overtime_salary: DataTypes.DECIMAL,
+    total_late_fine_salary: DataTypes.DECIMAL,
     total_salary: DataTypes.DECIMAL,
     payslip_url: DataTypes.STRING
   }, {

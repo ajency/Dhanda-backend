@@ -4,9 +4,11 @@ const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 const moment = require("moment");
 const ormService = new (require("../OrmService"));
-const taxonomyService = new (require("../../services/v1/TaxonomyService"));
-const businessService = new (require("../../services/v1/BusinessService"));
-const staffService = new (require("../../services/v1/StaffService"));
+const taxonomyService = new (require("./TaxonomyService"));
+const businessService = new (require("./BusinessService"));
+const staffService = new (require("./StaffService"));
+const helperService = new (require("../HelperService"));
+const salaryPeriodService = new (require("./SalaryPeriodService"));
 
 module.exports = class AttendanceService {
     async fetchAttendanceByStaffIdsAndDate(staffIds, date) {
@@ -15,7 +17,7 @@ module.exports = class AttendanceService {
     }
 
     async fetchAttendanceByStaffIdsForPeriod(staffIds, startDate, endDate) {
-        return await models.attendance.findAll({ where: { staff_id: { [Op.in]: staffIds }, date: { [Op.between]: startDate, endDate } },
+        return await models.attendance.findAll({ where: { staff_id: { [Op.in]: staffIds }, date: { [Op.between]: [ startDate, endDate ] } },
             order: [ [ "staff_id", "asc" ], [ "date", "asc" ] ],
             include: [ { model: models.taxonomy, as: "dayStatus" } ] });
     }
@@ -200,11 +202,11 @@ module.exports = class AttendanceService {
         });
 
         /** Compute the monthly and weekly period start and end dates */
-        let dateObj = moment(date);
-        let monthlyStartDate = dateObj.startOf("month").format("YYYY-MM-DD");
-        let monthlyEndDate = dateObj.endOf("month").format("YYYY-MM-DD");
-        let weeklyStartDate = dateObj.startOf("week").add(1, "days").format("YYYY-MM-DD");
-        let weeklyEndDate = dateObj.endOf("week").add(1, "days").format("YYYY-MM-DD");
+        let dateObj = moment(date, "YYYY-MM-DD");
+        let monthlyStartDate = moment(dateObj).startOf("month").format("YYYY-MM-DD");
+        let monthlyEndDate = moment(dateObj).endOf("month").format("YYYY-MM-DD");
+        let weeklyStartDate = moment(dateObj).startOf("week").add(1, "days").format("YYYY-MM-DD");
+        let weeklyEndDate = moment(dateObj).endOf("week").add(1, "days").format("YYYY-MM-DD");
 
         /** Fetch the staff attendance for the monthly staff in one query */
         let monthlyStaffAttMap = new Map();
@@ -230,39 +232,151 @@ module.exports = class AttendanceService {
             weeklyStaffAttMap.set(att.staff_id, attArr);
         }
 
+        /** Calculate the business month days */
+        let businessMonthDays = 30;
+        if(business.taxonomy.value === "calendar_month") {
+            businessMonthDays = dateObj.daysInMonth();
+        }
         /** Loop through each staff member and calculate the attendance */
         for(let staff of staffMembers) {
             if(staff.salaryType && staff.salaryType.value === "weekly") {
-                this.createOrUpdateStaffPayroll(staff, "weekly", weeklyStartDate, weeklyEndDate, weeklyStaffAttMap.get(staff.id));
+                this.createOrUpdateStaffPayroll(staff, "weekly", weeklyStartDate, weeklyEndDate, businessMonthDays, weeklyStaffAttMap.get(staff.id));
             } else {
-                this.createOrUpdateStaffPayroll(staff, "monthly", monthlyStartDate, monthlyEndDate, monthlyStaffAttMap.get(staff.id));
+                this.createOrUpdateStaffPayroll(staff, "monthly", monthlyStartDate, monthlyEndDate, businessMonthDays, monthlyStaffAttMap.get(staff.id));
             }
         }
     }
 
-    async createOrUpdateStaffPayroll(staff, periodType, periodStart, periodEnd, periodAttendance = null, staffIsId = false) {
+    async createOrUpdateStaffPayroll(staff, periodType, periodStart, periodEnd, businessMonthDays = 30, periodAttendance = null, staffIsId = false) {
         if(staffIsId) {
             staff = await staffService.fetchStaff(staff, false);
         }
 
-        // todo: remove this test code
-        await models.staff_salary_period.create({
+        /** Fetch the attendance if not passed */
+        if(periodAttendance === null) {
+            periodAttendance = await this.fetchAttendanceByStaffIdsForPeriod([ staff.id ], periodStart, periodEnd);
+        }
+
+        /** Data to be added to the payroll */
+        let totalPresent = 0, totalAbsent = 0, totalHalfDay = 0, totalPaidLeave = 0, totalHoursInMinutes = 0;
+        let presentSalary = 0, halfDaySalary = 0, paidLeaveSalary = 0, totalHourSalary = 0, totalOvertimeSalary = 0, totalLateFineSalary = 0, totalSalary = 0;
+
+        /** Salary per day */
+        let perDaySalary = 0, perMinuteSalary = 0;
+        if(staff.salaryType) {
+            switch(staff.salaryType.value) {
+                case "monthly":
+                    perDaySalary = staff.salary / businessMonthDays;
+                    perMinuteSalary = perDaySalary / (helperService.convertHoursStringToMinutes(staff.daily_shift_duration));
+                    break;
+                case "weekly":
+                    perDaySalary = staff.salary / 7;
+                    perMinuteSalary = perDaySalary / (helperService.convertHoursStringToMinutes(staff.daily_shift_duration));
+                    break;
+                case "daily":
+                    perDaySalary = staff.salary;
+                    perMinuteSalary = perDaySalary / (helperService.convertHoursStringToMinutes(staff.daily_shift_duration));
+                    break;
+                case "hourly":
+                    perMinuteSalary = staff.salary / 60;
+                    break;
+            }
+        }
+
+
+        /** Loop through each day */
+        for(let att of periodAttendance) {
+            /** Day status counts */
+            if(att.dayStatus) {
+                switch(att.dayStatus.value) {
+                    case "present":
+                        totalPresent += 1;
+                        break;
+                    case "absent":
+                        totalAbsent += 1;
+                        break;
+                    case "half_day":
+                        totalHalfDay += 1;
+                        break;
+                    case "paid_leave":
+                        totalPaidLeave += 1;
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            /** TODO: Rule Engine check to see if the salary should be calculated */
+
+            /** ***************** */
+
+            /** Calculate the salary based on the attendance status */ 
+            if(staff.salaryType && staff.salaryType.value !== "hourly" && att.dayStatus) {
+                switch(att.dayStatus.value) {
+                    case "present":
+                        presentSalary += perDaySalary;
+                        break;
+                    case "half_day":
+                        halfDaySalary += perDaySalary / 2;
+                        break;
+                    case "paid_leave":
+                        paidLeaveSalary += perDaySalary;
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if(staff.salaryType && staff.salaryType.value === "hourly") {
+                if(att.punch_in_time && att.punch_out_time) {
+                    let minutes = moment(moment().format("YYYY-MM-DD ") + att.punch_out_time)
+                                        .diff(moment().format("YYYY-MM-DD ") + att.punch_in_time, 'minutes');
+                    totalHourSalary += minutes * perMinuteSalary;
+                    totalHoursInMinutes += minutes;
+                }
+            }
+
+            /** Add overtime if any */
+            if(att.overtime && att.overtime_pay) {
+                let overtimePayPerMinute = att.overtime_pay / 60;
+                let overtimeInMinutes = helperService.convertHoursStringToMinutes(att.overtime);
+                totalOvertimeSalary += overtimeInMinutes * overtimePayPerMinute;
+            }
+
+            /** Deduct late fine if any */
+            if(att.late_fine_amount) {
+                totalLateFineSalary -= att.late_fine_amount;
+            }
+            if(att.late_fine_hours) {
+                let lateFineMinutes = helperService.convertHoursStringToMinutes(att.late_fine_hours);
+                totalLateFineSalary -= lateFineMinutes * perMinuteSalary;
+            }
+        }
+
+        /** Calculate the total salary and hours */
+        totalSalary = presentSalary + halfDaySalary + paidLeaveSalary + totalHourSalary + totalOvertimeSalary + totalLateFineSalary;
+
+        /** Create of update the period salary */
+        await salaryPeriodService.createOrUpdateSalaryPeriod(staff.id, {
             business_id: staff.business_id,
             staff_id: staff.id,
+            staff_salary_type_txid: staff.salary_type_txid,
             period_type: periodType,
             period_start: periodStart,
             period_end: periodEnd,
-            period_status: "in_progress",
-            locked: false,
-            total_present: 10,
-            total_paid_leave: 10,
-            total_half_day: 10,
-            total_absent: 10,
-            present_salary: 10000,
-            paid_leave_salary: 10000,
-            half_day_salary: 10000,
-            total_salary: 10000,
+            period_salary: helperService.roundOff(staff.salary, 4),
+            total_present: totalPresent,
+            total_paid_leave: totalPaidLeave,
+            total_half_day: totalHalfDay,
+            total_absent: totalAbsent,
+            total_hours: helperService.convertMinutesToHoursString(totalHoursInMinutes),
+            present_salary: helperService.roundOff(presentSalary, 4),
+            paid_leave_salary: helperService.roundOff(paidLeaveSalary, 4),
+            half_day_salary: helperService.roundOff(halfDaySalary, 4),
+            total_hour_salary: helperService.roundOff(totalHourSalary, 4),
+            total_overtime_salary: helperService.roundOff(totalOvertimeSalary, 4),
+            total_late_fine_salary: helperService.roundOff(totalLateFineSalary, 4),
+            total_salary: helperService.roundOff(totalSalary, 4),
         });
-
     }
 }

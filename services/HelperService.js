@@ -9,14 +9,8 @@ const models = require("../models");
 
 module.exports = class HelperService {
     
-    roundedValueCalculate(number, fixed) {
-        if(fixed == 0) {
-            return Math.round(number + Number.EPSILON);
-        } else if(fixed == 2) {
-            return Math.round((number + Number.EPSILON) * 100) / 100;
-        } else {
-            return number;
-        }
+    roundOff(number, precision) {
+        return Math.round((number + Number.EPSILON) * Math.pow(10, precision)) / Math.pow(10, precision);
     }
 
     getOtp(n) {
@@ -79,10 +73,6 @@ module.exports = class HelperService {
         return sign+(otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ","))+lastThree+decimals;
     }
 
-    roundedValue(number, fixed) {
-        return roundedValueCalculate(number, fixed);
-    }
-
     validateRequiredRequestParams(req, requierdParams) {
         return requierdParams.every(key => Object.keys(req).includes(key));
     }
@@ -108,4 +98,24 @@ module.exports = class HelperService {
         return (("00" + Math.floor(seconds / (60 * 60))).slice(-2)) + ":" + (("00" + (Math.floor(seconds % (60 * 60) / 60))).slice(-2)) 
             + ":" + (("00" + (seconds % (60 * 60) % 60)).slice(-2));
     }
+
+    /**
+     * 
+     * @param {*} hoursString 45:00
+     */
+    convertHoursStringToMinutes(hoursString) {
+        if(!hoursString) {
+            return 0;
+        }
+        let explodedTime = hoursString.split(":");
+        return parseInt(explodedTime[0]) * 60 + parseInt(explodedTime[1]);
+    }
+
+    convertMinutesToHoursString(minutes) {
+        let hours = minutes % 60;
+        let min = Math.floor(minutes / 60);
+        return ("00" + hours).slice(-2) + ":" + ("00" + min).slice(-2);
+    }
+
+
 }

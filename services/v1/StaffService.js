@@ -78,6 +78,7 @@ module.exports = class StaffService {
     async fetchStaffForBusinessId(businessId) {
         return await models.staff.findAll({ where: { business_id: businessId },
             order: [ [ "name", "asc" ] ],
-            include: [ { model: models.taxonomy, as: "salaryType" } ] });
+            include: [ { model: models.taxonomy, as: "salaryType" },
+                { model: models.business } ] });
     }
 }

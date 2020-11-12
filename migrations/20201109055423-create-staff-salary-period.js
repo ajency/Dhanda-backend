@@ -74,6 +74,12 @@ module.exports = {
       total_hour_salary: {
         type: Sequelize.DECIMAL
       },
+      total_overtime_salary: {
+        type: Sequelize.DECIMAL
+      },
+      total_late_fine_salary: {
+        type: Sequelize.DECIMAL
+      },
       total_salary: {
         type: Sequelize.DECIMAL
       },

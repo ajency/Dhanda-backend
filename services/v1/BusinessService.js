@@ -89,7 +89,7 @@ module.exports = class BusinessService {
     }
 
     async fetchBusinessByTimezone(timezone) {
-        return await models.business.findAll({ where: { timezone: timezone } });
+        return await models.business.findAll({ where: { timezone: timezone }, include: [ { model: models.taxonomy } ] });
     }
 
     async createRoleInviteForUser(businessId, roleName, countryCode, phone, name, invitedByUserId) {
