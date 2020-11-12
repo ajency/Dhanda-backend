@@ -1,0 +1,15 @@
+{
+    "aws": {
+        "credentials": {
+            "region": "",
+            "access_key_id": "",
+            "secret_access_key": ""
+        },
+        "queue": {
+            "updateSalary": {
+                "queueUrl": "",
+                "queueArn": ""
+            }
+        }
+    }
+}
