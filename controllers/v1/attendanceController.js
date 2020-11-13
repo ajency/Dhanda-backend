@@ -97,7 +97,9 @@ module.exports = {
                         }
                     } else if(staff.salaryType.value !== "work_basis") {
                         if(att.dayStatus && att.dayStatus.value === "half_day") {
-                            hours = helperService.getHalfDayHours(staff.daily_shift_duration)
+                            hours = helperService.getHalfDayHours(staff.daily_shift_duration);
+                        } else if(att.dayStatus && att.dayStatus.value === "absent") {
+                            hours = "00:00";
                         } else {
                             hours = staff.daily_shift_duration;
                         }
@@ -215,6 +217,7 @@ module.exports = {
             /** Put a job in update salary queue */
             awsService.addUpdateSalaryJob({ staffId: staff.id, date: date });
             
+            let dayStatusObj = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
             let hours = "";
             if(staff.salaryType.value === "hourly") {
                 if(attendanceRecord.punch_in_time && attendanceRecord.punch_out_time) {
@@ -227,7 +230,13 @@ module.exports = {
                     hours =  durationHours.slice(-2) + ":" + durationMinutes.slice(-2) + ":" + durationSeconds.slice(-2);
                 }
             } else if(staff.salaryType.value !== "work_basis") {
-                hours = staff.daily_shift_duration;
+                if(dayStatusObj.value === "absent") {
+                    hours = "00:00";
+                } else if(dayStatusObj.value === "half_day") {
+                    hours = helperService.getHalfDayHours(staff.daily_shift_duration);
+                } else {
+                    hours = staff.daily_shift_duration;
+                }
             }
             let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
             let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
@@ -287,6 +296,7 @@ module.exports = {
             /** Put a job in update salary queue */
             awsService.addUpdateSalaryJob({ staffId: staffId, date: date });
 
+            let dayStatusObj = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
             let hours = "";
             if(staff.salaryType.value === "hourly") {
                 if(attendanceRecord.punch_in_time && attendanceRecord.punch_out_time) {
@@ -299,7 +309,13 @@ module.exports = {
                     hours =  durationHours.slice(-2) + ":" + durationMinutes.slice(-2) + ":" + durationSeconds.slice(-2);
                 }
             } else if(staff.salaryType.value !== "work_basis") {
-                hours = staff.daily_shift_duration;
+                if(dayStatusObj.value === "absent") {
+                    hours = "00:00";
+                } else if(dayStatusObj.value === "half_day") {
+                    hours = helperService.getHalfDayHours(staff.daily_shift_duration);
+                } else {
+                    hours = staff.daily_shift_duration;
+                }
             }
             let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
             let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
@@ -359,6 +375,7 @@ module.exports = {
             /** Put a job in update salary queue */
             awsService.addUpdateSalaryJob({ staffId: staffId, date: date });
 
+            let dayStatusObj = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
             let hours = "";
             if(staff.salaryType.value === "hourly") {
                 if(attendanceRecord.punch_in_time && attendanceRecord.punch_out_time) {
@@ -371,7 +388,13 @@ module.exports = {
                     hours =  durationHours.slice(-2) + ":" + durationMinutes.slice(-2) + ":" + durationSeconds.slice(-2);
                 }
             } else if(staff.salaryType.value !== "work_basis") {
-                hours = staff.daily_shift_duration;
+                if(dayStatusObj.value === "absent") {
+                    hours = "00:00";
+                } else if(dayStatusObj.value === "half_day") {
+                    hours = helperService.getHalfDayHours(staff.daily_shift_duration);
+                } else {
+                    hours = staff.daily_shift_duration;
+                }
             }
             let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
             let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
@@ -426,6 +449,7 @@ module.exports = {
 
             /** Populate the data object */
             let attendanceRecord = await attendanceService.createOrUpdateAttendance(staff.id, date, params);
+            let dayStatusObj = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
             let hours = "";
             if(staff.salaryType.value === "hourly") {
                 if(attendanceRecord.punch_in_time && attendanceRecord.punch_out_time) {
@@ -438,7 +462,13 @@ module.exports = {
                     hours =  durationHours.slice(-2) + ":" + durationMinutes.slice(-2) + ":" + durationSeconds.slice(-2);
                 }
             } else if(staff.salaryType.value !== "work_basis") {
-                hours = staff.daily_shift_duration;
+                if(dayStatusObj.value === "absent") {
+                    hours = "00:00";
+                } else if(dayStatusObj.value === "half_day") {
+                    hours = helperService.getHalfDayHours(staff.daily_shift_duration);
+                } else {
+                    hours = staff.daily_shift_duration;
+                }
             }
             let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
             let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
