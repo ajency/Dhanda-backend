@@ -61,7 +61,6 @@ module.exports = {
     },
 
     addRule: async (req, res) => {
-        const models = require("../../models");
         let minifiedRuleJson = '';
         return res.send(helperService.rulesToJSON(minifiedRuleJson));
     }
