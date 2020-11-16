@@ -4,6 +4,7 @@ node_modules/
 config/config.json
 config/awsconfig.json
 config/zohoconfig.json
+scratches/
 
 .DS_Store
 config/google
