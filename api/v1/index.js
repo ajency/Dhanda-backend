@@ -50,4 +50,7 @@ router.get("/taxonomy", passport.authenticate('jwt', { session: false }), defaul
 /** Crons */
 router.get("/cron/populateDailyAttendanceAndPayroll", cronController.populateDailyAttendanceAndPayroll);
 
+/** Internal */
+router.get("/addRule", defaultController.addRule);
+
 module.exports = router;
