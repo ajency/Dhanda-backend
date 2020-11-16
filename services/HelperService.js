@@ -117,5 +117,34 @@ module.exports = class HelperService {
         return ("00" + hours).slice(-2) + ":" + ("00" + min).slice(-2);
     }
 
-
+    rulesToJSON(rules) {
+        if (rules instanceof Array) {
+            rules = rules.map(function(rule) {
+                rule.condition = rule.condition.toString();
+                rule.consequence = rule.consequence.toString();
+                return rule;
+            });
+        } else if (typeof(rules) != "undefined") {
+            rules.condition = rules.condition.toString();
+            rules.consequence = rules.consequence.toString();
+        }
+        return rules;
+    }
+    
+    rulesFromJSON(rules) {
+        if (typeof(rules) == "string") {
+            rules = JSON.parse(rules);
+        }
+        if (rules instanceof Array) {
+            rules = rules.map(function(rule) {
+                rule.condition = eval("(" + rule.condition + ")");
+                rule.consequence = eval("(" + rule.consequence + ")");
+                return rule;
+            });
+        } else if (rules !== null && typeof(rules) == "object") {
+            rules.condition = eval("(" + rules.condition + ")");
+            rules.consequence = eval("(" + rules.consequence + ")");
+        }
+        return rules;
+    };
 }
