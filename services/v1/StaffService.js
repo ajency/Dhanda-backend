@@ -14,11 +14,19 @@ module.exports = class StaffService {
      *      salary: salary, 
      *      salaryPayoutDate: salaryPayoutDate, 
      *      dailyShiftDuration: dailyShiftDuration, 
-     *      salaryPayoutDay: salaryPayoutDay
+     *      salaryPayoutDay: salaryPayoutDay,
+     *      ruleGroupId: ruleGroupId
      *  }
      */
     async createStaff(businessId, staffObj) {
         let salaryTypeTx = await taxonomyService.findTaxonomy("salary_type", staffObj.salaryType);
+
+        /** If rule group is not passed then fetch and add the default rule group */
+        let defaultRuleGroup = null;
+        if(!staffObj.ruleGroupId) {
+            /** Fetch the default rule group */
+            defaultRuleGroup = await models.rule_group.findOne({ where: { name: "default", business_id: null } });
+        }
         
         return await models.staff.create({
             reference_id: "S" + helperService.generateReferenceId(),
@@ -30,7 +38,8 @@ module.exports = class StaffService {
             salary: staffObj.salary ? staffObj.salary : null,
             cycle_start_day: staffObj.salaryPayoutDay ? staffObj.salaryPayoutDay : null,
             cycle_start_date: staffObj.salaryPayoutDate ? staffObj.salaryPayoutDate : null,
-            daily_shift_duration: staffObj.dailyShiftDuration ? staffObj.dailyShiftDuration : null
+            daily_shift_duration: staffObj.dailyShiftDuration ? staffObj.dailyShiftDuration : null,
+            rule_group_id: defaultRuleGroup  ? defaultRuleGroup.id : null
         });
     }
 
