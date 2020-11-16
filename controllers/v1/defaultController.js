@@ -58,5 +58,11 @@ module.exports = {
             await logger.error("Exception in cold start api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
+    },
+
+    addRule: async (req, res) => {
+        const models = require("../../models");
+        let minifiedRuleJson = '';
+        return res.send(helperService.rulesToJSON(minifiedRuleJson));
     }
 }
