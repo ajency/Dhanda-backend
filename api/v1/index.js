@@ -52,5 +52,6 @@ router.get("/cron/populateDailyAttendanceAndPayroll", cronController.populateDai
 
 /** Internal */
 router.get("/addRule", defaultController.addRule);
+router.get("calculatePayrollForBusiness", attendanceController.calculatePayrollForBusiness);
 
 module.exports = router;

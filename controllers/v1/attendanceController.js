@@ -606,5 +606,16 @@ module.exports = {
             await logger.error("Exception in fetch single staff attendance api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
+    },
+
+    calculatePayrollForBusiness: async (req, res) => {
+        try {
+            let { businessId, date } = req.query;
+            await logger.info("Updating payroll for business id: " + businessId + " date: " + date);
+            await attendanceService.updateStaffPayrollFor(businessId, date);
+        } catch(err) {
+            await logger.error("Exception in calculate payroll for business api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
     }
 }
