@@ -531,6 +531,7 @@ module.exports = {
             let attendanceList = [];
             for(let attendanceRecord of attendance) {
                 let hours = "";
+                let dayStatusObj = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
                 if(staff.salaryType.value === "hourly") {
                     if(attendanceRecord.punch_in_time && attendanceRecord.punch_out_time) {
                         let durationHours = "00" + moment(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_out_time)
@@ -541,8 +542,14 @@ module.exports = {
                                             .diff(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_in_time, 'second')) % 60;
                         hours =  durationHours.slice(-2) + ":" + durationMinutes.slice(-2) + ":" + durationSeconds.slice(-2);
                     }
-                } else {
-                    hours = staff.business.shift_hours;
+                } else if(staff.salaryType.value !== "work_basis") {
+                    if(dayStatusObj.value === "absent") {
+                        hours = "00:00";
+                    } else if(dayStatusObj.value === "half_day") {
+                        hours = helperService.getHalfDayHours(staff.daily_shift_duration);
+                    } else {
+                        hours = staff.daily_shift_duration;
+                    }
                 }
                 if(!dayStatusMap.has(attendanceRecord.day_status_txid)) {
                     let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
