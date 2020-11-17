@@ -9,6 +9,7 @@ const businessService = new (require("./BusinessService"));
 const staffService = new (require("./StaffService"));
 const helperService = new (require("../HelperService"));
 const salaryPeriodService = new (require("./SalaryPeriodService"));
+const ruleService = new (require("./RuleService"));
 
 module.exports = class AttendanceService {
     async fetchAttendanceByStaffIdsAndDate(staffIds, date) {
@@ -284,8 +285,13 @@ module.exports = class AttendanceService {
         }
 
 
+        /** Salary calc rule for the staff  */
+        let salaryRule = await ruleService.fetchRuleByNameAndGroup("salary_calculation", staff.rule_group_id);
+
         /** Loop through each day */
         for(let att of periodAttendance) {
+            let overtimePayPerMinute = 0, overtimeInMinutes = 0, lateFineMinutes = 0;
+
             /** Day status counts */
             if(att.dayStatus) {
                 switch(att.dayStatus.value) {
@@ -306,50 +312,53 @@ module.exports = class AttendanceService {
                 }
             }
 
-            /** TODO: Rule Engine check to see if the salary should be calculated */
-
-            /** ***************** */
-
-            /** Calculate the salary based on the attendance status */ 
-            if(staff.salaryType && staff.salaryType.value !== "hourly" && att.dayStatus) {
-                switch(att.dayStatus.value) {
-                    case "present":
-                        presentSalary += perDaySalary;
-                        break;
-                    case "half_day":
-                        halfDaySalary += perDaySalary / 2;
-                        break;
-                    case "paid_leave":
-                        paidLeaveSalary += perDaySalary;
-                        break;
-                    default:
-                        break;
-                }
-            }
-
             if(staff.salaryType && staff.salaryType.value === "hourly") {
                 if(att.punch_in_time && att.punch_out_time) {
                     let minutes = moment(moment().format("YYYY-MM-DD ") + att.punch_out_time)
                                         .diff(moment().format("YYYY-MM-DD ") + att.punch_in_time, 'minutes');
-                    totalHourSalary += minutes * perMinuteSalary;
                     totalHoursInMinutes += minutes;
                 }
             }
 
-            /** Add overtime if any */
+            /** Overtime */
             if(att.overtime && att.overtime_pay) {
-                let overtimePayPerMinute = att.overtime_pay / 60;
-                let overtimeInMinutes = helperService.convertHoursStringToMinutes(att.overtime);
-                totalOvertimeSalary += overtimeInMinutes * overtimePayPerMinute;
+                overtimePayPerMinute = att.overtime_pay / 60;
+                overtimeInMinutes = helperService.convertHoursStringToMinutes(att.overtime);
             }
 
-            /** Deduct late fine if any */
-            if(att.late_fine_amount) {
-                totalLateFineSalary -= att.late_fine_amount;
-            }
+            /** Late fine */
             if(att.late_fine_hours) {
-                let lateFineMinutes = helperService.convertHoursStringToMinutes(att.late_fine_hours);
-                totalLateFineSalary -= lateFineMinutes * perMinuteSalary;
+                lateFineMinutes = helperService.convertHoursStringToMinutes(att.late_fine_hours);
+            }
+
+            /** Use Rule Engine for salary calculation */
+            let fact = {
+                salaryType: staff.salaryType ? staff.salaryType.value : "",
+                status: att.dayStatus ? att.dayStatus.value : "",
+                perDaySalary: perDaySalary,
+                dayInMinutes: totalHoursInMinutes,
+                perMinuteSalary: perMinuteSalary,
+                overtimeMinutes: overtimeInMinutes,
+                overtimePayPerMinute: overtimePayPerMinute,
+                lateFineAmount: att.late_fine_amount ? att.late_fine_amount : 0,
+                lateFineMinutes: lateFineMinutes,
+                salary: 0,
+                presentSalary: 0,
+                paidLeaveSalary: 0,
+                halfDaySalary: 0,
+                hourSalary: 0,
+                overtimeSalary: 0,
+                lateFineSalary: 0
+            };
+
+            let ruleEngineOutput = await ruleService.executeRule(helperService.rulesFromJSON(salaryRule.rule_json), fact);
+            if(ruleEngineOutput) {
+                presentSalary += ruleEngineOutput.presentSalary;
+                halfDaySalary += ruleEngineOutput.halfDaySalary;
+                paidLeaveSalary += ruleEngineOutput.paidLeaveSalary;
+                totalHourSalary += ruleEngineOutput.halfDaySalary;
+                totalOvertimeSalary += ruleEngineOutput.hourSalary;
+                totalLateFineSalary += ruleEngineOutput.lateFineSalary;
             }
         }
 
