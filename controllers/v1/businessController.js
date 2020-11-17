@@ -194,6 +194,12 @@ module.exports = {
             if(accepted) {
                 /** Add this user to the business admin */
                 await businessService.createBusinessUserRole(invite.business_id, user.id, invite.role_id);
+
+                /** Update the user name, if not present from the invite details */
+                if(!user.name) {
+                    await ormService.updateModel("user", user.id, { name: invite.name });
+                }
+
                 let data = { 
                     businessRefId: invite.business.reference_id,
                     businessName: invite.business.name,
