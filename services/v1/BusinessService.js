@@ -147,7 +147,8 @@ module.exports = class BusinessService {
             phone: business.user.phone,
             owner: true,
             invited: false,
-            inviteRefId: null
+            inviteRefId: null,
+            adminRefId: business.user.reference_id
         });
 
         /** Fetch the admins */
@@ -159,7 +160,8 @@ module.exports = class BusinessService {
                 phone: roleUser.user.phone,
                 owner: false,
                 invited: false,
-                inviteRefId: null
+                inviteRefId: null,
+                adminRefId: roleUser.user.reference_id
             });
         }
 
