@@ -29,8 +29,8 @@ module.exports = class SalaryPeriodService {
 
             /** Mark the old one as completed if it exists */
             let period = (staffSalaryPeriodObj.period_type === "weekly") ? "week" : "month";
-            let lastPeriodStart = moment(staffSalaryPeriodObj.period_start).subtract(1, "days").startOf(period);
-            let lastPeriodEnd = moment(staffSalaryPeriodObj.period_end).subtract(1, "days").endOf(period);
+            let lastPeriodStart = moment(staffSalaryPeriodObj.period_start).subtract(7, "days");
+            let lastPeriodEnd = moment(staffSalaryPeriodObj.period_end).subtract(7, "days");
 
             let lastPeriodEntry = await this.fetchSalaryPeriodFor(staffId, lastPeriodStart, lastPeriodEnd);
             if(lastPeriodEntry) {
