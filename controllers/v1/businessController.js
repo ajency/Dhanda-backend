@@ -85,6 +85,8 @@ module.exports = {
 
             let adminList = await businessService.fetchAdminListForBusiness(business, true);
 
+            let staffMembers = await staffService.fetchStaffForBusinessId(business.id);
+
             let data = {
                 "refId": business.reference_id,
                 "owner": business.user.name,
@@ -93,6 +95,7 @@ module.exports = {
                 "salaryMonthType": business.taxonomy.value,
                 "shiftHours": business.shift_hours,
                 "country": business.country,
+                "staffTotal": (staffMembers.length > 0) ? staffMembers.length : "",
                 "admin": adminList
             }
 
