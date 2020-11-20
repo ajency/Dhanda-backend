@@ -138,30 +138,12 @@ module.exports = {
                         punchOut: att.punch_out_time,
                         defaultPunchIn: defaultPunchInMap.has(staff.id) ? defaultPunchInMap.get(staff.id) : null
                     }
-                } else {
-                    /*if(staff.salaryType.value === "hourly") {
-                        absentTotal += 1;
-                    } else {
-                        presentTotal += 1;
-                    }
-                    staffRes = {
-                        refId: staff.reference_id,
-                        name: staff.name,
-                        hours: (staff.salaryType.value === "hourly") ? "" : (staff.daily_shift_duration ? staff.daily_shift_duration : ""),
-                        overtime: "",
-                        overtimePay: "",
-                        lateFineHours: "",
-                        lateFineAmount: "",
-                        status: (staff.salaryType.value === "hourly") ? "absent" : "present",
-                        note: "",
-                        defaultPunchIn: defaultPunchInMap.has(staff.id) ? defaultPunchInMap.get(staff.id) : null
-                    }*/
-                }
 
-                if(staff.salaryType.value === "hourly") {
-                    hourlyStaff.push(staffRes);
-                } else {
-                    monthlyStaff.push(staffRes);
+                    if(staff.salaryType.value === "hourly") {
+                        hourlyStaff.push(staffRes);
+                    } else {
+                        monthlyStaff.push(staffRes);
+                    }
                 }
             }
 
