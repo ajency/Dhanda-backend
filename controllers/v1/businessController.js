@@ -39,7 +39,7 @@ module.exports = {
             
                 /** Update the user's name if passed */
                 if(owner) {
-                    await userService.updateUser({ name: owner }, req.user);
+                    await userService.updateUser({ name: owner }, business.user_id);
                 }
                 
                 let data = {
@@ -55,6 +55,10 @@ module.exports = {
                 if(updateCount[0] === 0) {
                     await logger.info("Save business - business not found: " + refId);
                     return res.status(200).send({ code: "error", message: "business_not_found" });
+                }
+                /** Update the user's name if passed */
+                if(owner) {
+                    await userService.updateUser({ name: owner }, updateCount[1][0].user_id);
                 }
                 return res.status(200).send({ code: "success", message: "success" });
             }
