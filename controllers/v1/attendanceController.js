@@ -601,7 +601,8 @@ module.exports = {
         try {
             let { businessId, date } = req.query;
             await logger.info("Updating payroll for business id: " + businessId + " date: " + date);
-            await attendanceService.updateStaffPayrollFor(businessId, date);
+            await attendanceService.updateStaffPayrollFor(businessId, date, true);
+            return res.status(200).send({ code: "success", message: "success" });
         } catch(err) {
             await logger.error("Exception in calculate payroll for business api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
