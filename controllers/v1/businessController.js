@@ -39,7 +39,7 @@ module.exports = {
             
                 /** Update the user's name if passed */
                 if(owner) {
-                    await userService.updateUser({ name: owner }, req.user);
+                    await userService.updateUser({ name: owner }, business.user_id);
                 }
                 
                 let data = {
@@ -55,6 +55,10 @@ module.exports = {
                 if(updateCount[0] === 0) {
                     await logger.info("Save business - business not found: " + refId);
                     return res.status(200).send({ code: "error", message: "business_not_found" });
+                }
+                /** Update the user's name if passed */
+                if(owner) {
+                    await userService.updateUser({ name: owner }, updateCount[1][0].user_id);
                 }
                 return res.status(200).send({ code: "success", message: "success" });
             }
@@ -85,6 +89,8 @@ module.exports = {
 
             let adminList = await businessService.fetchAdminListForBusiness(business, true);
 
+            let staffMembers = await staffService.fetchStaffForBusinessId(business.id);
+
             let data = {
                 "refId": business.reference_id,
                 "owner": business.user.name,
@@ -93,6 +99,7 @@ module.exports = {
                 "salaryMonthType": business.taxonomy.value,
                 "shiftHours": business.shift_hours,
                 "country": business.country,
+                "staffTotal": (staffMembers.length > 0) ? staffMembers.length : "",
                 "admin": adminList
             }
 

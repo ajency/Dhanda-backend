@@ -71,7 +71,7 @@ module.exports = class BusinessService {
             country_code: businessObj.countryCode,
             country: businessObj.country
         }
-        return await models.business.update(saveBusinessObj, { where: { reference_id: refId } });
+        return await models.business.update(saveBusinessObj, { where: { reference_id: refId }, returning: true });
     }
 
     async fetchBusinessById(businessId, isRefId = false) {
