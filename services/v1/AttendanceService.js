@@ -183,14 +183,16 @@ module.exports = class AttendanceService {
         });
     }
 
-    async updateStaffPayrollFor(business, date, businessIsId = false) {
+    async updateStaffPayrollFor(business, date, businessIsId = false, staffMembers = []) {
         /** Fetch the business obj */
         if(businessIsId) {
             business = await businessService.fetchBusinessById(business);
         }
         
         /** Fetch all the staff members */
-        let staffMembers = await staffService.fetchStaffForBusinessId(business.id);
+        if(staffMembers.length === 0) {
+            staffMembers = await staffService.fetchStaffForBusinessId(business.id);
+        }
         let monthlyStaffIds = [];
         let weeklyStaffIds = [];
         let allStaffIds = staffMembers.map((s) => { 
@@ -226,7 +228,7 @@ module.exports = class AttendanceService {
                         startDate.subtract(1, "months");
                     }
                 }
-                endDate = moment(startDate).add(1, "month");
+                endDate = moment(startDate).add(1, "month").subtract(1, "day");
             } else if (["weekly"].includes(staff.salaryType.value)) {
                 /** Weekly Staff */
                 startDate = moment(date).startOf("week");
@@ -236,7 +238,7 @@ module.exports = class AttendanceService {
                         startDate.subtract(1, "weeks");
                     }
                 }
-                endDate = moment(startDate).add(1, "week");
+                endDate = moment(startDate).add(1, "week").subtract(1, "day");
             }
 
             if(staff.salaryType && staff.salaryType.value === "weekly") {

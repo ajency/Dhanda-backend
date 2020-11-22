@@ -80,6 +80,8 @@ module.exports = {
                     /** Fetch the salary type if not already fetched */
                     staff.salaryType = await taxonomyService.findTaxonomyById(staff.salary_type_txid);
                     await attendanceService.addDefaultAttendanceForCurrentPeriod(staff, date);
+                    /** Add the salary period */
+                    await attendanceService.updateStaffPayrollFor(staff.business_id, date, true, [staff]);
                 }
 
                 return res.status(200).send({ code: "home", message: "success" });
