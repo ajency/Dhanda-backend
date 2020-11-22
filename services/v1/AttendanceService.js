@@ -206,34 +206,6 @@ module.exports = class AttendanceService {
 
         /** Compute the monthly and weekly period start and end dates */
         let dateObj = moment(date, "YYYY-MM-DD");
-        // let monthlyStartDate = moment(dateObj).startOf("month").format("YYYY-MM-DD");
-        // let monthlyEndDate = moment(dateObj).endOf("month").format("YYYY-MM-DD");
-        // let weeklyStartDate = moment(dateObj).startOf("week").add(1, "days").format("YYYY-MM-DD");
-        // let weeklyEndDate = moment(dateObj).endOf("week").add(1, "days").format("YYYY-MM-DD");
-
-        // /** Fetch the staff attendance for the monthly staff in one query */
-        // let monthlyStaffAttMap = new Map();
-        // let monthlyStaffAtt = await this.fetchAttendanceByStaffIdsForPeriod(monthlyStaffIds, monthlyStartDate, monthlyEndDate);
-        // for(let att of monthlyStaffAtt) {
-        //     let attArr = [];
-        //     if(monthlyStaffAttMap.has(att.staff_id)) {
-        //         attArr = monthlyStaffAttMap.get(att.staff_id);
-        //     }
-        //     attArr.push(att);
-        //     monthlyStaffAttMap.set(att.staff_id, attArr);
-        // }
-
-        // /** Fetch the staff attendance for the weekly staff in one query */
-        // let weeklyStaffAttMap = new Map();
-        // let weeklyStaffAtt = await this.fetchAttendanceByStaffIdsForPeriod(weeklyStaffIds, weeklyStartDate, weeklyEndDate);
-        // for(let att of weeklyStaffAtt) {
-        //     let attArr = [];
-        //     if(weeklyStaffAttMap.has(att.staff_id)) {
-        //         attArr = weeklyStaffAttMap.get(att.staff_id);
-        //     }
-        //     attArr.push(att);
-        //     weeklyStaffAttMap.set(att.staff_id, attArr);
-        // }
 
         /** Calculate the business month days */
         let businessMonthDays = 30;
