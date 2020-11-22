@@ -111,7 +111,7 @@ module.exports = {
             let requestValid = helperService.validateRequiredRequestParams(req.body, ["refId"]);
             if (!requestValid) {
                 // TODO: uncomment this later
-                return res.status(200).send({ code: "error", message: "missing_params" });
+                // return res.status(200).send({ code: "error", message: "missing_params" });
             }
 
             let { refId } = req.query;
