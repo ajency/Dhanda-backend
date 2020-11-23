@@ -288,5 +288,56 @@ module.exports = {
             await logger.error("Exception in fetch staff dues (paginated) api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
+    },
+
+    fetchStaffDuesBreakup: async (req, res) => {
+        try {
+            let { staffRefId, date } = req.params;
+
+            /** Fetch the staff */
+            let staff = await staffService.fetchStaff(staffRefId, true);
+            if(!staff) {
+                await logger.info("Fetch staff dues breakup - staff not found for reference id: " + staffRefId);
+                return res.status(200).send({ code: "error", message: "staff_not_found" });
+            }
+
+            /** Fetch the date's staff period */
+            let salaryPeriod = await salaryPeriodService.fetchStaffPeriodByDate(staff.id, date);
+
+            // TODO fetch the different payment amounts
+
+            let data = {
+                name: staff.name,
+                countryCode: staff.country_code,
+                phone: staff.phone,
+                currency: staff.business.currency,
+                salarySummary: {
+                    periodType: staff.salaryType.value === "weekly" ? "weekly" : "monthly",
+                    periodStart: salaryPeriod ? salaryPeriod.period_start : "",
+                    periodEnd: salaryPeriod ? salaryPeriod.period_end : "",
+                    amountDue: salaryPeriod ? parseFloat(salaryPeriod.total_dues) : "",
+                    daysWorked: salaryPeriod ? salaryPeriod.total_present + salaryPeriod.total_paid_leave + salaryPeriod.total_half_day : "",
+                    daysTotal: salaryPeriod ? moment(salaryPeriod.period_end).diff(moment(salaryPeriod.period_start), "days") : "",
+                    hoursWorked: salaryPeriod ? salaryPeriod.total_hours : "",
+                    salary: staff.salary,
+                    salaryType: staff.salaryType.value
+                },
+                salaryBreakup: {
+                    presentTotal: salaryPeriod ? salaryPeriod.total_present : "",
+                    presentAmount: salaryPeriod ? parseFloat(salaryPeriod.present_salary) : "",
+                    halfDayTotal: salaryPeriod ? salaryPeriod.total_half_day : "",
+                    halfDayAmount: salaryPeriod ? parseFloat(salaryPeriod.half_day_salary) : "",
+                    paidLeaveTotal: salaryPeriod ? salaryPeriod.total_paid_leave : "",
+                    paidLeaveAmount: salaryPeriod ? parseFloat(salaryPeriod.paid_leave_salary) : "",
+                    overtimeAmount: salaryPeriod ? parseFloat(salaryPeriod.total_overtime_salary) : "",
+                    lateFineAmount: salaryPeriod ? parseFloat(salaryPeriod.total_late_fine_salary) : "",
+                }
+            };
+
+            return res.status(200).send({ code: "success", message: "success", data: data });
+        } catch (err) {
+            await logger.error("Exception in fetch staff dues breakup api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
     }
 }

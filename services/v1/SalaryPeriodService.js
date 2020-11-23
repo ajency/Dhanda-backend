@@ -61,4 +61,16 @@ module.exports = class SalaryPeriodService {
             offset: (page - 1) * perPage, limit: perPage,
             order: [ [ "period_start", "desc" ] ] });
     }
+
+    async fetchStaffPeriodByDate(staffId, date) {
+        let salaryPeriods = await ormService.runRawSelectQuery("SELECT * FROM staff_salary_periods WHERE staff_id = "
+            + staffId + " AND period_start <= '" + date + "' "
+            + " AND period_end >= '" + date + "'");
+        
+        if(salaryPeriods.length === 0) {
+            return null;
+        } else {
+            return salaryPeriods[0];
+        }
+    }
 }
