@@ -217,7 +217,7 @@ module.exports = {
                     periodEnd: salaryPeriodEntry.period_end,
                     amountDue: salaryPeriodEntry.total_dues,
                     daysWorked: salaryPeriodEntry.total_present + salaryPeriodEntry.total_paid_leave + salaryPeriodEntry.total_half_day,
-                    daysTotal: moment(salaryPeriodEntry.period_start).diff(moment(salaryPeriodEntry.period_end), "days"),
+                    daysTotal: moment(salaryPeriodEntry.period_end).diff(moment(salaryPeriodEntry.period_start), "days"),
                     hoursWorked: salaryPeriodEntry.total_hours,
                     salary: staff.salary,
                     salaryType: staff.salaryType.value
@@ -236,6 +236,56 @@ module.exports = {
             return res.status(200).send({ code: "success", message: "success", data: data });
         } catch (err) {
             await logger.error("Exception in fetch staff dues api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
+    },
+
+    fetchPaginatedStaffDues: async (req, res) => {
+        try {
+            let { staffRefId } = req.params;
+
+            /** Fetch the staff */
+            let staff = await staffService.fetchStaff(staffRefId, true);
+            if(!staff) {
+                await logger.info("Fetch single staff dues (paginated) - staff not found for reference id: " + staffRefId);
+                return res.status(200).send({ code: "error", message: "staff_not_found" });
+            }
+            
+            let { page, perPage } = req.query;
+
+            /** Set the default values */
+            if(!page) {
+                page = 1;
+            }
+            if(!perPage) {
+                perPage = 5;
+            }
+
+            /** Fetch the latest 5 salary periods */
+            let salaryPeriodEntries = await salaryPeriodService.fetchSalaryPeriodsForStaff(staff.id, page, perPage);
+            
+            let salaryPeriodList = [];
+            for(let salaryPeriodEntry of salaryPeriodEntries) {
+                salaryPeriodList.push({
+                    periodType: staff.salaryType.value === "weekly" ? "weekly" : "monthly",
+                    periodStart: salaryPeriodEntry.period_start,
+                    periodEnd: salaryPeriodEntry.period_end,
+                    amountDue: parseFloat(salaryPeriodEntry.total_dues),
+                    daysWorked: salaryPeriodEntry.total_present + salaryPeriodEntry.total_paid_leave + salaryPeriodEntry.total_half_day,
+                    daysTotal: moment(salaryPeriodEntry.period_end).diff(moment(salaryPeriodEntry.period_start), "days"),
+                    hoursWorked: salaryPeriodEntry.total_hours,
+                    salary: staff.salary,
+                    salaryType: staff.salaryType.value
+                });
+            }
+
+            let data = {
+                salaryPeriod: salaryPeriodList
+            };
+
+            return res.status(200).send({ code: "success", message: "success", data: data });
+        } catch (err) {
+            await logger.error("Exception in fetch staff dues (paginated) api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
     }

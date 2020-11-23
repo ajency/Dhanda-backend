@@ -45,6 +45,7 @@ router.delete("/business/:businessRefId/admin/:adminRefId", passport.authenticat
 router.post("/saveStaff", passport.authenticate('jwt', { session: false }), staffController.saveStaff);
 router.get("/staff", passport.authenticate('jwt', { session: false }), staffController.fetchStaff);
 router.get("/staff/:staffRefId/dues", passport.authenticate('jwt', { session: false }), staffController.fetchStaffDues);
+router.get("/staff/:staffRefId/dues/paginated", passport.authenticate('jwt', { session: false }), staffController.fetchPaginatedStaffDues);
 
 /** Others */
 router.get("/taxonomy", passport.authenticate('jwt', { session: false }), defaultController.fetchTaxonomyValues);
