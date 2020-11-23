@@ -37,6 +37,8 @@ module.exports = (sequelize, DataTypes) => {
     total_overtime_salary: DataTypes.DECIMAL,
     total_late_fine_salary: DataTypes.DECIMAL,
     total_salary: DataTypes.DECIMAL,
+    total_payments: DataTypes.DECIMAL,
+    total_dues: DataTypes.DECIMAL,
     payslip_url: DataTypes.STRING
   }, {
     sequelize,

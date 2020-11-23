@@ -83,6 +83,12 @@ module.exports = {
       total_salary: {
         type: Sequelize.DECIMAL
       },
+      total_payments: {
+        type: Sequelize.DECIMAL
+      },
+      total_dues: {
+        type: Sequelize.DECIMAL
+      },
       payslip_url: {
         type: Sequelize.STRING
       },
