@@ -8,6 +8,7 @@ const ormService = new (require("../../services/OrmService"));
 const attendanceService = new (require("../../services/v1/AttendanceService"));
 const moment = require("moment");
 const taxonomyService = new (require("../../services/v1/TaxonomyService"));
+const salaryPeriodService = new (require("../../services/v1/SalaryPeriodService"));
 
 module.exports = {
     saveStaff: async (req, res) => {
@@ -200,7 +201,37 @@ module.exports = {
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
             }
 
-            let data = {};
+            /** Fetch the latest 5 salary periods */
+            let salaryPeriodEntries = await salaryPeriodService.fetchSalaryPeriodsForStaff(staff.id);
+            
+            let salaryPeriodList = [];
+            let totalAmountDue = null;
+            for(let salaryPeriodEntry of salaryPeriodEntries) {
+                if(totalAmountDue === null) {
+                    totalAmountDue = salaryPeriodEntry.total_dues;
+                }
+
+                salaryPeriodList.push({
+                    periodType: staff.salaryType.value === "weekly" ? "weekly" : "monthly",
+                    periodStart: salaryPeriodEntry.period_start,
+                    periodEnd: salaryPeriodEntry.period_end,
+                    amountDue: salaryPeriodEntry.total_dues,
+                    daysWorked: salaryPeriodEntry.total_present + salaryPeriodEntry.total_paid_leave + salaryPeriodEntry.total_half_day,
+                    daysTotal: moment(salaryPeriodEntry.period_start).diff(moment(salaryPeriodEntry.period_end), "days"),
+                    hoursWorked: salaryPeriodEntry.total_hours,
+                    salary: staff.salary,
+                    salaryType: staff.salaryType.value
+                });
+            }
+
+            let data = {
+                name: staff.name,
+                countryCode: staff.country_code,
+                phone: staff.phone,
+                totalAmountDue: totalAmountDue,
+                currency: staff.business.currency,
+                salaryPeriod: salaryPeriodList
+            };
 
             return res.status(200).send({ code: "success", message: "success", data: data });
         } catch (err) {
