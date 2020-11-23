@@ -301,5 +301,39 @@ module.exports = {
             return res.status(200).send({ code: "error", message: "error" });
         }
  
+    },
+
+    fetchBusinessStaffDues: async (req, res) => {
+        try {
+            let { businessRefId } = req.params;
+
+            let business = await businessService.fetchBusinessById(businessRefId, true);
+
+            if(business === null) {
+                await logger.info("Save business - business not found: " + businessRefId);
+                return res.status(200).send({ code: "error", message: "business_not_found" });
+            }
+
+            // let adminList = await businessService.fetchAdminListForBusiness(business, true);
+
+            // let staffMembers = await staffService.fetchStaffForBusinessId(business.id);
+
+            let data = {
+                // "refId": business.reference_id,
+                // "owner": business.user.name,
+                // "businessName": business.name,
+                // "currency": business.currency,
+                // "salaryMonthType": business.taxonomy.value,
+                // "shiftHours": business.shift_hours,
+                // "country": business.country,
+                // "staffTotal": (staffMembers.length > 0) ? staffMembers.length : "",
+                // "admin": adminList
+            }
+
+            return res.status(200).send({ code: "success", message: "success", data: data });
+        } catch(err) {
+            await logger.error("Exception in fetch business dues api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
     }
 }
