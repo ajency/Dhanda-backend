@@ -170,7 +170,7 @@ module.exports = {
                 businessRefId: staff.business.reference_id,
                 countryCode: staff.country_code,
                 phone: staff.phone,
-                salaryType: staff.taxonomy.value,
+                salaryType: staff.salaryType.value,
                 salary: staff.salary,
                 salaryPayoutDate: staff.cycle_start_date,
                 dailyShiftDuration: staff.daily_shift_duration,
