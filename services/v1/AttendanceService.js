@@ -366,6 +366,9 @@ module.exports = class AttendanceService {
         /** Calculate the total salary and hours */
         totalSalary = presentSalary + halfDaySalary + paidLeaveSalary + totalHourSalary + totalOvertimeSalary + totalLateFineSalary;
 
+        let totalPayments = 0;
+        let totalDues = - totalSalary + totalPayments; // TODO add previous months dues
+
         /** Create of update the period salary */
         await salaryPeriodService.createOrUpdateSalaryPeriod(staff.id, {
             business_id: staff.business_id,
@@ -387,6 +390,8 @@ module.exports = class AttendanceService {
             total_overtime_salary: helperService.roundOff(totalOvertimeSalary, 4),
             total_late_fine_salary: helperService.roundOff(totalLateFineSalary, 4),
             total_salary: helperService.roundOff(totalSalary, 4),
+            total_payments: helperService.roundOff(totalPayments, 4),
+            total_dues: helperService.roundOff(totalDues, 4)
         });
     }
 
