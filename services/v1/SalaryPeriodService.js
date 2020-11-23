@@ -1,6 +1,7 @@
 const logger = require("simple-node-logger").createSimpleLogger({ timestampFormat:'YYYY-MM-DD HH:mm:ss.SSS' });
 const models = require("../../models");
 const moment = require("moment");
+const ormService = new (require("../OrmService"));
 
 module.exports = class SalaryPeriodService {
     async fetchSalaryPeriodFor(staffId, periodStart, periodEnd) {
@@ -37,5 +38,21 @@ module.exports = class SalaryPeriodService {
                 await models.staff_salary_period.update({ status: "completed" }, { where: { id: lastPeriodEntry.id } });
             }
         }
+    }
+
+    async fetchLatestSalaryPeriodsForStaff(staffIds) {
+        if(!staffIds || staffIds.length === 0) {
+            return [];
+        }
+
+        let query = "SELECT DISTINCT ON (staff_id) staff_id, business_id, staff_salary_type_txid, " 
+            + "period_type, period_start, period_end, period_salary, period_status, locked, total_present, " 
+            + "total_paid_leave, total_half_day, total_absent, total_hours, present_salary, paid_leave_salary, " 
+            + "half_day_salary, total_hour_salary, total_overtime_salary, total_late_fine_salary, total_salary, " 
+            + "total_payments, total_dues, payslip_url FROM staff_salary_periods " 
+            + "WHERE staff_id IN ('" + staffIds.join("','") + "') "
+            + "ORDER BY staff_id, period_start DESC";
+        
+        return ormService.runRawSelectQuery(query);
     }
 }

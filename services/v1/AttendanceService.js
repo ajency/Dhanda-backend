@@ -428,4 +428,17 @@ module.exports = class AttendanceService {
             startDate.add(1, "days");
         }
     }
+
+    async fetchLatestAttendanceForStaff(staffIds) {
+        if(!staffIds || staffIds.length === 0) {
+            return [];
+        }
+
+        let query = "SELECT DISTINCT ON (staff_id) staff_id, day_status_txid, date, " 
+            + "punch_in_time, punch_out_time FROM attendances " 
+            + "WHERE staff_id IN ('" + staffIds.join("','") + "') "
+            + "ORDER BY staff_id, date DESC";
+        
+        return ormService.runRawSelectQuery(query);
+    }
 }

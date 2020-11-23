@@ -147,4 +147,14 @@ module.exports = class HelperService {
         }
         return rules;
     };
+
+    getTimeDifference(startTime, endTime) {
+        let durationHours = "00" + moment(moment().format("YYYY-MM-DD ") + endTime)
+                            .diff(moment().format("YYYY-MM-DD ") + startTime, 'hour');
+        let durationMinutes = "00" + (moment(moment().format("YYYY-MM-DD ") + endTime)
+                            .diff(moment().format("YYYY-MM-DD ") + startTime, 'minute')) % 60;
+        let durationSeconds = "00" + (moment(moment().format("YYYY-MM-DD ") + endTime)
+                            .diff(moment().format("YYYY-MM-DD ") + startTime, 'second')) % 60;
+        return durationHours.slice(-2) + ":" + durationMinutes.slice(-2) + ":" + durationSeconds.slice(-2);
+    }
 }

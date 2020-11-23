@@ -8,6 +8,8 @@ const attendanceService = new (require("../../services/v1/AttendanceService"));
 const notificationService = new (require("../../services/v1/NotificationService"));
 const defaults = require("../../services/defaults");
 const ormService = new (require("../../services/OrmService"));
+const salaryPeriodService = new (require("../../services/v1/SalaryPeriodService"));
+const taxonomService = new (require("../../services/v1/TaxonomyService"));
 
 module.exports = {
     saveBusiness: async (req, res) => {
@@ -316,18 +318,80 @@ module.exports = {
 
             // let adminList = await businessService.fetchAdminListForBusiness(business, true);
 
-            // let staffMembers = await staffService.fetchStaffForBusinessId(business.id);
+            /** Fetch and segregate the staff members */
+            let staffMembers = await staffService.fetchStaffForBusinessId(business.id);
+            let monthlyStaffIds = [];
+            let hourlyStaffIds = [];
+            let allStaffIds = staffMembers.map((s) => { 
+                if(s.salaryType) {
+                    if(s.salaryType.value === "hourly") {
+                        hourlyStaffIds.push(s.id);
+                    } else {
+                        monthlyStaffIds.push(s.id);
+                    }
+                }
+                return s.id
+            });
+
+            /** Fetch the latest salary period for each staff in one go */
+            let staffSalaryPeriods = await salaryPeriodService.fetchLatestSalaryPeriodsForStaff(allStaffIds);
+            let staffSalaryPeriodMap = new Map();
+            for(let staffSalaryPeriod of staffSalaryPeriods) {
+                staffSalaryPeriodMap.set(staffSalaryPeriod.staff_id, staffSalaryPeriod);
+            }
+
+            /** Fetch the latest attendance for each staff in one go */
+            let staffAttendance = await attendanceService.fetchLatestAttendanceForStaff(allStaffIds);
+            let staffAttendanceMap = new Map();
+            for(let att of staffAttendance) {
+                staffAttendanceMap.set(att.staff_id, att);
+            }
+
+            /** Fetch the day status */
+            let dayStatusTx = await taxonomService.fetchTaxonomyForType("day_status");
+            let dayStatusMap = new Map();
+            for(let dst of dayStatusTx) {
+                dayStatusMap.set(dst.id, dst.value);
+            }
+
+            /** Generate the response */
+            let monthlyStaff = [];
+            let hourlyStaff = [];
+            let totalAmountDue = 0;
+            for(let staff of staffMembers) {
+                let att = staffAttendanceMap.has(staff.id) ? staffAttendanceMap.get(staff.id) : null;
+                let staffDetail = {
+                    name: staff.name,
+                    amountDue: staffSalaryPeriodMap.has(staff.id) ? parseFloat(staffSalaryPeriodMap.get(staff.id).total_dues) : "",
+                    date: att ? att.date : "",
+                    dateStatus: (att && dayStatusMap.has(att.day_status_txid)) ? dayStatusMap.get(att.day_status_txid) : "",
+                    hours: ""
+                }
+                totalAmountDue += staffDetail.amountDue === "" ? 0 : staffDetail.amountDue;
+
+
+                if(hourlyStaffIds.includes(staff.id)) {
+                    /** Calculate the total hours */
+                    let hours = "00:00:00";
+                    if(att.punch_in_time && att.punch_out_time) {
+                        hours = helperService.getTimeDifference(att.punch_in_time, att.punch_out_time);
+                    } else if(att.punch_in_time) {
+                        let currentTime = moment().utcOffset(business.timezone).format("HH:mm");
+                        hours = helperService.getTimeDifference(att.punch_in_time, currentTime);
+                    }
+                    staffDetail.hours = hours;
+                    hourlyStaff.push(staffDetail);
+                } else {
+                    monthlyStaff.push(staffDetail);
+                }
+            }
 
             let data = {
-                // "refId": business.reference_id,
-                // "owner": business.user.name,
-                // "businessName": business.name,
-                // "currency": business.currency,
-                // "salaryMonthType": business.taxonomy.value,
-                // "shiftHours": business.shift_hours,
-                // "country": business.country,
-                // "staffTotal": (staffMembers.length > 0) ? staffMembers.length : "",
-                // "admin": adminList
+                businessName: business.name,
+                totalAmountDue: helperService.roundOff(totalAmountDue, 2),
+                currency: business.currency,
+                monthlyStaff: monthlyStaff,
+                hourlyStaff: hourlyStaff
             }
 
             return res.status(200).send({ code: "success", message: "success", data: data });
