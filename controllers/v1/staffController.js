@@ -187,5 +187,25 @@ module.exports = {
             await logger.error("Exception in fetch staff api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
+    },
+
+    fetchStaffDues: async (req, res) => {
+        try {
+            let { staffRefId } = req.params;
+
+            /** Fetch the staff */
+            let staff = await staffService.fetchStaff(staffRefId, true);
+            if(!staff) {
+                await logger.info("Fetch single staff dues - staff not found for reference id: " + staffRefId);
+                return res.status(200).send({ code: "error", message: "staff_not_found" });
+            }
+
+            let data = {};
+
+            return res.status(200).send({ code: "success", message: "success", data: data });
+        } catch (err) {
+            await logger.error("Exception in fetch staff dues api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
     }
 }

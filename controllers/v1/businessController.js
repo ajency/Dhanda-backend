@@ -312,7 +312,7 @@ module.exports = {
             let business = await businessService.fetchBusinessById(businessRefId, true);
 
             if(business === null) {
-                await logger.info("Save business - business not found: " + businessRefId);
+                await logger.info("Fetch business staff dues - business not found: " + businessRefId);
                 return res.status(200).send({ code: "error", message: "business_not_found" });
             }
 
