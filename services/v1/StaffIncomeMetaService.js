@@ -2,6 +2,8 @@ const logger = require("simple-node-logger").createSimpleLogger({ timestampForma
 const taxonomyService = new (require("./TaxonomyService"));
 const models = require("../../models");
 const helperService = new (require("../HelperService"));
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 
 module.exports = class StaffIncomeMeta {
     async createStaffIncomeMeta(staffId, incomeTypeSlug, incomeSubTypeSlug, amount, description = null, date = null) {
@@ -79,5 +81,63 @@ module.exports = class StaffIncomeMeta {
         let incomeTypeTx = await taxonomyService.findTaxonomy("income_type", incomeType);
         return await models.staff_income_meta.findOne({ where: { staff_id: staffId, income_type_txid: incomeTypeTx.id },
             include: [ { model: models.taxonomy, as: "income_sub_type" } ] });
+    }
+    
+    async fetchStaffPaymentsAggregate(staffId, startDate, endDate) {
+        let payments = await this.fetchPaymentsForStaffBetween(staffId, startDate, endDate);
+        let paymentTx = await taxonomyService.fetchTaxonomyForType("income_type");
+        let paymentTxMap = new Map();
+        for(let pt of paymentTx) {
+            paymentTxMap.set(pt.id, pt.value);
+        }
+
+        let allowanceTotal = 0, bonusTotal = 0, paymentGivenTotal = 0, paymentTakenTotal = 0,
+            loanGivenTotal = 0, loanRepayTotal = 0, deductionTotal = 0;
+        for(let payment of payments) {
+            switch(paymentTxMap.get(payment.income_type_txid)) {
+                case "allowance":
+                    allowanceTotal += parseFloat(payment.amount);
+                    break;
+                case "bonus":
+                    bonusTotal += parseFloat(payment.amount);
+                    break;
+                case "payment_given":
+                    paymentGivenTotal += parseFloat(payment.amount);
+                    break;
+                case "payment_taken":
+                    paymentTakenTotal += parseFloat(payment.amount);
+                    break;
+                case "loan_given":
+                    loanGivenTotal += parseFloat(payment.amount);
+                    break;
+                case "loan_repay":
+                    loanRepayTotal += parseFloat(payment.amount);
+                    break;
+                case "deduction":
+                    deductionTotal += parseFloat(payment.amount);
+                    break;
+                default:
+            }
+        }
+
+        return {
+            allowanceTotal: allowanceTotal,
+            bonusTotal: bonusTotal,
+            paymentGivenTotal: paymentGivenTotal,
+            paymentTakenTotal: paymentTakenTotal,
+            loanGivenTotal: loanGivenTotal,
+            loanRepayTotal: loanRepayTotal,
+            deductionTotal: deductionTotal
+        }
+    }
+
+    async fetchPaymentsForStaffBetween(staffId, startDate, endDate) {
+        let paymentTx = await taxonomyService.fetchTaxonomyForType("income_type");
+        let paymentTxIds = paymentTx.map((p) => { return p.id } )
+        return await models.staff_income_meta.findAll({ where: { 
+            staff_id: staffId,
+            date: { [Op.between]: [startDate, endDate] },
+            income_type_txid: { [Op.in]: paymentTxIds }
+        }});
     }
 }

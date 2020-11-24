@@ -218,28 +218,29 @@ module.exports = class AttendanceService {
         /** Loop through each staff member and calculate the attendance */
         for(let staff of staffMembers) {
             /** Compute the start and end date of the period */
-            let startDate = null, endDate = null;
-            if(["monthly", "daily", "hourly", "work_basis"].includes(staff.salaryType.value)) {
-                /** Monthly Staff */
-                startDate = moment(date).startOf("month");
-                if (staff.cycle_start_date) {
-                    startDate.add(staff.cycle_start_date - 1, "days");
-                    if (startDate.isAfter(moment(date))) {
-                        startDate.subtract(1, "months");
-                    }
-                }
-                endDate = moment(startDate).add(1, "month").subtract(1, "day");
-            } else if (["weekly"].includes(staff.salaryType.value)) {
-                /** Weekly Staff */
-                startDate = moment(date).startOf("week");
-                if (staff.cycle_start_day) {
-                    startDate.add(staff.cycle_start_day, "days");
-                    if (startDate.isAfter(moment(date))) {
-                        startDate.subtract(1, "weeks");
-                    }
-                }
-                endDate = moment(startDate).add(1, "week").subtract(1, "day");
-            }
+            // let startDate = null, endDate = null;
+            // if(["monthly", "daily", "hourly", "work_basis"].includes(staff.salaryType.value)) {
+            //     /** Monthly Staff */
+            //     startDate = moment(date).startOf("month");
+            //     if (staff.cycle_start_date) {
+            //         startDate.add(staff.cycle_start_date - 1, "days");
+            //         if (startDate.isAfter(moment(date))) {
+            //             startDate.subtract(1, "months");
+            //         }
+            //     }
+            //     endDate = moment(startDate).add(1, "month").subtract(1, "day");
+            // } else if (["weekly"].includes(staff.salaryType.value)) {
+            //     /** Weekly Staff */
+            //     startDate = moment(date).startOf("week");
+            //     if (staff.cycle_start_day) {
+            //         startDate.add(staff.cycle_start_day, "days");
+            //         if (startDate.isAfter(moment(date))) {
+            //             startDate.subtract(1, "weeks");
+            //         }
+            //     }
+            //     endDate = moment(startDate).add(1, "week").subtract(1, "day");
+            // }
+            let { startDate, endDate } = await staffService.fetchPeriodDates(staff, date)
 
             if(staff.salaryType && staff.salaryType.value === "weekly") {
                 await this.createOrUpdateStaffPayroll(staff, "weekly", startDate, endDate, businessMonthDays);

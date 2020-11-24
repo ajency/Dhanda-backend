@@ -304,7 +304,11 @@ module.exports = {
             /** Fetch the date's staff period */
             let salaryPeriod = await salaryPeriodService.fetchStaffPeriodByDate(staff.id, date);
 
-            // TODO fetch the different payment amounts
+            /** Fetch the salary amounts */
+            let paymentAgg = null
+            if(salaryPeriodService) {
+                paymentAgg = await staffIncomeMetaService.fetchStaffPaymentsAggregate(staff.id, salaryPeriod.period_start, salaryPeriod.period_end);
+            }
 
             let data = {
                 name: staff.name,
@@ -331,6 +335,13 @@ module.exports = {
                     paidLeaveAmount: salaryPeriod ? parseFloat(salaryPeriod.paid_leave_salary) : "",
                     overtimeAmount: salaryPeriod ? parseFloat(salaryPeriod.total_overtime_salary) : "",
                     lateFineAmount: salaryPeriod ? parseFloat(salaryPeriod.total_late_fine_salary) : "",
+                    allowanceAmount: paymentAgg ? paymentAgg.allowanceTotal : "",
+                    bonusAmount: paymentAgg ? paymentAgg.bonusTotal : "",
+                    paymentGivenAmount: paymentAgg ? paymentAgg.paymentGivenTotal : "",
+                    paymentTakenAmount: paymentAgg ? paymentAgg.paymentTakenTotal : "",
+                    loanGivenAmount: paymentAgg ? paymentAgg.loanGivenTotal : "",
+                    loanRepayAmount: paymentAgg ? paymentAgg.loanRepayTotal : "",
+                    deductionAmount: paymentAgg ? paymentAgg.deductionTotal : "",
                 }
             };
 
