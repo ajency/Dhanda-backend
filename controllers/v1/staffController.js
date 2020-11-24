@@ -369,8 +369,11 @@ module.exports = {
                 amount = -1 * parseFloat(amount);
             }
 
-            /** Update or create the staff income meta  */
+            /** Update or create the staff income meta */
             await staffIncomeMetaService.updateOrCreateLatestStaffIncomeMeta(staff.id, type, null, amount, description, refId, date);
+
+            /** Update the salary period */
+            await attendanceService.updateSalaryPeriod(staff.id, date);
 
             return res.status(200).send({ code: "success", message: "success" });
         } catch (err) {

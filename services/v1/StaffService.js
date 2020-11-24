@@ -119,5 +119,5 @@ module.exports = class StaffService {
             startDate: startDate,
             endDate: endDate
         };
-    }
+    } 
 }

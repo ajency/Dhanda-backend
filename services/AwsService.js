@@ -7,11 +7,12 @@ const attendanceService = new (require("./v1/AttendanceService"));
 const businessService = new (require("./v1/BusinessService"));
 const moment = require("moment");
 const models = require("../models");
+const salaryPeriodService = new (require("./v1/SalaryPeriodService"));
 
 aws.config.update({
     region: awsConfig.credentials.region,
-    accessKeyId: awsConfig.credentials.accessKeyId,
-    secretAccessKey: awsConfig.credentials.secretAccessKey
+    accessKeyId: awsConfig.credentials.access_key_id,
+    secretAccessKey: awsConfig.credentials.secret_access_key
 });
 
 module.exports = class AwsService {
@@ -24,7 +25,7 @@ module.exports = class AwsService {
 
     async sendMessageToSqs(type = 'standard', queueUrl, payload, duplicationId, groupId = null) { 
         console.log("sendMessageToSQS");
-        let sqs = new aws.SQS({ region: awsConfig.credentials.region, accessKeyId: awsConfig.credentials.accessKeyId, secretAccessKey: awsConfig.credentials.secret_access_key });
+        let sqs = new aws.SQS({ region: awsConfig.credentials.region, accessKeyId: awsConfig.credentials.access_key_id, secretAccessKey: awsConfig.credentials.secret_access_key });
         let params = {};
         if(type == 'standard') {
             params = {
@@ -86,27 +87,26 @@ module.exports = class AwsService {
                     }
 
                     try {
-                        /** Fetch the staff information */
-                        let staff = await staffService.fetchStaff(params.staffId);
+                        // /** Fetch the staff information */
+                        // let staff = await staffService.fetchStaff(params.staffId);
 
-                        /** Calculate the business month days */
-                        let business = await businessService.fetchBusinessById(staff.business_id);
-                        let dateObj = moment(params.date, "YYYY-MM-DD");  
-                        let businessMonthDays = 30;
-                        if(business.taxonomy.value === "calendar_month") {
-                            businessMonthDays = dateObj.daysInMonth();
-                        }
+                        // /** Calculate the business month days */
+                        // let business = await businessService.fetchBusinessById(staff.business_id);
+                        // let dateObj = moment(params.date, "YYYY-MM-DD");  
+                        // let businessMonthDays = 30;
+                        // if(business.taxonomy.value === "calendar_month") {
+                        //     businessMonthDays = dateObj.daysInMonth();
+                        // }
 
-                        /** Update the salary */      
-                        if(staff.salaryType && staff.salaryType.value === "weekly") {
-                            let weeklyStartDate = moment(dateObj).startOf("week").add(1, "days").format("YYYY-MM-DD");
-                            let weeklyEndDate = moment(dateObj).endOf("week").add(1, "days").format("YYYY-MM-DD");
-                            await attendanceService.createOrUpdateStaffPayroll(staff, "weekly", weeklyStartDate, weeklyEndDate, businessMonthDays);
-                        } else {
-                            let monthlyStartDate = moment(dateObj).startOf("month").format("YYYY-MM-DD");
-                            let monthlyEndDate = moment(dateObj).endOf("month").format("YYYY-MM-DD");
-                            await attendanceService.createOrUpdateStaffPayroll(staff, "monthly", monthlyStartDate, monthlyEndDate, businessMonthDays);
-                        }
+                        // let { startDate, endDate } = await staffService.fetchPeriodDates(staff, params.date);
+
+                        // /** Update the salary */      
+                        // if(staff.salaryType && staff.salaryType.value === "weekly") {
+                        //     await attendanceService.createOrUpdateStaffPayroll(staff, "weekly", startDate, endDate, businessMonthDays);
+                        // } else {
+                        //     await attendanceService.createOrUpdateStaffPayroll(staff, "monthly", startDate, endDate, businessMonthDays);
+                        // }
+                        await attendanceService.updateSalaryPeriod(params.staffId, params.date)
                     } catch(err) {
                         await logger.info("Update Salary Consumer :: Error in handleMessage: ", err);
                         if(approximateReceiveCount < parseInt(awsConfig.queueMaxTries)) {

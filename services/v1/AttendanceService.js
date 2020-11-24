@@ -241,7 +241,7 @@ module.exports = class AttendanceService {
             //     }
             //     endDate = moment(startDate).add(1, "week").subtract(1, "day");
             // }
-            let { startDate, endDate } = await staffService.fetchPeriodDates(staff, date)
+            let { startDate, endDate } = await staffService.fetchPeriodDates(staff, date);
 
             if(staff.salaryType && staff.salaryType.value === "weekly") {
                 await this.createOrUpdateStaffPayroll(staff, "weekly", startDate, endDate, businessMonthDays);
@@ -454,5 +454,27 @@ module.exports = class AttendanceService {
             + "ORDER BY staff_id, date DESC";
         
         return ormService.runRawSelectQuery(query);
+    }
+
+    async updateSalaryPeriod(staffId, date) {
+        /** Fetch the staff information */
+        let staff = await staffService.fetchStaff(staffId);
+
+        /** Calculate the business month days */
+        let business = await businessService.fetchBusinessById(staff.business_id);
+        let dateObj = moment(date, "YYYY-MM-DD");
+        let businessMonthDays = 30;
+        if(business.taxonomy.value === "calendar_month") {
+            businessMonthDays = dateObj.daysInMonth();
+        }
+
+        let { startDate, endDate } = await staffService.fetchPeriodDates(staff, date);
+
+        /** Update the salary */      
+        if(staff.salaryType && staff.salaryType.value === "weekly") {
+            await this.createOrUpdateStaffPayroll(staff, "weekly", startDate, endDate, businessMonthDays);
+        } else {
+            await this.createOrUpdateStaffPayroll(staff, "monthly", startDate, endDate, businessMonthDays);
+        }
     }
 }
