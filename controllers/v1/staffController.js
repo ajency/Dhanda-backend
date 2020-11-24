@@ -380,5 +380,22 @@ module.exports = {
             await logger.error("Exception in add staff payment api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
+    },
+
+    addSalaryCycle: async (req, res) => {
+        try {
+            let { staffRefId } = req.params;
+
+            /** Fetch the staff */
+            let staff = await staffService.fetchStaff(staffRefId, true);
+            if(!staff) {
+                await logger.info("Add staff payment - staff not found for reference id: " + staffRefId);
+                return res.status(200).send({ code: "error", message: "staff_not_found" });
+            }
+
+        } catch (err) {
+            await logger.error("Exception in add staff payment api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
     }
 }
