@@ -361,6 +361,7 @@ module.exports = {
             for(let staff of staffMembers) {
                 let att = staffAttendanceMap.has(staff.id) ? staffAttendanceMap.get(staff.id) : null;
                 let staffDetail = {
+                    refId: staff.reference_id,
                     name: staff.name,
                     amountDue: staffSalaryPeriodMap.has(staff.id) ? parseFloat(staffSalaryPeriodMap.get(staff.id).total_dues) : "",
                     date: att ? att.date : "",
