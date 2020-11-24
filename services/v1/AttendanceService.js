@@ -241,13 +241,14 @@ module.exports = class AttendanceService {
             //     }
             //     endDate = moment(startDate).add(1, "week").subtract(1, "day");
             // }
-            let { startDate, endDate } = await staffService.fetchPeriodDates(staff, date);
+            // let { startDate, endDate } = await staffService.fetchPeriodDates(staff, date);
 
-            if(staff.salaryType && staff.salaryType.value === "weekly") {
-                await this.createOrUpdateStaffPayroll(staff, "weekly", startDate, endDate, businessMonthDays);
-            } else {
-                await this.createOrUpdateStaffPayroll(staff, "monthly", startDate, endDate, businessMonthDays);
-            }
+            // if(staff.salaryType && staff.salaryType.value === "weekly") {
+            //     await this.createOrUpdateStaffPayroll(staff, "weekly", startDate, endDate, businessMonthDays);
+            // } else {
+            //     await this.createOrUpdateStaffPayroll(staff, "monthly", startDate, endDate, businessMonthDays);
+            // }
+            await this.updateSalaryPeriod(staff.id, date);
         }
     }
 
@@ -456,6 +457,10 @@ module.exports = class AttendanceService {
         return ormService.runRawSelectQuery(query);
     }
 
+    /** 
+     * Get the period that the "date" lies in and creates / updates the salary period
+     * Also updates the total dues and other values of the subsequent months
+     */
     async updateSalaryPeriod(staffId, date) {
         /** Fetch the staff information */
         let staff = await staffService.fetchStaff(staffId);

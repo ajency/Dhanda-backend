@@ -82,7 +82,8 @@ module.exports = {
                     staff.salaryType = await taxonomyService.findTaxonomyById(staff.salary_type_txid);
                     await attendanceService.addDefaultAttendanceForCurrentPeriod(staff, date);
                     /** Add the salary period */
-                    await attendanceService.updateStaffPayrollFor(staff.business_id, date, true, [staff]);
+                    // await attendanceService.updateStaffPayrollFor(staff.business_id, date, true, [staff]);
+                    await attendanceService.updateSalaryPeriod(staff.id, date);
                 }
 
                 return res.status(200).send({ code: "home", message: "success" });
@@ -389,12 +390,26 @@ module.exports = {
             /** Fetch the staff */
             let staff = await staffService.fetchStaff(staffRefId, true);
             if(!staff) {
-                await logger.info("Add staff payment - staff not found for reference id: " + staffRefId);
+                await logger.info("Add staff salary cycle - staff not found for reference id: " + staffRefId);
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
             }
 
+            /** Get the date for which to populate the attendance and salary period */
+            let date = moment().utcOffset(staff.business.timezone ? staff.business.timezone : "+00:00").format("YYYY-MM-DD");
+            let oldestSalaryPeriod = await salaryPeriodService.fetchOldestSalaryPeriod(staff.id);
+            if(oldestSalaryPeriod) {
+                date = moment(oldestSalaryPeriod.period_start).subtract(1, "days").format("YYYY-MM-DD");
+            }
+            
+            /** Add the default attendance */
+            await attendanceService.addDefaultAttendanceForCurrentPeriod(staff, date);
+            
+            /** Add the salary period */
+            await attendanceService.updateSalaryPeriod(staff.id, date);
+
+            return res.status(200).send({ code: "success", message: "success" });
         } catch (err) {
-            await logger.error("Exception in add staff payment api: ", err);
+            await logger.error("Exception in add staff salary cycle api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
     }

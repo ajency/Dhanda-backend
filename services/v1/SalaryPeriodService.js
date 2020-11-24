@@ -12,6 +12,14 @@ module.exports = class SalaryPeriodService {
         } });
     }
 
+    async fetchOldestSalaryPeriod(staffId) {
+        return await models.staff_salary_period.findOne({ where: {
+                staff_id: staffId
+            },
+            order: [ ["period_start", "ASC"] ]
+        });
+    }
+
     async fetchPreviousSalaryPeriod(staffId, periodStart, periodEnd, periodType) {
         let lastPeriodStart = moment(periodStart);
         let lastPeriodEnd = moment(periodEnd);
