@@ -4,7 +4,7 @@ module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.bulkInsert("taxonomies", [
       {
-        type: "transaction_type",
+        type: "income_type",
         value: "allowance",
         default_label: "Allowance",
         active: true,
@@ -12,7 +12,7 @@ module.exports = {
         updated_at: new Date()
       },
       {
-        type: "transaction_type",
+        type: "income_type",
         value: "bonus",
         default_label: "Bonus",
         active: true,
@@ -20,7 +20,7 @@ module.exports = {
         updated_at: new Date()
       },
       {
-        type: "transaction_type",
+        type: "income_type",
         value: "deduction",
         default_label: "Deduction",
         active: true,
@@ -28,7 +28,7 @@ module.exports = {
         updated_at: new Date()
       },
       {
-        type: "transaction_type",
+        type: "income_type",
         value: "payment_given",
         default_label: "Payment Given",
         active: true,
@@ -36,7 +36,7 @@ module.exports = {
         updated_at: new Date()
       },
       {
-        type: "transaction_type",
+        type: "income_type",
         value: "payment_taken",
         default_label: "Payment Taken",
         active: true,
@@ -44,7 +44,7 @@ module.exports = {
         updated_at: new Date()
       },
       {
-        type: "transaction_type",
+        type: "income_type",
         value: "loan_given",
         default_label: "Loan Given",
         active: true,
@@ -52,7 +52,7 @@ module.exports = {
         updated_at: new Date()
       },
       {
-        type: "transaction_type",
+        type: "income_type",
         value: "loan_repay",
         default_label: "Loan Repay",
         active: true,
@@ -64,13 +64,13 @@ module.exports = {
 
   down: async (queryInterface, Sequelize) => {
     await queryInterface.bulkDelete("taxonomies", { [Sequelize.Op.or]: [
-      { type: "transaction_type", value: "allowance" },
-      { type: "transaction_type", value: "bonus" },
-      { type: "transaction_type", value: "deduction" },
-      { type: "transaction_type", value: "payment_given" },
-      { type: "transaction_type", value: "payment_taken" },
-      { type: "transaction_type", value: "loan_given" },
-      { type: "transaction_type", value: "loan_repay" }
+      { type: "income_type", value: "allowance" },
+      { type: "income_type", value: "bonus" },
+      { type: "income_type", value: "deduction" },
+      { type: "income_type", value: "payment_given" },
+      { type: "income_type", value: "payment_taken" },
+      { type: "income_type", value: "loan_given" },
+      { type: "income_type", value: "loan_repay" }
     ] });
   }
 };

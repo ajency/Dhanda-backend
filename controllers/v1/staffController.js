@@ -352,9 +352,16 @@ module.exports = {
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
             }
 
-            let data = {};
+            let { refId, date, type, amount, description } = req.body;
 
-            return res.status(200).send({ code: "success", message: "success", data: data });
+            if(['allowance', 'bonus', 'payment_given', 'loan_given'].includes(type)) {
+                amount = -1 * parseFloat(amount);
+            }
+
+            /** Update or create the staff income meta  */
+            await staffIncomeMetaService.updateOrCreateLatestStaffIncomeMeta(staff.id, type, null, amount, description, refId, date);
+
+            return res.status(200).send({ code: "success", message: "success" });
         } catch (err) {
             await logger.error("Exception in add staff payment api: ", err);
             return res.status(200).send({ code: "error", message: "error" });

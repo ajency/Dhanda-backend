@@ -22,7 +22,8 @@ module.exports = (sequelize, DataTypes) => {
     income_sub_type_txid: DataTypes.INTEGER,
     date: DataTypes.DATEONLY,
     amount: DataTypes.DECIMAL,
-    description: DataTypes.TEXT
+    description: DataTypes.TEXT,
+    reference_id: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'staff_income_meta',

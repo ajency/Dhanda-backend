@@ -2,7 +2,7 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.addColumn("staff_income_meta", "reference_id", { type: Sequelize.INTEGER });
+    await queryInterface.addColumn("staff_income_meta", "reference_id", { type: Sequelize.STRING });
   },
 
   down: async (queryInterface, Sequelize) => {
