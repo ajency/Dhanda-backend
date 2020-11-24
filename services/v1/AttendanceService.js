@@ -10,6 +10,7 @@ const staffService = new (require("./StaffService"));
 const helperService = new (require("../HelperService"));
 const salaryPeriodService = new (require("./SalaryPeriodService"));
 const ruleService = new (require("./RuleService"));
+const staffIncomeMetaService = new (require("./StaffIncomeMetaService"));
 
 module.exports = class AttendanceService {
     async fetchAttendanceByStaffIdsAndDate(staffIds, date) {
@@ -368,7 +369,19 @@ module.exports = class AttendanceService {
         totalSalary = presentSalary + halfDaySalary + paidLeaveSalary + totalHourSalary + totalOvertimeSalary + totalLateFineSalary;
 
         let totalPayments = 0;
-        let totalDues = - totalSalary + totalPayments; // TODO add previous months dues
+
+        /** Fetch the payments for the period */
+        let payments = await staffIncomeMetaService.fetchPaymentsForStaffBetween(staff.id, periodStart, periodEnd);
+
+        for(let p of payments) {
+            totalPayments += parseFloat(p.amount);
+        }
+
+        /** Fetch the last period */
+        let previousSalaryPeriod = await salaryPeriodService.fetchPreviousSalaryPeriod(staff.id, periodStart, periodEnd, periodType);
+        let previousDues = previousSalaryPeriod ? parseFloat(previousSalaryPeriod.total_dues) : 0;
+
+        let totalDues = - totalSalary + totalPayments + previousDues;
 
         /** Create of update the period salary */
         await salaryPeriodService.createOrUpdateSalaryPeriod(staff.id, {
@@ -393,7 +406,7 @@ module.exports = class AttendanceService {
             total_salary: helperService.roundOff(totalSalary, 4),
             total_payments: helperService.roundOff(totalPayments, 4),
             total_dues: helperService.roundOff(totalDues, 4)
-        });
+        }, previousSalaryPeriod);
     }
 
     async addDefaultAttendanceForCurrentPeriod(staff, date, isId = false) {

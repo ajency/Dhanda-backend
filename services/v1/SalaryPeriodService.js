@@ -12,7 +12,20 @@ module.exports = class SalaryPeriodService {
         } });
     }
 
-    async createOrUpdateSalaryPeriod(staffId, staffSalaryPeriodObj) {
+    async fetchPreviousSalaryPeriod(staffId, periodStart, periodEnd, periodType) {
+        let lastPeriodStart = moment(periodStart);
+        let lastPeriodEnd = moment(periodEnd);
+        if(periodType === "weekly") {
+            lastPeriodStart.subtract(7, "days");
+            lastPeriodEnd.subtract(7, "days");
+        } else {
+            lastPeriodStart.subtract(1, "month");
+            lastPeriodEnd.subtract(1, "month");
+        }
+        return await this.fetchSalaryPeriodFor(staffId, lastPeriodStart, lastPeriodEnd);
+    }
+
+    async createOrUpdateSalaryPeriod(staffId, staffSalaryPeriodObj, lastPeriodEntry = null) {
         /** Fetch the entry */
         let salaryPeriodEntry = await this.fetchSalaryPeriodFor(staffId, staffSalaryPeriodObj.period_start, staffSalaryPeriodObj.period_end);
 
@@ -29,11 +42,10 @@ module.exports = class SalaryPeriodService {
             await models.staff_salary_period.create(staffSalaryPeriodObj);
 
             /** Mark the old one as completed if it exists */
-            let period = (staffSalaryPeriodObj.period_type === "weekly") ? "week" : "month";
-            let lastPeriodStart = moment(staffSalaryPeriodObj.period_start).subtract(7, "days");
-            let lastPeriodEnd = moment(staffSalaryPeriodObj.period_end).subtract(7, "days");
-
-            let lastPeriodEntry = await this.fetchSalaryPeriodFor(staffId, lastPeriodStart, lastPeriodEnd);
+            if(!lastPeriodEntry) {
+                lastPeriodEntry = await this.fetchPreviousSalaryPeriod(staffId, staffSalaryPeriodObj.period_start, 
+                                            staffSalaryPeriodObj.period_end, staffSalaryPeriodObj.period_type);
+            }
             if(lastPeriodEntry) {
                 await models.staff_salary_period.update({ status: "completed" }, { where: { id: lastPeriodEntry.id } });
             }
