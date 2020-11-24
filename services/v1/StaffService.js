@@ -116,8 +116,8 @@ module.exports = class StaffService {
             endDate = moment(startDate).add(1, "week").subtract(1, "day");
         }
         return {
-            startDate: startDate,
-            endDate: endDate
+            startDate: startDate.format("YYYY-MM-DD"),
+            endDate: endDate.format("YYYY-MM-DD")
         };
     } 
 }

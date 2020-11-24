@@ -469,12 +469,27 @@ module.exports = class AttendanceService {
         }
 
         let { startDate, endDate } = await staffService.fetchPeriodDates(staff, date);
+        let businessCurrentDate = moment().utcOffset(business.timezone).format("YYYY-MM-DD");
 
         /** Update the salary */      
         if(staff.salaryType && staff.salaryType.value === "weekly") {
             await this.createOrUpdateStaffPayroll(staff, "weekly", startDate, endDate, businessMonthDays);
+            /** Update the next salary periods */
+            while(moment(endDate).isBefore(moment(businessCurrentDate))) {
+                let dates = await staffService.fetchPeriodDates(staff, moment(endDate).add(1, "days"));
+                startDate = dates.startDate;
+                endDate = dates.endDate;
+                await this.createOrUpdateStaffPayroll(staff, "weekly", startDate, endDate, businessMonthDays);
+            }
         } else {
             await this.createOrUpdateStaffPayroll(staff, "monthly", startDate, endDate, businessMonthDays);
+            /** Update the next salary periods */
+            while(moment(endDate).isBefore(moment(businessCurrentDate))) {
+                let dates = await staffService.fetchPeriodDates(staff, moment(endDate).add(1, "days"));
+                startDate = dates.startDate;
+                endDate = dates.endDate;
+                await this.createOrUpdateStaffPayroll(staff, "monthly", startDate, endDate, businessMonthDays);
+            }
         }
     }
 }
