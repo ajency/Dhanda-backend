@@ -128,6 +128,8 @@ module.exports = {
                     staffRes = {
                         refId: staff.reference_id,
                         name: staff.name,
+                        countryCode: staff.country_code,
+                        phone: staff.phone,
                         hours: hours ? hours : "",
                         overtime: att.overtime ? att.overtime : "",
                         overtimePay: att.overtime_pay ? att.overtime_pay : "",
@@ -224,7 +226,7 @@ module.exports = {
             let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
             let data = {
                 refId: staff.reference_id,
-                name: staff.name,
+                phone: staff.phone,
                 hours: hours ? hours : "",
                 overtime: attendanceRecord.overtime ? attendanceRecord.overtime : "",
                 overtimePay: attendanceRecord.overtime_pay ? attendanceRecord.overtime_pay : "",
