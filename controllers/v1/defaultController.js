@@ -63,5 +63,26 @@ module.exports = {
     addRule: async (req, res) => {
         let minifiedRuleJson = '';
         return res.send(helperService.rulesToJSON(minifiedRuleJson));
+    },
+
+    updateProfile: async (req, res) => {
+        try {
+            /** Validate Request */
+            let requestValid = helperService.validateRequiredRequestParams(req.body, [ "lang" ]);
+            if(!requestValid) {
+                await logger.info("Update profile api - missing params");
+                return res.status(200).send({ code: "error", message: "missing_params" });
+            }
+
+            let { lang } = req.body;
+
+            /** Update the details */
+            await userService.updateUser({ lang: lang }, req.user);
+
+            return res.status(200).send({ code: "success", message: "success" });
+        } catch(err) {
+            await logger.error("Exception in update profile api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
     }
 }
