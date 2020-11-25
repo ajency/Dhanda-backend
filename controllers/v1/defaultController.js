@@ -28,7 +28,7 @@ module.exports = {
             /** Format the data */
             let taxonomyValues = [];
             for(let tx of taxonomies) {
-                taxonomyValues.push({ key: tx.value });
+                taxonomyValues.push({ key: tx.value, label: tx.default_label });
             }
             let data = {
                 taxonomyValues: taxonomyValues
