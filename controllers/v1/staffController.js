@@ -66,7 +66,10 @@ module.exports = {
 
                 /** Add the current balance */
                 if (staff !== null && currentBalanceType !== "no_dues") {
-                    await staffIncomeMetaService.createStaffIncomeMeta(staff.id, "current_balance", currentBalanceType, pendingAmount);
+                    if(currentBalanceType === "pending_dues") {
+                        pendingAmount = -1 * pendingAmount;
+                    }
+                    await staffIncomeMetaService.createStaffIncomeMeta(staff.id, currentBalanceType, null, pendingAmount);
                 }
 
                 /** Update the business country code if not present */
