@@ -107,5 +107,17 @@ module.exports = {
             await logger.error("Exception in verify otp api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
+    },
+
+    logout: async (req, res) => {
+        try {
+            /** Invalidate the token */
+            let token = req.headers.authorization;
+            await authService.invalidateToken(token);
+            return res.status(200).send({ code: "success", message: "success" });
+        } catch(err) {
+            await logger.error("Exception in logout api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
     }
 }
