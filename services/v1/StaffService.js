@@ -40,7 +40,9 @@ module.exports = class StaffService {
             cycle_start_day: staffObj.salaryPayoutDay ? staffObj.salaryPayoutDay : null,
             cycle_start_date: staffObj.salaryPayoutDate ? staffObj.salaryPayoutDate : null,
             daily_shift_duration: staffObj.dailyShiftDuration ? staffObj.dailyShiftDuration : null,
-            rule_group_id: defaultRuleGroup  ? defaultRuleGroup.id : null
+            rule_group_id: defaultRuleGroup  ? defaultRuleGroup.id : null,
+            disabled: staffObj.disabled,
+            deleted: staffObj.deleted
         });
     }
 
@@ -67,7 +69,9 @@ module.exports = class StaffService {
             salary: staffObj.salary ? staffObj.salary : null,
             cycle_start_day: staffObj.salaryPayoutDay ? staffObj.salaryPayoutDay : null,
             cycle_start_date: staffObj.salaryPayoutDate ? staffObj.salaryPayoutDate : null,
-            daily_shift_duration: staffObj.dailyShiftDuration ? staffObj.dailyShiftDuration : null
+            daily_shift_duration: staffObj.dailyShiftDuration ? staffObj.dailyShiftDuration : null,
+            disabled: staffObj.disabled,
+            deleted: staffObj.deleted
         }, { where: { reference_id: refId }, returning: true });
     }
 

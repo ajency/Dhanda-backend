@@ -39,7 +39,7 @@ module.exports = {
             }
 
             let { refId, businessRefId, staffName, countryCode, phone, salary, salaryPayoutDate, dailyShiftDuration,
-                salaryPayoutDay, currentBalanceType, pendingAmount } = req.body;
+                salaryPayoutDay, currentBalanceType, pendingAmount, disabled, deleted } = req.body;
 
             let staffObj = {
                 staffName: staffName,
@@ -49,7 +49,9 @@ module.exports = {
                 salary: salary,
                 salaryPayoutDate: salaryPayoutDate,
                 dailyShiftDuration: dailyShiftDuration,
-                salaryPayoutDay: salaryPayoutDay
+                salaryPayoutDay: salaryPayoutDay,
+                disabled: disabled,
+                deleted: deleted
             }
 
             /** Find the business */
