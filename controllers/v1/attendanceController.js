@@ -19,6 +19,13 @@ module.exports = {
                 return res.status(200).send({ code: "error", message: "business_not_found" });
             }
 
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, businessRefId, true);
+            if(!isAdmin) {
+                await logger.info("Fetch staff attendance - not an admin. user: " + req.user + " business: " + businessRefId);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
+            }
+
             /** Check if the date is passed, if not then take the current date in the business timezone */
             let { date } = req.query;
             if(!date) {
@@ -186,6 +193,13 @@ module.exports = {
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
             }
 
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, staff.business.id);
+            if(!isAdmin) {
+                await logger.info("Save day status - not an admin. user: " + req.user + " business: " + staff.business.id);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
+            }
+
             let { date, status, punchIn, punchOut } = req.body;
             let params = {
                 dayStatus: status,
@@ -344,6 +358,13 @@ module.exports = {
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
             }
 
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, staff.business.id);
+            if(!isAdmin) {
+                await logger.info("Save overtime - not an admin. user: " + req.user + " business: " + staff.business.id);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
+            }
+
             let { date, lateFineHours, lateFineAmount, clearLateFine } = req.body;
 
             let params = {
@@ -421,6 +442,13 @@ module.exports = {
             if(staff === null) {
                 await logger.info("Save note - staff not found: " + staffRefId);
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
+            }
+
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, staff.business.id);
+            if(!isAdmin) {
+                await logger.info("Save note - not an admin. user: " + req.user + " business: " + staff.business.id);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
             }
 
             let { date, note, clearNote } = req.body;
@@ -505,6 +533,13 @@ module.exports = {
             if(!staff) {
                 await logger.info("Fetch single staff attendance - staff not found for reference id: " + staffRefId);
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
+            }
+
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, staff.business.id);
+            if(!isAdmin) {
+                await logger.info("Fetch single staff attendance - not an admin. user: " + req.user + " business: " + staff.business.id);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
             }
 
             /** Fetch the attendance during the period */

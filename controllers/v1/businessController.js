@@ -52,6 +52,13 @@ module.exports = {
                 }
                 return res.status(200).send({ code: "add_staff", message: "success", data: data });
             } else {
+                /** Check if the user is an admin */
+                let isAdmin = await businessService.isUserAdmin(req.user, refId, true);
+                if(!isAdmin) {
+                    await logger.info("Save business api - not an admin. user: " + req.user + " business: " + refId);
+                    return res.status(200).send({ code: "error", message: "not_an_admin" });
+                }
+
                 /** Update the business */
                 let updateCount = await businessService.updateBusiness(refId, businessObj);
                 if(updateCount[0] === 0) {
@@ -85,8 +92,15 @@ module.exports = {
             }
 
             if(business === null) {
-                await logger.info("Save business - business not found: " + refId);
+                await logger.info("Fetch business - business not found: " + refId);
                 return res.status(200).send({ code: "error", message: "business_not_found" });
+            }
+
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, refId, true);
+            if(!isAdmin) {
+                await logger.info("Fetch business api - not an admin. user: " + req.user + " business: " + refId);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
             }
 
             let adminList = await businessService.fetchAdminListForBusiness(business, true);
@@ -129,6 +143,13 @@ module.exports = {
             if(business === null) {
                 await logger.info("Invite admin api - business not found: " + businessRefId);
                 return res.status(200).send({ code: "error", message: "business_not_found" });
+            }
+
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, business.id);
+            if(!isAdmin) {
+                await logger.info("Invite admin api - not an admin. user: " + req.user + " business: " + business.id);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
             }
 
             let { countryCode, phone, name } = req.body;
@@ -182,6 +203,13 @@ module.exports = {
             if(!invite) {
                 await logger.info("Respond to invite api - invite not found.");
                 return res.status(200).send({ code: "error", message: "invite_not_found" });
+            }
+
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, invite.business.id);
+            if(!isAdmin) {
+                await logger.info("Respond to invite api - not an admin. user: " + req.user + " business: " + invite.business.id);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
             }
 
             if(invite.accepted !== null) {
@@ -238,6 +266,13 @@ module.exports = {
                 await logger.info("Resend admin invite api - invite not found. ref_id: " + req.params.inviteRefId);
                 return res.status(200).send({ code: "error", message: "invite_not_found" });
             }
+
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, invite.business.id);
+            if(!isAdmin) {
+                await logger.info("Resend admin invite api - not an admin. user: " + req.user + " business: " + invite.business.id);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
+            }
             
             /** Send notification */
             notificationService.sendBusinessAdminInvite({ countryCode: invite.country_code, phone: invite.phone });
@@ -257,6 +292,13 @@ module.exports = {
             if(!invite) {
                 await logger.info("Delete admin invite api - invite not found. ref_id: " + req.params.inviteRefId);
                 return res.status(200).send({ code: "error", message: "invite_not_found" });
+            }
+
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, invite.business.id);
+            if(!isAdmin) {
+                await logger.info("Delete admin invite api - not an admin. user: " + req.user + " business: " + invite.business.id);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
             }
 
             /** Delete the invite */
@@ -287,6 +329,13 @@ module.exports = {
                 return res.status(200).send({ code: "error", message: "business_not_found" });
             }
 
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, business.id);
+            if(!isAdmin) {
+                await logger.info("Remove admin api - not an admin. user: " + req.user + " business: " + business.id);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
+            }
+
             /** Check if the user is an admin of this business */
             let businessUserRoles = await businessService.fetchBusUserRoleByRoleForBusiness("business_admin", business.id, adminUser.id);
             if(businessUserRoles.length === 0) {
@@ -314,6 +363,13 @@ module.exports = {
             if(business === null) {
                 await logger.info("Fetch business staff dues - business not found: " + businessRefId);
                 return res.status(200).send({ code: "error", message: "business_not_found" });
+            }
+
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, businessRefId, true);
+            if(!isAdmin) {
+                await logger.info("Fetch business staff dues api - not an admin. user: " + req.user + " business: " + businessRefId);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
             }
 
             // let adminList = await businessService.fetchAdminListForBusiness(business, true);

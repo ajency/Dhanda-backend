@@ -222,4 +222,22 @@ module.exports = class BusinessService {
             deleted: false
         });
     }
+
+    async isUserAdmin(userId, businessId, isBusinessRefId = false) {
+        let business = await this.fetchBusinessById(businessId, isBusinessRefId);
+
+        /** Check if the user is the owner */
+        if(business.user_id === userId) {
+            return true;
+        } else {
+            /** Fetch the admin list */
+            let adminList = await this.fetchBusUserRoleByRoleForBusiness("business_admin", business.id);
+            for(let admin of adminList) {
+                if(admin.user_id === userId) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
 }

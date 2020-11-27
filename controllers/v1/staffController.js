@@ -62,6 +62,13 @@ module.exports = {
                 return res.status(200).send({ code: "error", message: "business_not_found" });
             }
 
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, businessObj.id);
+            if(!isAdmin) {
+                await logger.info("Save staff - not an admin. user: " + req.user + " business: " + businessObj.id);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
+            }
+
             if (!refId) {
                 /** Create a new staff */
                 let staff = await staffService.createStaff(businessObj.id, staffObj);
@@ -132,12 +139,19 @@ module.exports = {
 
                 /** Fetch staff for this business */
                 if (business === null) {
-                    await logger.info("Save staff - staff not found because of no default business for user: " + req.user);
+                    await logger.info("Fetch staff - staff not found because of no default business for user: " + req.user);
                     return res.status(200).send({ code: "error", message: "staff_not_found" });
                 } else {
+                    /** Check if the user is an admin */
+                    let isAdmin = await businessService.isUserAdmin(req.user, business.id);
+                    if(!isAdmin) {
+                        await logger.info("Fetch staff - not an admin. user: " + req.user + " business: " + business.id);
+                        return res.status(200).send({ code: "error", message: "not_an_admin" });
+                    }
+
                     let staffMembers = await staffService.fetchStaffForBusinessId(business.id);
                     if (staffMembers.length === 0) {
-                        await logger.info("Save staff - no staff members present for default business for user: " + req.user);
+                        await logger.info("Fetch staff - no staff members present for default business for user: " + req.user);
                         return res.status(200).send({ code: "error", message: "staff_not_found" });
                     } else {
                         /** Fetch the staff income meta */
@@ -169,8 +183,15 @@ module.exports = {
             let staff = await staffService.fetchStaff(refId, true);
 
             if (staff === null) {
-                await logger.info("Save staff - staff not found: " + refId);
+                await logger.info("Fetch staff - staff not found: " + refId);
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
+            }
+
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, staff.business.id);
+            if(!isAdmin) {
+                await logger.info("Fetch staff - not an admin. user: " + req.user + " business: " + staff.business.id);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
             }
 
             /** Fetch the staff income meta */
@@ -209,6 +230,13 @@ module.exports = {
             if(!staff) {
                 await logger.info("Fetch single staff dues - staff not found for reference id: " + staffRefId);
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
+            }
+
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, staff.business.id);
+            if(!isAdmin) {
+                await logger.info("Fetch staff - not an admin. user: " + req.user + " business: " + staff.business.id);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
             }
 
             /** Fetch the latest 5 salary periods */
@@ -260,6 +288,13 @@ module.exports = {
                 await logger.info("Fetch single staff dues (paginated) - staff not found for reference id: " + staffRefId);
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
             }
+
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, staff.business.id);
+            if(!isAdmin) {
+                await logger.info("Fetch single staff dues (paginated) - not an admin. user: " + req.user + " business: " + staff.business.id);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
+            }
             
             let { page, perPage } = req.query;
 
@@ -309,6 +344,13 @@ module.exports = {
             if(!staff) {
                 await logger.info("Fetch staff dues breakup - staff not found for reference id: " + staffRefId);
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
+            }
+
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, staff.business.id);
+            if(!isAdmin) {
+                await logger.info("Fetch staff - not an admin. user: " + req.user + " business: " + staff.business.id);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
             }
 
             /** Fetch the date's staff period */
@@ -373,6 +415,13 @@ module.exports = {
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
             }
 
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, staff.business.id);
+            if(!isAdmin) {
+                await logger.info("Add staff payment - not an admin. user: " + req.user + " business: " + staff.business.id);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
+            }
+
             let { refId, date, type, amount, description } = req.body;
 
             if(['allowance', 'bonus', 'payment_given', 'loan_given'].includes(type)) {
@@ -401,6 +450,13 @@ module.exports = {
             if(!staff) {
                 await logger.info("Add staff salary cycle - staff not found for reference id: " + staffRefId);
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
+            }
+
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, staff.business.id);
+            if(!isAdmin) {
+                await logger.info("Add staff salary cycle - not an admin. user: " + req.user + " business: " + staff.business.id);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
             }
 
             /** Get the date for which to populate the attendance and salary period */
