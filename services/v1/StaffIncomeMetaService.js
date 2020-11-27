@@ -80,7 +80,7 @@ module.exports = class StaffIncomeMeta {
         /** Fetch the income type taxonomy */
         let incomeTypeTx = await taxonomyService.findTaxonomy("income_type", incomeType);
         return await models.staff_income_meta.findOne({ where: { staff_id: staffId, income_type_txid: incomeTypeTx.id },
-            include: [ { model: models.taxonomy, as: "income_sub_type" } ] });
+            include: [ { model: models.taxonomy, as: "income_type" } ] });
     }
     
     async fetchStaffPaymentsAggregate(staffId, startDate, endDate) {

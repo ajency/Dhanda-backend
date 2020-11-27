@@ -155,8 +155,10 @@ module.exports = {
                                 salaryPayoutDate: staffMembers[0].cycle_start_date,
                                 dailyShiftDuration: staffMembers[0].daily_shift_duration,
                                 salaryPayoutDay: staffMembers[0].cycle_start_day,
-                                currentBalanceType: (staffIncomeMeta) ? staffIncomeMeta.income_sub_type.value : null,
-                                pendingAmount: (staffIncomeMeta) ? staffIncomeMeta.amount : null
+                                currentBalanceType: (staffIncomeMeta) ? staffIncomeMeta.income_type.value : null,
+                                pendingAmount: (staffIncomeMeta) ? staffIncomeMeta.amount : null,
+                                disabled: staff.disabled,
+                                deleted: staff.deleted
                             }
                         });
                     }
@@ -184,8 +186,10 @@ module.exports = {
                 salaryPayoutDate: staff.cycle_start_date,
                 dailyShiftDuration: staff.daily_shift_duration,
                 salaryPayoutDay: staff.cycle_start_day,
-                currentBalanceType: (staffIncomeMeta) ? staffIncomeMeta.income_sub_type.value : null,
-                pendingAmount: (staffIncomeMeta) ? staffIncomeMeta.amount : null
+                currentBalanceType: (staffIncomeMeta) ? staffIncomeMeta.income_type.value : null,
+                pendingAmount: (staffIncomeMeta) ? staffIncomeMeta.amount : null,
+                disabled: staff.disabled,
+                deleted: staff.deleted
             }
 
             return res.status(200).send({ code: "success", message: "success", data: data });
