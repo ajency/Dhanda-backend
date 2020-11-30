@@ -89,8 +89,12 @@ module.exports = class StaffService {
         }
     }
 
-    async fetchStaffForBusinessId(businessId) {
-        return await models.staff.findAll({ where: { business_id: businessId },
+    async fetchStaffForBusinessId(businessId, includeDeleted = false) {
+        let whereClause = { business_id: businessId };
+        if(!includeDeleted) {
+            whereClause.deleted = false;
+        }
+        return await models.staff.findAll({ where: whereClause,
             order: [ [ "name", "asc" ] ],
             include: [ { model: models.taxonomy, as: "salaryType" },
                 { model: models.business } ] });
