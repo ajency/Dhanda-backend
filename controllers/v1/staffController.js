@@ -236,7 +236,7 @@ module.exports = {
             let isAdmin = await businessService.isUserAdmin(req.user, staff.business.id);
             if(!isAdmin) {
                 await logger.info("Fetch staff - not an admin. user: " + req.user + " business: " + staff.business.id);
-                return res.status(200).send({ code: "error", message: "not_an_admin" });
+                // return res.status(200).send({ code: "error", message: "not_an_admin" });
             }
 
             /** Fetch the latest 5 salary periods */
@@ -272,11 +272,21 @@ module.exports = {
                 recentTransactions = await attendanceService.fetchStaffSalaryTransactions(staff.id, rtStartDate, rtEndDate, rtSalaryPeriod, 3);
             }
 
+            let totalDue = "", currentPayable = "";
+            if(rtSalaryPeriod) {
+                /** Basically last period's dues */
+                totalDue = parseFloat(rtSalaryPeriod.total_dues) + parseFloat(rtSalaryPeriod.total_salary) - parseFloat(rtSalaryPeriod.total_payments);
+                currentPayable = totalDue - parseFloat(rtSalaryPeriod.total_salary) + parseFloat(rtSalaryPeriod.total_payments);
+            }
+            
             let data = {
                 name: staff.name,
                 countryCode: staff.country_code,
                 phone: staff.phone,
-                totalAmountDue: totalAmountDue,
+                totalDue: totalDue,
+                totalDueUpto: rtStartDate ? moment(rtStartDate).subtract(1, "days").format("YYYY-MM-DD") : "",
+                currentPayable: currentPayable,
+                currentPayableFrom: rtStartDate ? moment(rtStartDate).format("YYYY-MM-DD") : "",
                 currency: staff.business.currency,
                 salaryPeriod: salaryPeriodList,
                 recentTransactions: recentTransactions
@@ -388,23 +398,6 @@ module.exports = {
                     hoursWorked: salaryPeriod ? salaryPeriod.total_hours : "",
                     salary: staff.salary,
                     salaryType: staff.salaryType.value
-                },
-                salaryBreakup: {
-                    presentTotal: salaryPeriod ? salaryPeriod.total_present : "",
-                    presentAmount: salaryPeriod ? parseFloat(salaryPeriod.present_salary) : "",
-                    halfDayTotal: salaryPeriod ? salaryPeriod.total_half_day : "",
-                    halfDayAmount: salaryPeriod ? parseFloat(salaryPeriod.half_day_salary) : "",
-                    paidLeaveTotal: salaryPeriod ? salaryPeriod.total_paid_leave : "",
-                    paidLeaveAmount: salaryPeriod ? parseFloat(salaryPeriod.paid_leave_salary) : "",
-                    overtimeAmount: salaryPeriod ? parseFloat(salaryPeriod.total_overtime_salary) : "",
-                    lateFineAmount: salaryPeriod ? parseFloat(salaryPeriod.total_late_fine_salary) : "",
-                    allowanceAmount: paymentAgg ? paymentAgg.allowanceTotal : "",
-                    bonusAmount: paymentAgg ? paymentAgg.bonusTotal : "",
-                    paymentGivenAmount: paymentAgg ? paymentAgg.paymentGivenTotal : "",
-                    paymentTakenAmount: paymentAgg ? paymentAgg.paymentTakenTotal : "",
-                    loanGivenAmount: paymentAgg ? paymentAgg.loanGivenTotal : "",
-                    loanRepayAmount: paymentAgg ? paymentAgg.loanRepayTotal : "",
-                    deductionAmount: paymentAgg ? paymentAgg.deductionTotal : "",
                 }
             };
 
