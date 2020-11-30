@@ -244,9 +244,13 @@ module.exports = {
             
             let salaryPeriodList = [];
             let totalAmountDue = null;
+            let rtStartDate = null, rtEndDate = null;
             for(let salaryPeriodEntry of salaryPeriodEntries) {
                 if(totalAmountDue === null) {
                     totalAmountDue = salaryPeriodEntry.total_dues;
+                    rtStartDate = salaryPeriodEntry.period_start;
+                    rtEndDate = salaryPeriodEntry.period_end;
+                    rtSalaryPeriod = salaryPeriodEntry;
                 }
 
                 salaryPeriodList.push({
@@ -262,13 +266,20 @@ module.exports = {
                 });
             }
 
+            /** Fetch the recent transactions */
+            let recentTransactions = [];
+            if(rtStartDate && rtEndDate) {
+                recentTransactions = await attendanceService.fetchStaffSalaryTransactions(staff.id, rtStartDate, rtEndDate, rtSalaryPeriod, 3);
+            }
+
             let data = {
                 name: staff.name,
                 countryCode: staff.country_code,
                 phone: staff.phone,
                 totalAmountDue: totalAmountDue,
                 currency: staff.business.currency,
-                salaryPeriod: salaryPeriodList
+                salaryPeriod: salaryPeriodList,
+                recentTransactions: recentTransactions
             };
 
             return res.status(200).send({ code: "success", message: "success", data: data });

@@ -135,9 +135,10 @@ module.exports = class StaffIncomeMeta {
         let paymentTx = await taxonomyService.fetchTaxonomyForType("income_type");
         let paymentTxIds = paymentTx.map((p) => { return p.id } )
         return await models.staff_income_meta.findAll({ where: { 
-            staff_id: staffId,
-            date: { [Op.between]: [startDate, endDate] },
-            income_type_txid: { [Op.in]: paymentTxIds }
-        }});
+                staff_id: staffId,
+                date: { [Op.between]: [startDate, endDate] },
+                income_type_txid: { [Op.in]: paymentTxIds }
+            }, include: [ { model: models.taxonomy, as: "income_type" }]
+        });
     }
 }

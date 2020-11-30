@@ -360,8 +360,8 @@ module.exports = class AttendanceService {
                 presentSalary += ruleEngineOutput.presentSalary;
                 halfDaySalary += ruleEngineOutput.halfDaySalary;
                 paidLeaveSalary += ruleEngineOutput.paidLeaveSalary;
-                totalHourSalary += ruleEngineOutput.halfDaySalary;
-                totalOvertimeSalary += ruleEngineOutput.hourSalary;
+                totalHourSalary += ruleEngineOutput.hourSalary;
+                totalOvertimeSalary += ruleEngineOutput.overtimeSalary;
                 totalLateFineSalary += ruleEngineOutput.lateFineSalary;
             }
         }
@@ -496,5 +496,110 @@ module.exports = class AttendanceService {
                 await this.createOrUpdateStaffPayroll(staff, "monthly", startDate, endDate, businessMonthDays);
             }
         }
+    }
+
+    /**
+     * Note: salaryPeriod will be used for getting the day status agg. This is to avoid calculations, already done.
+     * @param {*} staffId 
+     * @param {*} startDate 
+     * @param {*} endDate 
+     * @param {*} limit 
+     */
+    async fetchStaffSalaryTransactions(staffId, startDate, endDate, salaryPeriod = null, limit = null) {
+        let transactions = [];
+        /** Fetch the attendance */
+        let staffAtt = await this.fetchAttendanceByStaffIdsForPeriod([staffId], startDate, endDate);
+        let statusMap = new Map();
+        for(let att of staffAtt) {
+            statusMap.set(att.day_status_txid, att);
+
+            /** Add the late fine transaction if present */
+            if(att.late_fine_amount) {
+                transactions.push({
+                    transactionType: "late_fine",
+                    amount: att.late_fine_amount,
+                    description: "",
+                    date: att.date,
+                    days: "",
+                    hours: "",
+                    rate: ""
+                });
+            } else if(att.late_fine_hours) {
+                transactions.push({
+                    transactionType: "late_fine",
+                    amount: "",
+                    description: "",
+                    date: att.date,
+                    days: "",
+                    hours: att.late_fine_hours,
+                    rate: ""
+                });
+            }
+
+            /** Add overtime transaction if present */
+            if(att.overtime) {
+                let overtimePayPerMinute = parseFloat(att.overtime_pay) / 60;
+                let overtimeInMinutes = helperService.convertHoursStringToMinutes(att.overtime);
+                transactions.push({
+                    transactionType: "overtime",
+                    amount: helperService.roundOff(overtimePayPerMinute * overtimeInMinutes),
+                    description: "",
+                    date: att.date,
+                    days: "",
+                    hours: att.overtime,
+                    rate: helperService.roundOff(overtimePayPerMinute, 2)
+                });
+            }
+        }
+
+        /** Add the day status transactions */
+        statusMap.forEach((att) => {
+            let amount = "", days = "";
+            if(att.dayStatus.value === "present") {
+                amount = (salaryPeriod && salaryPeriod.present_salary) ? helperService.roundOff(parseFloat(salaryPeriod.present_salary), 2) : "";
+                days = (salaryPeriod && salaryPeriod.present_total) ? salaryPeriod.present_total : "";
+            } else if(att.dayStatus.value === "paid_leave") {
+                amount = (salaryPeriod && salaryPeriod.paid_leave_salary) ? helperService.roundOff(parseFloat(salaryPeriod.paid_leave_salary), 2) : "";
+                days = (salaryPeriod && salaryPeriod.paid_leave_total) ? salaryPeriod.paid_leave_total : "";
+            } else if(att.dayStatus.value === "half_day") {
+                amount = (salaryPeriod && salaryPeriod.half_day_salary) ? helperService.roundOff(parseFloat(salaryPeriod.half_day_salary), 2) : "";
+                days = (salaryPeriod && salaryPeriod.half_day_total) ? salaryPeriod.half_day_total : "";
+            }
+            transactions.push({
+                transactionType: att.dayStatus.value,
+                amount: amount,
+                description: "",
+                date: att.date,
+                days: days,
+                hours: "",
+                rate: ""
+            });
+        });
+
+        /** Fetch the transactions */
+        let staffIncomeTransactions = await staffIncomeMetaService.fetchPaymentsForStaffBetween(staffId, startDate, endDate);
+        for(let tr of staffIncomeTransactions) {
+            transactions.push({
+                transactionType: tr.income_type.value,
+                amount: parseFloat(tr.amount),
+                description: "",
+                date: att.date,
+                days: "",
+                hours: "",
+                rate: ""
+            });
+        }
+
+        /** Sort the transactions */
+        transactions.sort((a,b) => {
+            return new Date(b.date) - new Date(a.date);
+        });
+
+        /** Limit the values */
+        // if(limit) {
+        //     return transactions.slice(0, limit);
+        // } else {
+            return transactions;
+        // }
     }
 }
