@@ -205,13 +205,6 @@ module.exports = {
                 return res.status(200).send({ code: "error", message: "invite_not_found" });
             }
 
-            /** Check if the user is an admin */
-            let isAdmin = await businessService.isUserAdmin(req.user, invite.business.id);
-            if(!isAdmin) {
-                await logger.info("Respond to invite api - not an admin. user: " + req.user + " business: " + invite.business.id);
-                return res.status(200).send({ code: "error", message: "not_an_admin" });
-            }
-
             if(invite.accepted !== null) {
                 await logger.info("Respond to invite api - already responded to invite.");
                 return res.status(200).send({ code: "error", message: "already_responded" });
