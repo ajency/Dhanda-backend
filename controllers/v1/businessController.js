@@ -23,7 +23,7 @@ module.exports = {
             }
 
             let { refId, owner, businessName, currency, salaryMonthType, shiftHours, 
-                    timezone, countryCode, country, phCountryCode, phone } = req.body;
+                    timezone, countryCode, country, phCountryCode, phone, lang } = req.body;
 
             /** Create a new business */
             let businessObj = {
