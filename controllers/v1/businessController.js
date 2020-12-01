@@ -22,7 +22,8 @@ module.exports = {
                 return res.status(200).send({ code: "error", message: "missing_params" });
             }
 
-            let { refId, owner, businessName, currency, salaryMonthType, shiftHours, timezone, countryCode, country } = req.body;
+            let { refId, owner, businessName, currency, salaryMonthType, shiftHours, 
+                    timezone, countryCode, country, phCountryCode, phone } = req.body;
 
             /** Create a new business */
             let businessObj = {
@@ -32,7 +33,9 @@ module.exports = {
                 shiftHours: shiftHours,
                 timezone: timezone,
                 countryCode: countryCode,
-                country: country
+                country: country,
+                phCountryCode: phCountryCode,
+                phone: phone
             } 
 
             if(!refId) {

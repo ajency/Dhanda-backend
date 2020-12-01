@@ -15,6 +15,8 @@ module.exports = class BusinessService {
      *      shiftHours: shiftHours,
      *      timezone: timezone,
      *      countryCode: countryCode
+     *      phCountryCode: 91
+     *      phone: "9876543210"
      * }
      * @param {*} userId 
      * @param {*} businessObj 
@@ -41,7 +43,9 @@ module.exports = class BusinessService {
             default: def,
             active: true,
             timezone: businessObj.timezone,
-            country_code: businessObj.countryCode
+            country_code: businessObj.countryCode,
+            ph_country_code: businessObj.phCountryCode,
+            phone: businessObj.phone
         });
     }
 
@@ -53,6 +57,8 @@ module.exports = class BusinessService {
      *      shiftHours: shiftHours,
      *      timezone: timezone,
      *      countryCode: countryCode
+     *      phCountryCode: 91
+     *      phone: "9876543210"
      * }
      * @param {*} refId 
      * @param {*} businessObj 
@@ -69,7 +75,9 @@ module.exports = class BusinessService {
             shift_hours: businessObj.shiftHours ? businessObj.shiftHours : null,
             timezone: businessObj.timezone,
             country_code: businessObj.countryCode,
-            country: businessObj.country
+            country: businessObj.country,
+            ph_country_code: businessObj.phCountryCode,
+            phone: businessObj.phone
         }
         return await models.business.update(saveBusinessObj, { where: { reference_id: refId }, returning: true });
     }
