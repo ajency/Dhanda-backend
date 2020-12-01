@@ -371,17 +371,14 @@ module.exports = {
             let isAdmin = await businessService.isUserAdmin(req.user, staff.business.id);
             if(!isAdmin) {
                 await logger.info("Fetch staff - not an admin. user: " + req.user + " business: " + staff.business.id);
-                return res.status(200).send({ code: "error", message: "not_an_admin" });
+                // return res.status(200).send({ code: "error", message: "not_an_admin" });
             }
 
             /** Fetch the date's staff period */
             let salaryPeriod = await salaryPeriodService.fetchStaffPeriodByDate(staff.id, date);
 
-            /** Fetch the salary amounts */
-            let paymentAgg = null
-            if(salaryPeriodService) {
-                paymentAgg = await staffIncomeMetaService.fetchStaffPaymentsAggregate(staff.id, salaryPeriod.period_start, salaryPeriod.period_end);
-            }
+            /** Fetch the transactions */
+            let transactions = await attendanceService.fetchStaffSalaryTransactions(staff.id, salaryPeriod.period_start, salaryPeriod.period_end, salaryPeriod);
 
             let data = {
                 name: staff.name,
@@ -397,7 +394,8 @@ module.exports = {
                     daysTotal: salaryPeriod ? moment(salaryPeriod.period_end).diff(moment(salaryPeriod.period_start), "days") : "",
                     hoursWorked: salaryPeriod ? salaryPeriod.total_hours : "",
                     salary: staff.salary,
-                    salaryType: staff.salaryType.value
+                    salaryType: staff.salaryType.value,
+                    transactions: transactions
                 }
             };
 
