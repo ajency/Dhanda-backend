@@ -580,6 +580,20 @@ module.exports = class AttendanceService {
             });
         });
 
+        /** Add the hour transaction */
+        if(salaryPeriod && salaryPeriod.hours !== "00:00") {
+            transactions.push({
+                transactionType: "hours",
+                amount: salaryPeriod.total_hour_salary,
+                description: "",
+                date: att.date,
+                days: "",
+                hours: salaryPeriod.total_hours,
+                rate: "",
+                refId: ""
+            });
+        }
+
         /** Fetch the transactions */
         let staffIncomeTransactions = await staffIncomeMetaService.fetchPaymentsForStaffBetween(staffId, startDate, endDate);
         for(let tr of staffIncomeTransactions) {

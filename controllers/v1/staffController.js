@@ -378,7 +378,10 @@ module.exports = {
             let salaryPeriod = await salaryPeriodService.fetchStaffPeriodByDate(staff.id, date);
 
             /** Fetch the transactions */
-            let transactions = await attendanceService.fetchStaffSalaryTransactions(staff.id, salaryPeriod.period_start, salaryPeriod.period_end, salaryPeriod);
+            let transactions = [];
+            if(salaryPeriod) {
+                transactions = await attendanceService.fetchStaffSalaryTransactions(staff.id, salaryPeriod.period_start, salaryPeriod.period_end, salaryPeriod);
+            }
 
             let data = {
                 name: staff.name,
