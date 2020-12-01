@@ -601,10 +601,10 @@ module.exports = class AttendanceService {
         });
 
         /** Limit the values */
-        // if(limit) {
-        //     return transactions.slice(0, limit);
-        // } else {
+        if(limit) {
+            return transactions.slice(0, limit);
+        } else {
             return transactions;
-        // }
+        }
     }
 }

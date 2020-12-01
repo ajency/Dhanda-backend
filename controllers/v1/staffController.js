@@ -236,7 +236,7 @@ module.exports = {
             let isAdmin = await businessService.isUserAdmin(req.user, staff.business.id);
             if(!isAdmin) {
                 await logger.info("Fetch staff - not an admin. user: " + req.user + " business: " + staff.business.id);
-                // return res.status(200).send({ code: "error", message: "not_an_admin" });
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
             }
 
             /** Fetch the latest 5 salary periods */
@@ -371,7 +371,7 @@ module.exports = {
             let isAdmin = await businessService.isUserAdmin(req.user, staff.business.id);
             if(!isAdmin) {
                 await logger.info("Fetch staff - not an admin. user: " + req.user + " business: " + staff.business.id);
-                // return res.status(200).send({ code: "error", message: "not_an_admin" });
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
             }
 
             /** Fetch the date's staff period */
