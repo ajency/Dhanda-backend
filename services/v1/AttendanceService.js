@@ -522,7 +522,8 @@ module.exports = class AttendanceService {
                     date: att.date,
                     days: "",
                     hours: "",
-                    rate: ""
+                    rate: "",
+                    refId: ""
                 });
             } else if(att.late_fine_hours) {
                 transactions.push({
@@ -532,7 +533,8 @@ module.exports = class AttendanceService {
                     date: att.date,
                     days: "",
                     hours: att.late_fine_hours,
-                    rate: ""
+                    rate: "",
+                    refId: ""
                 });
             }
 
@@ -547,7 +549,8 @@ module.exports = class AttendanceService {
                     date: att.date,
                     days: "",
                     hours: att.overtime,
-                    rate: helperService.roundOff(overtimePayPerMinute, 2)
+                    rate: helperService.roundOff(overtimePayPerMinute, 2),
+                    refId: ""
                 });
             }
         }
@@ -572,7 +575,8 @@ module.exports = class AttendanceService {
                 date: att.date,
                 days: days,
                 hours: "",
-                rate: ""
+                rate: "",
+                refId: ""
             });
         });
 
@@ -582,11 +586,12 @@ module.exports = class AttendanceService {
             transactions.push({
                 transactionType: tr.income_type.value,
                 amount: parseFloat(tr.amount),
-                description: "",
-                date: att.date,
+                description: tr.description,
+                date: tr.date,
                 days: "",
                 hours: "",
-                rate: ""
+                rate: "",
+                refId: tr.reference_id
             });
         }
 
