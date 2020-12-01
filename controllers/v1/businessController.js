@@ -119,7 +119,9 @@ module.exports = {
                 "shiftHours": business.shift_hours,
                 "country": business.country,
                 "staffTotal": (staffMembers.length > 0) ? staffMembers.length : "",
-                "admin": adminList
+                "admin": adminList,
+                "phCountryCode": business.phCountryCode,
+                "phone": business.phone
             }
 
             return res.status(200).send({ code: "success", message: "success", data: data });
