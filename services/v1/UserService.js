@@ -155,7 +155,7 @@ module.exports = class UserService {
         }
 
         /** Update the phone and country code */
-        await models.user.update({ country_code: business.ph_country_code, phone: business.phone });
+        await models.user.update({ country_code: business.ph_country_code, phone: business.phone, verified: true });
         return { code: "success", message: "success" };
     }
 }
