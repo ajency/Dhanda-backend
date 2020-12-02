@@ -130,4 +130,19 @@ module.exports = class UserService {
         }
         return models.user.findOne({ where: whereClause });
     }
+
+    async fetchUserFromToken(completeAuthToken) {
+        if(!completeAuthToken) {
+            return null;
+        }
+        let jwtToken = completeAuthToken.split(' ')[1];
+        let payload = jwt.verify(jwtToken, process.env.JWT_SECRET);
+            
+        /** Fetch the user details based on the reference id */
+        let user = await models.user.findOne({ where: { reference_id: payload.user.refId },
+            include: [
+                { model: models.business, as: "businesses", include: [ { model: models.staff } ] }
+            ] });
+        return user;
+    }
 }

@@ -6,10 +6,10 @@ const userService = new (require("../../services/v1/UserService"));
 const staffService = new (require("../../services/v1/StaffService"));
 const attendanceService = new (require("../../services/v1/AttendanceService"));
 const notificationService = new (require("../../services/v1/NotificationService"));
-const defaults = require("../../services/defaults");
 const ormService = new (require("../../services/OrmService"));
 const salaryPeriodService = new (require("../../services/v1/SalaryPeriodService"));
 const taxonomService = new (require("../../services/v1/TaxonomyService"));
+const authService = new (require("../../services/AuthService"));
 
 module.exports = {
     saveBusiness: async (req, res) => {
@@ -36,11 +36,30 @@ module.exports = {
                 country: country,
                 phCountryCode: phCountryCode,
                 phone: phone
-            } 
+            }
+
+            let reqUser = await userService.fetchUserFromToken(req.headers.authorization);
 
             if(!refId) {
+                let token = "";
+
+                /** If an unverified user is making this call */
+                if(!req.headers.authorization) {
+                    /** Create a new un-verified user */
+                    reqUser = await userService.createUser(phCountryCode, phone, lang);
+
+                    /** Generate access token */
+                    token = await authService.generateTokenForUser(reqUser, true);
+                } else {
+                    /** Check if no user is found for the passed token */
+                    if(!reqUser) {
+                        await logger.info("Save business api - user for token not found. token: " + req.headers.authorization);
+                        return res.status(200).send({ code: "error", message: "user_not_found" });
+                    }
+                }
+
                 /** Create a new business */
-                let business = await businessService.createBusinessForUser(req.user, businessObj);
+                let business = await businessService.createBusinessForUser(reqUser.id, businessObj);
             
                 /** Update the user's name if passed */
                 if(owner) {
@@ -51,14 +70,21 @@ module.exports = {
                     refId: business.reference_id,
                     countryCode: business.country_code,
                     currency: business.currency,
-                    shiftHours: business.shift_hours
+                    shiftHours: business.shift_hours,
+                    token: token
                 }
                 return res.status(200).send({ code: "add_staff", message: "success", data: data });
             } else {
+                /** Check if reqUser is present */
+                if(!reqUser) {
+                    await logger.info("Save business api (update) - user for token not found. token: " + req.headers.authorization);
+                    return res.status(200).send({ code: "error", message: "user_not_found" });
+                }
+                
                 /** Check if the user is an admin */
-                let isAdmin = await businessService.isUserAdmin(req.user, refId, true);
+                let isAdmin = await businessService.isUserAdmin(reqUser.id, refId, true);
                 if(!isAdmin) {
-                    await logger.info("Save business api - not an admin. user: " + req.user + " business: " + refId);
+                    await logger.info("Save business api - not an admin. user: " + reqUser.id + " business: " + refId);
                     return res.status(200).send({ code: "error", message: "not_an_admin" });
                 }
 

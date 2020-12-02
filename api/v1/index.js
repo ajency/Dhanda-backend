@@ -19,10 +19,10 @@ router.get("/", defaultController.default);
 router.post("/login/sendOtp", loginController.sendOtp);
 router.post("/login/verifyOtp", loginController.verifyOtp);
 router.get("/init", defaultController.coldStart);
+router.post("/saveBusiness", businessController.saveBusiness);
 
 /** Protected Routes */
 /** Business */
-router.post("/saveBusiness", passport.authenticate('jwt', { session: false }), businessController.saveBusiness);
 router.get("/business", passport.authenticate('jwt', { session: false }), businessController.fetchBusiness);
 router.get("/business/:businessRefId/dues", passport.authenticate('jwt', { session: false }), businessController.fetchBusinessStaffDues);
 
