@@ -46,7 +46,7 @@ module.exports = {
                 /** If an unverified user is making this call */
                 if(!req.headers.authorization) {
                     /** Create a new un-verified user */
-                    reqUser = await userService.createUser(phCountryCode, phone, lang);
+                    reqUser = await userService.createUser(null, null, lang);
 
                     /** Generate access token */
                     token = await authService.generateTokenForUser(reqUser, true);
