@@ -6,10 +6,10 @@ const authService = new (require("../../services/AuthService"));
 module.exports = {
     sendOtp: async (req, res) => {
         try {
-            let { countryCode, phone } = req.body;
+            let { countryCode, phone, type } = req.body;
 
             /** Check if there is a valid OTP already present */
-            let { otp, otpCount } = await otpService.getLastValidOtpAndCount(countryCode, phone, "login");
+            let { otp, otpCount } = await otpService.getLastValidOtpAndCount(countryCode, phone, type);
 
             /** Check if max tries have been exceeded */
             let canGenerateOtp = await otpService.canGenerateOtp(otpCount);
@@ -29,7 +29,7 @@ module.exports = {
             }
             
             /** Save OTP */
-            await otpService.saveOtp(countryCode, phone, otp, "login");
+            await otpService.saveOtp(countryCode, phone, otp, type);
 
             /** Send OTP */
             await otpService.sendOtp(countryCode, phone, otp);
