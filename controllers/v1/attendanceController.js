@@ -37,6 +37,7 @@ module.exports = {
             }
 
             let data = {
+                userVerified: business.user.verified,
                 date: date,
                 businessName: business.name,
                 shiftHours: business.shift_hours,
