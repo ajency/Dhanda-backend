@@ -2,6 +2,7 @@ const logger = require("simple-node-logger").createSimpleLogger({ timestampForma
 const helperService = new (require("../../services/HelperService"));
 const taxonomyService = new (require("../../services/v1/TaxonomyService"));
 const userService = new (require("../../services/v1/UserService"));
+const businessService = new (require("../../services/v1/BusinessService"));
 
 module.exports = {
     default: (req, res) => {
@@ -82,6 +83,35 @@ module.exports = {
             return res.status(200).send({ code: "success", message: "success" });
         } catch(err) {
             await logger.error("Exception in update profile api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
+    },
+
+    getProfile: async (req, res) => {
+        try {
+            /** Fetch user details */
+            let user = await userService.fetchUserById(req.user);
+            if(!user) {
+                return res.status(200).send({ code: "error", message: "user_not_found" }); 
+            }
+            
+            let data = {
+                lang: user.lang,
+                verified: user.verified,
+                countryCode: user.country_code,
+                phone: user.phone
+            }
+
+            /** If user doesn't have a phone number (i.e. user is unverified), fetch it from the business */
+            if(!user.country_code || !user.phone) {
+                let business = await userService.fetchDefaultBusinessForUser(req.user);
+                data.countryCode = business.ph_country_code;
+                data.phone = business.phone;
+            }
+
+            return res.status(200).send({ code: "success", message: "success", data: data });
+        } catch(err) {
+            await logger.error("Exception in get profile api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
     }

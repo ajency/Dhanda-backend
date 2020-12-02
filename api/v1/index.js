@@ -52,6 +52,7 @@ router.post("/staff/:staffRefId/addSalaryCycle", passport.authenticate('jwt', { 
 
 /** Others */
 router.get("/taxonomy", passport.authenticate('jwt', { session: false }), defaultController.fetchTaxonomyValues);
+router.get("/profile", passport.authenticate('jwt', { session: false }), defaultController.getProfile);
 router.post("/profile", passport.authenticate('jwt', { session: false }), defaultController.updateProfile);
 router.post("/logout", passport.authenticate('jwt', { session: false }), loginController.logout);
 
