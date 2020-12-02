@@ -98,6 +98,7 @@ module.exports = {
             let business = await userService.fetchDefaultBusinessForUser(req.user);
             
             let data = {
+                name: user.name,
                 lang: user.lang,
                 verified: user.verified,
                 countryCode: user.country_code,
