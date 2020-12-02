@@ -94,17 +94,19 @@ module.exports = {
             if(!user) {
                 return res.status(200).send({ code: "error", message: "user_not_found" }); 
             }
+
+            let business = await userService.fetchDefaultBusinessForUser(req.user);
             
             let data = {
                 lang: user.lang,
                 verified: user.verified,
                 countryCode: user.country_code,
-                phone: user.phone
+                phone: user.phone,
+                defaultBusinessRefId: business.reference_id
             }
 
             /** If user doesn't have a phone number (i.e. user is unverified), fetch it from the business */
             if(!user.country_code || !user.phone) {
-                let business = await userService.fetchDefaultBusinessForUser(req.user);
                 data.countryCode = business.ph_country_code;
                 data.phone = business.phone;
             }
