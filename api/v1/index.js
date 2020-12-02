@@ -17,7 +17,7 @@ require("../../config/apiAuth")
 /** Open Routes */
 router.get("/", defaultController.default);
 router.post("/sendOtp", loginController.sendOtp);
-router.post("/login/verifyOtp", loginController.verifyOtp);
+router.post("/verifyOtp", loginController.verifyOtp);
 router.get("/init", defaultController.coldStart);
 router.post("/saveBusiness", businessController.saveBusiness);
 

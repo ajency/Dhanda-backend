@@ -43,11 +43,11 @@ module.exports = {
 
     verifyOtp: async (req, res) => {
         try {
-            let { countryCode, phone, lang } = req.body;
+            let { countryCode, phone, lang, type } = req.body;
             let enteredOtp = req.body.otp;
 
             /** Fetch the latest OTP */
-            let { otp, otpMsgCode, otpObj } = await otpService.getLastValidOtpAndCount(countryCode, phone, "login");
+            let { otp, otpMsgCode, otpObj } = await otpService.getLastValidOtpAndCount(countryCode, phone, type);
 
             if(otp === null) {
                 if(otpMsgCode === "no_otp") {
