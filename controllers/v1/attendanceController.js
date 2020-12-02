@@ -42,6 +42,8 @@ module.exports = {
                 businessName: business.name,
                 shiftHours: business.shift_hours,
                 currency: business.currency,
+                phCountryCode: business.ph_country_code,
+                phone: business.phone,
                 staffStatusSummary: {},
                 monthlyStaff: [],
                 hourlyStaff: []
