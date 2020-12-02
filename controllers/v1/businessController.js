@@ -10,6 +10,7 @@ const ormService = new (require("../../services/OrmService"));
 const salaryPeriodService = new (require("../../services/v1/SalaryPeriodService"));
 const taxonomService = new (require("../../services/v1/TaxonomyService"));
 const authService = new (require("../../services/AuthService"));
+const otpService = new (require("../../services/v1/OtpService"));
 
 module.exports = {
     saveBusiness: async (req, res) => {
@@ -478,6 +479,37 @@ module.exports = {
             return res.status(200).send({ code: "success", message: "success", data: data });
         } catch(err) {
             await logger.error("Exception in fetch business dues api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
+    },
+
+    verifyOwner: async (req, res) => {
+        try {
+            let { businessRefId } = req.params;
+
+            let business = await businessService.fetchBusinessById(businessRefId, true);
+
+            /** Check if any of the phone details are missing */
+            if(!business.ph_country_code || !business.phone) {
+                await logger.info("Verify business owner - phone details missing. business: " + businessRefId
+                    + " country code: " + business.ph_country_code + " phone: " + business.phone);
+                return res.status(200).send({ code: "error", message: "phone_not_valid" });
+            }
+
+            /** Check if the user already exists */
+            let owner = await userService.fetchUserByPhone(business.ph_country_code, business.phone);
+            if(owner) {
+                await logger.info("Verify business owner - user already exists. business: " + businessRefId
+                    + " country code: " + business.ph_country_code + " phone: " + business.phone);
+                return res.status(200).send({ code: "error", message: "user_exists" });
+            }
+
+            /** Generate and send otp */
+            let resp = await otpService.generateAndSendOtpWrapper(business.ph_country_code, business.phone, "verify_user")
+
+            return res.status(200).send(resp);
+        } catch(err) {
+            await logger.error("Exception in verify business owner api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
     }

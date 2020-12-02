@@ -25,6 +25,7 @@ router.post("/saveBusiness", businessController.saveBusiness);
 /** Business */
 router.get("/business", passport.authenticate('jwt', { session: false }), businessController.fetchBusiness);
 router.get("/business/:businessRefId/dues", passport.authenticate('jwt', { session: false }), businessController.fetchBusinessStaffDues);
+router.post("/business/:businessRefId/verifyOwner", passport.authenticate('jwt', { session: false }), businessController.verifyOwner);
 
 /** Attendance */
 router.get("/business/:businessRefId/attendance", passport.authenticate('jwt', { session: false }), attendanceController.fetchBusinessStaffAttendance);

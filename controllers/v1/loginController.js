@@ -7,34 +7,8 @@ module.exports = {
     sendOtp: async (req, res) => {
         try {
             let { countryCode, phone, type } = req.body;
-
-            /** Check if there is a valid OTP already present */
-            let { otp, otpCount } = await otpService.getLastValidOtpAndCount(countryCode, phone, type);
-
-            /** Check if max tries have been exceeded */
-            let canGenerateOtp = await otpService.canGenerateOtp(otpCount);
-            if(!canGenerateOtp) {
-                await logger.info("Send otp - otp limit reached");
-                return res.status(200).send({ code: "error", message: "otp_limit_reached" });
-            }
-
-
-            /** Generate the OTP if not already present */
-            if(otp === null) {
-                otp = await otpService.generateOtp();
-            }
-
-            if(process.env.OTP_SANDBOX && process.env.OTP_SANDBOX === "true") {
-                await logger.info("OTP for " + phone + " is " + otp);
-            }
-            
-            /** Save OTP */
-            await otpService.saveOtp(countryCode, phone, otp, type);
-
-            /** Send OTP */
-            await otpService.sendOtp(countryCode, phone, otp);
-
-            res.status(200).send({ code: "verify_otp", message: "success" });
+            let resp = await otpService.generateAndSendOtpWrapper(countryCode, phone, type);
+            return res.status(200).send(resp);
         } catch(err) {
             await logger.error("Exception in send otp api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
