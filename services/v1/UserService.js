@@ -145,4 +145,17 @@ module.exports = class UserService {
             ] });
         return user;
     }
+
+    async updateUserPhone(userId, businessRefId) {
+        /** Fetch the business */
+        let business = await businessService.fetchBusinessById(businessRefId, true);
+
+        if(!business) {
+            return { code: "error", message: "no_business_found" };
+        }
+
+        /** Update the phone and country code */
+        await models.user.update({ country_code: business.ph_country_code, phone: business.phone });
+        return { code: "success", message: "success" };
+    }
 }

@@ -2,6 +2,7 @@ const logger = require("simple-node-logger").createSimpleLogger({ timestampForma
 const otpService = new (require("../../services/v1/OtpService"));
 const userService = new (require("../../services/v1/UserService"));
 const authService = new (require("../../services/AuthService"));
+const businessService = new (require("../../services/v1/BusinessService"));
 
 module.exports = {
     sendOtp: async (req, res) => {
@@ -17,7 +18,7 @@ module.exports = {
 
     verifyOtp: async (req, res) => {
         try {
-            let { countryCode, phone, lang, type } = req.body;
+            let { countryCode, phone, lang, type, businessRefId } = req.body;
             let enteredOtp = req.body.otp;
 
             /** Fetch the latest OTP */
@@ -51,29 +52,40 @@ module.exports = {
                 }
             }
 
+            let code = "";
+            let data = {};
+
             /** Check if the user exists */
             let user = await userService.fetchUserByPhone(countryCode, phone);
 
-            /** Create a new user if not present */
-            if(user === null) {
-                user = await userService.createUser(countryCode, phone, lang);
-                // code = "business_details";
-            } /*else {
-                // code = "home";
-            }*/
+            if(type === "login") {
+                /** Create a new user if not present */
+                if(user === null) {
+                    user = await userService.createUser(countryCode, phone, lang);
+                    // code = "business_details";
+                } /*else {
+                    // code = "home";
+                }*/
 
-            /** Generate access token */
-            let token = await authService.generateTokenForUser(user, true);
-            
-            let data = {
-                token: token,
-                lang: user.lang
-            };
+                /** Generate access token */
+                let token = await authService.generateTokenForUser(user, true);
+                
+                data = {
+                    token: token,
+                    lang: user.lang
+                };
 
-            let postLoginObj = await userService.fetchPostLoginCodeForUserByToken("Bearer " + token);
-            let code = postLoginObj.code;
-            if(postLoginObj.hasOwnProperty("data")) {
-                data = { ...data, ...postLoginObj.data }
+                let postLoginObj = await userService.fetchPostLoginCodeForUserByToken("Bearer " + token);
+                code = postLoginObj.code;
+                if(postLoginObj.hasOwnProperty("data")) {
+                    data = { ...data, ...postLoginObj.data }
+                }
+            } else if(type === "verify_user") {
+                let result = userService.updateUserPhone(req.user, businessRefId);
+                if(result.code === "error") {
+                    return res.status(200).send(result);
+                }
+                code = "home";
             }
 
             return res.status(200).send({ code: code, message: "success", data: data });
