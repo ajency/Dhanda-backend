@@ -62,7 +62,7 @@ module.exports = {
     },
 
     addRule: async (req, res) => {
-        let minifiedRuleJson = '';
+        let minifiedRuleJson = [];
         return res.send(helperService.rulesToJSON(minifiedRuleJson));
     },
 
