@@ -3,6 +3,8 @@ const helperService = new (require("../../services/HelperService"));
 const taxonomyService = new (require("../../services/v1/TaxonomyService"));
 const userService = new (require("../../services/v1/UserService"));
 const ormService = new (require("../../services/OrmService"));
+const moment = require("moment");
+const ruleService = new (require("../../services/v1/RuleService"));
 
 module.exports = {
     default: (req, res) => {
@@ -54,6 +56,28 @@ module.exports = {
             if(user) {
                 /** Update the last login time */
                 ormService.updateModel("user", user.id, { last_login: new Date() });
+            }
+
+            /** Check if we need to force verification */
+            if(!user.verified) {
+                let firstStaffCreationDate = await userService.fetchFirstStaffUserCreationDate(user.id);
+                firstStaffCreationDate = firstStaffCreationDate.length > 0 ? moment(firstStaffCreationDate[0].created_at) : moment();
+                let facts = {
+                    lastLogin: moment(),
+                    firstStaffCreationDate: firstStaffCreationDate,
+                    staffCount: await userService.fetchStaffCountFromUserId(user.id)
+
+                }
+                let ruleRes = await ruleService.executeRuleFor("force_user_verification", facts, null);
+                if(ruleRes) {
+                    await logger.error("Forcing user verification for user: " + user.id);
+                    let business = await userService.fetchDefaultBusinessForUser(user.id);
+                    return res.status(200).send({ code: "verify_user", message: "success", data: {
+                        businessRefId: business.reference_id,
+                        phCountryCode: business.ph_country_code,
+                        phone: business.phone
+                    } });
+                }
             }
 
             /** Get the post login code for the user */

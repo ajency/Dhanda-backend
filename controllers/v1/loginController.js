@@ -88,7 +88,7 @@ module.exports = {
                     if(ruleRes) {
                         await logger.error("Forcing user verification for user: " + user.id);
                         let business = await userService.fetchDefaultBusinessForUser(user.id);
-                        return res.status(200).send({ code: "verify_owner", message: "success", data: {
+                        return res.status(200).send({ code: "verify_user", message: "success", data: {
                             businessRefId: business.reference_id,
                             phCountryCode: business.ph_country_code,
                             phone: business.phone
