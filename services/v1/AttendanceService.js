@@ -557,6 +557,9 @@ module.exports = class AttendanceService {
 
         /** Add the day status transactions */
         statusMap.forEach((att) => {
+            if(!att.dayStatus) {
+                continue;
+            }
             let amount = "", days = "";
             if(att.dayStatus.value === "present") {
                 amount = (salaryPeriod && salaryPeriod.present_salary) ? helperService.roundOff(parseFloat(salaryPeriod.present_salary), 2) : "";
