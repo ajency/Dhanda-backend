@@ -59,7 +59,7 @@ module.exports = {
             }
 
             /** Check if we need to force verification */
-            if(!user.verified) {
+            if(user && !user.verified) {
                 let firstStaffCreationDate = await userService.fetchFirstStaffUserCreationDate(user.id);
                 firstStaffCreationDate = firstStaffCreationDate.length > 0 ? moment(firstStaffCreationDate[0].created_at) : moment();
                 let facts = {
