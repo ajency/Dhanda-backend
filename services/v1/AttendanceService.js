@@ -556,29 +556,31 @@ module.exports = class AttendanceService {
         }
 
         /** Add the day status transactions */
-        statusMap.forEach((att) => {
-            let amount = "", days = "";
-            if(att.dayStatus.value === "present") {
-                amount = (salaryPeriod && salaryPeriod.present_salary) ? helperService.roundOff(parseFloat(salaryPeriod.present_salary), 2) : "";
-                days = (salaryPeriod && salaryPeriod.present_total) ? salaryPeriod.present_total : "";
-            } else if(att.dayStatus.value === "paid_leave") {
-                amount = (salaryPeriod && salaryPeriod.paid_leave_salary) ? helperService.roundOff(parseFloat(salaryPeriod.paid_leave_salary), 2) : "";
-                days = (salaryPeriod && salaryPeriod.paid_leave_total) ? salaryPeriod.paid_leave_total : "";
-            } else if(att.dayStatus.value === "half_day") {
-                amount = (salaryPeriod && salaryPeriod.half_day_salary) ? helperService.roundOff(parseFloat(salaryPeriod.half_day_salary), 2) : "";
-                days = (salaryPeriod && salaryPeriod.half_day_total) ? salaryPeriod.half_day_total : "";
-            }
-            transactions.push({
-                transactionType: att.dayStatus.value,
-                amount: amount,
-                description: "",
-                date: att.date,
-                days: days,
-                hours: "",
-                rate: "",
-                refId: ""
+        if(att.dayStatus) {
+            statusMap.forEach((att) => {
+                let amount = "", days = "";
+                if(att.dayStatus.value === "present") {
+                    amount = (salaryPeriod && salaryPeriod.present_salary) ? helperService.roundOff(parseFloat(salaryPeriod.present_salary), 2) : "";
+                    days = (salaryPeriod && salaryPeriod.present_total) ? salaryPeriod.present_total : "";
+                } else if(att.dayStatus.value === "paid_leave") {
+                    amount = (salaryPeriod && salaryPeriod.paid_leave_salary) ? helperService.roundOff(parseFloat(salaryPeriod.paid_leave_salary), 2) : "";
+                    days = (salaryPeriod && salaryPeriod.paid_leave_total) ? salaryPeriod.paid_leave_total : "";
+                } else if(att.dayStatus.value === "half_day") {
+                    amount = (salaryPeriod && salaryPeriod.half_day_salary) ? helperService.roundOff(parseFloat(salaryPeriod.half_day_salary), 2) : "";
+                    days = (salaryPeriod && salaryPeriod.half_day_total) ? salaryPeriod.half_day_total : "";
+                }
+                transactions.push({
+                    transactionType: att.dayStatus.value,
+                    amount: amount,
+                    description: "",
+                    date: att.date,
+                    days: days,
+                    hours: "",
+                    rate: "",
+                    refId: ""
+                });
             });
-        });
+        }
 
         /** Add the hour transaction */
         if(salaryPeriod && salaryPeriod.hours !== "00:00") {
