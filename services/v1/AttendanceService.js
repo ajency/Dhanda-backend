@@ -584,12 +584,12 @@ module.exports = class AttendanceService {
         });
 
         /** Add the hour transaction */
-        if(salaryPeriod && salaryPeriod.hours !== "00:00") {
+        if(salaryPeriod && salaryPeriod.total_hours !== "00:00") {
             transactions.push({
                 transactionType: "hours",
                 amount: salaryPeriod.total_hour_salary,
                 description: "",
-                date: att.date,
+                date: statusMap.get(null) ? statusMap.get(null).date : null,
                 days: "",
                 hours: salaryPeriod.total_hours,
                 rate: "",
