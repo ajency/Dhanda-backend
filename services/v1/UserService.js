@@ -3,6 +3,7 @@ const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 const helperService = new (require("../HelperService"));
 const jwt = require("jsonwebtoken");
+const ormService = new (require("../OrmService"));
 const businessService = new (require("./BusinessService"));
 const logger = require("simple-node-logger").createSimpleLogger({ timestampFormat:'YYYY-MM-DD HH:mm:ss.SSS' });
 
@@ -158,5 +159,18 @@ module.exports = class UserService {
         await models.user.update({ country_code: business.ph_country_code, phone: business.phone, verified: true }, 
             { where: { id: business.user_id } });
         return { code: "success", message: "success" };
+    }
+
+    async fetchFirstStaffUserCreationDate(userId) {
+        let rawQuery = "select created_at from staffs where business_id in (select id from businesses where user_id = " 
+                        + userId + ") order by staffs.created_at asc limit 1";
+        return await ormService.runRawSelectQuery(rawQuery);
+    }
+
+    async fetchStaffCountFromUserId(userId) {
+        let rawQuery = "select * from staffs where business_id in (select id from businesses where user_id = " 
+                        + userId + ")";
+        let results = await ormService.runRawSelectQuery(rawQuery);
+        return results.length;
     }
 }

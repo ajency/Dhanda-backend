@@ -3,6 +3,8 @@ const otpService = new (require("../../services/v1/OtpService"));
 const userService = new (require("../../services/v1/UserService"));
 const authService = new (require("../../services/AuthService"));
 const ormService = new (require("../../services/OrmService"));
+const ruleService = new (require("../../services/v1/RuleService"));
+const moment = require("moment");
 
 module.exports = {
     sendOtp: async (req, res) => {
@@ -62,6 +64,8 @@ module.exports = {
                 /** Create a new user if not present */
                 if(user === null) {
                     user = await userService.createUser(countryCode, phone, lang);
+                    /** Set verified to true */
+                    await ormService.updateModel("user", user.id, { verified: true });
                     // code = "business_details";
                 } /*else {
                     // code = "home";
@@ -69,6 +73,28 @@ module.exports = {
 
                 /** Update the users last login */
                 ormService.updateModel("user", user.id, { last_login: new Date() });
+
+                /** Check if we need to force verification */
+                if(!user.verified) {
+                    let firstStaffCreationDate = await userService.fetchFirstStaffUserCreationDate(user.id);
+                    firstStaffCreationDate = firstStaffCreationDate.length > 0 ? moment(firstStaffCreationDate[0].created_at) : moment();
+                    let facts = {
+                        lastLogin: moment(),
+                        firstStaffCreationDate: firstStaffCreationDate,
+                        staffCount: await userService.fetchStaffCountFromUserId(user.id)
+
+                    }
+                    let ruleRes = await ruleService.executeRuleFor("force_user_verification", facts, null);
+                    if(ruleRes) {
+                        await logger.error("Forcing user verification for user: " + user.id);
+                        let business = await userService.fetchDefaultBusinessForUser(user.id);
+                        return res.status(200).send({ code: "verify_owner", message: "success", data: {
+                            businessRefId: business.reference_id,
+                            phCountryCode: business.ph_country_code,
+                            phone: business.phone
+                        } });
+                    }
+                }
 
                 /** Generate access token */
                 let token = await authService.generateTokenForUser(user, true);
