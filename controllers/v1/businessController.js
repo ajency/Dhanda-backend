@@ -489,6 +489,11 @@ module.exports = {
 
             let business = await businessService.fetchBusinessById(businessRefId, true);
 
+            if(business === null) {
+                await logger.info("Verify business owner - business not found: " + businessRefId);
+                return res.status(200).send({ code: "error", message: "business_not_found" });
+            }
+
             /** Check if any of the phone details are missing */
             if(!business.ph_country_code || !business.phone) {
                 await logger.info("Verify business owner - phone details missing. business: " + businessRefId
@@ -497,8 +502,8 @@ module.exports = {
             }
 
             /** Check if the user already exists */
-            let owner = await userService.fetchUserByPhone(business.ph_country_code, business.phone);
-            if(owner) {
+            let user = await userService.fetchUserByPhone(business.ph_country_code, business.phone);
+            if(user) {
                 await logger.info("Verify business owner - user already exists. business: " + businessRefId
                     + " country code: " + business.ph_country_code + " phone: " + business.phone);
                 return res.status(200).send({ code: "error", message: "user_exists" });
@@ -510,6 +515,43 @@ module.exports = {
             return res.status(200).send(resp);
         } catch(err) {
             await logger.error("Exception in verify business owner api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
+    },
+
+    updatePhone: async (req, res) => {
+        try {
+            let { businessRefId } = req.params;
+
+            let business = await businessService.fetchBusinessById(businessRefId, true);
+
+            if(business === null) {
+                await logger.info("Update phone - business not found: " + businessRefId);
+                return res.status(200).send({ code: "error", message: "business_not_found" });
+            }
+
+            let { countryCode, phone } = req.body;
+
+            /** Check if the user already exists */
+            let user = await userService.fetchUserByPhone(countryCode, phone);
+            if(user) {
+                await logger.info("Update phone - user already exists. business: " + businessRefId
+                    + " country code: " + business.ph_country_code + " phone: " + business.phone);
+                return res.status(200).send({ code: "error", message: "user_exists" });
+            }
+
+            /** Update phone in the business */
+            await ormService.updateModel("business", business.id, { 
+                ph_country_code: countryCode,
+                phone: phone
+            });
+
+            /** Generate and send otp */
+            let resp = await otpService.generateAndSendOtpWrapper(countryCode, phone, "verify_user")
+
+            return res.status(200).send(resp);
+        } catch(err) {
+            await logger.error("Exception in update phone api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
     }

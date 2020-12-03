@@ -146,7 +146,7 @@ module.exports = class UserService {
         return user;
     }
 
-    async updateUserPhone(userId, businessRefId) {
+    async updateUserPhone(businessRefId) {
         /** Fetch the business */
         let business = await businessService.fetchBusinessById(businessRefId, true);
 
@@ -155,7 +155,8 @@ module.exports = class UserService {
         }
 
         /** Update the phone and country code */
-        await models.user.update({ country_code: business.ph_country_code, phone: business.phone, verified: true });
+        await models.user.update({ country_code: business.ph_country_code, phone: business.phone, verified: true }, 
+            { where: { id: business.user_id } });
         return { code: "success", message: "success" };
     }
 }

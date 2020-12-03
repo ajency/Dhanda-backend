@@ -55,10 +55,10 @@ module.exports = {
             let code = "";
             let data = {};
 
-            /** Check if the user exists */
-            let user = await userService.fetchUserByPhone(countryCode, phone);
-
             if(type === "login") {
+                /** Check if the user exists */
+                let user = await userService.fetchUserByPhone(countryCode, phone);
+                
                 /** Create a new user if not present */
                 if(user === null) {
                     user = await userService.createUser(countryCode, phone, lang);
@@ -81,7 +81,7 @@ module.exports = {
                     data = { ...data, ...postLoginObj.data }
                 }
             } else if(type === "verify_user") {
-                let result = userService.updateUserPhone(req.user, businessRefId);
+                let result = await userService.updateUserPhone(businessRefId);
                 if(result.code === "error") {
                     return res.status(200).send(result);
                 }
