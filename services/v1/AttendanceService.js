@@ -271,19 +271,19 @@ module.exports = class AttendanceService {
         if(staff.salaryType) {
             switch(staff.salaryType.value) {
                 case "monthly":
-                    perDaySalary = staff.salary / businessMonthDays;
+                    perDaySalary = parseFloat(staff.salary) / businessMonthDays;
                     perMinuteSalary = perDaySalary / (helperService.convertHoursStringToMinutes(staff.daily_shift_duration));
                     break;
                 case "weekly":
-                    perDaySalary = staff.salary / 7;
+                    perDaySalary = parseFloat(staff.salary) / 7;
                     perMinuteSalary = perDaySalary / (helperService.convertHoursStringToMinutes(staff.daily_shift_duration));
                     break;
                 case "daily":
-                    perDaySalary = staff.salary;
+                    perDaySalary = parseFloat(staff.salary);
                     perMinuteSalary = perDaySalary / (helperService.convertHoursStringToMinutes(staff.daily_shift_duration));
                     break;
                 case "hourly":
-                    perMinuteSalary = staff.salary / 60;
+                    perMinuteSalary = parseFloat(staff.salary) / 60;
                     break;
             }
         }
