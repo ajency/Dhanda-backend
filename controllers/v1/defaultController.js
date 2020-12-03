@@ -2,7 +2,7 @@ const logger = require("simple-node-logger").createSimpleLogger({ timestampForma
 const helperService = new (require("../../services/HelperService"));
 const taxonomyService = new (require("../../services/v1/TaxonomyService"));
 const userService = new (require("../../services/v1/UserService"));
-const businessService = new (require("../../services/v1/BusinessService"));
+const ormService = new (require("../../services/OrmService"));
 
 module.exports = {
     default: (req, res) => {
@@ -47,6 +47,14 @@ module.exports = {
             /** Fetch the cold start api defaults */
             let coldStartApiDefaults = await helperService.getDefaultsValue("cold_start_api_defaults");
             let data = (coldStartApiDefaults) ? coldStartApiDefaults.meta : {};
+
+            /** Fetch the user from token */
+            let user = await userService.fetchUserFromToken(req.headers.authorization);
+
+            if(user) {
+                /** Update the last login time */
+                ormService.updateModel("user", user.id, { last_login: new Date() });
+            }
 
             /** Get the post login code for the user */
             let postLoginObj = await userService.fetchPostLoginCodeForUserByToken(req.headers.authorization);

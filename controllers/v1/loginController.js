@@ -2,7 +2,7 @@ const logger = require("simple-node-logger").createSimpleLogger({ timestampForma
 const otpService = new (require("../../services/v1/OtpService"));
 const userService = new (require("../../services/v1/UserService"));
 const authService = new (require("../../services/AuthService"));
-const businessService = new (require("../../services/v1/BusinessService"));
+const ormService = new (require("../../services/OrmService"));
 
 module.exports = {
     sendOtp: async (req, res) => {
@@ -66,6 +66,9 @@ module.exports = {
                 } /*else {
                     // code = "home";
                 }*/
+
+                /** Update the users last login */
+                ormService.updateModel("user", user.id, { last_login: new Date() });
 
                 /** Generate access token */
                 let token = await authService.generateTokenForUser(user, true);
