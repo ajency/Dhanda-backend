@@ -21,7 +21,8 @@ module.exports = (sequelize, DataTypes) => {
     country_code: DataTypes.INTEGER,
     phone: DataTypes.STRING,
     lang: DataTypes.STRING,
-    verified: DataTypes.BOOLEAN
+    verified: DataTypes.BOOLEAN,
+    last_login: DataTypes.DATE
   }, {
     sequelize,
     modelName: 'user',
