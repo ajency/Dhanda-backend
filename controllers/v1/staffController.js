@@ -74,7 +74,7 @@ module.exports = {
                 let staff = await staffService.createStaff(businessObj.id, staffObj);
 
                 /** Add the current balance */
-                if (staff !== null && currentBalanceType !== "no_dues") {
+                if (staff !== null && currentBalanceType && currentBalanceType !== "no_dues") {
                     if(currentBalanceType === "pending_dues") {
                         pendingAmount = -1 * pendingAmount;
                     }
