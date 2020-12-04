@@ -23,7 +23,8 @@ module.exports = (sequelize, DataTypes) => {
     date: DataTypes.DATEONLY,
     amount: DataTypes.DECIMAL,
     description: DataTypes.TEXT,
-    reference_id: DataTypes.STRING
+    reference_id: DataTypes.STRING,
+    deleted: DataTypes.BOOLEAN
   }, {
     sequelize,
     modelName: 'staff_income_meta',
