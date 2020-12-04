@@ -3,6 +3,7 @@ const taxonomyService = new (require("./TaxonomyService"));
 const models = require("../../models");
 const helperService = new (require("../HelperService"));
 const Sequelize = require('sequelize');
+const staff_income_meta = require("../../models/staff_income_meta");
 const Op = Sequelize.Op;
 
 module.exports = class StaffIncomeMeta {
@@ -57,7 +58,7 @@ module.exports = class StaffIncomeMeta {
         /** Fetch the staff income meta by reference id */
         let staffIncomeMeta = null;
         if(referenceId) {
-            staffIncomeMeta = await models.staff_income_meta.findOne({ reference_id: referenceId });
+            staffIncomeMeta = await models.staff_income_meta.findOne({ where: { reference_id: referenceId } });
         }
 
         if(staffIncomeMeta) {
@@ -73,6 +74,10 @@ module.exports = class StaffIncomeMeta {
         } else {
             return await this.createStaffIncomeMeta(staffId, incomeTypeSlug, incomeSubTypeSlug, amount, description, date);
         }
+    }
+
+    async deleteStaffIncomeMeta(referenceId) {
+        await models.staff_income_meta.update({ deleted: true }, { where: { reference_id: referenceId } });
     }
 
     /** To be used when there is only one entry for (incomeType, staffId) combination in staff income meta */

@@ -39,7 +39,7 @@ module.exports = {
             }
 
             let { refId, businessRefId, staffName, countryCode, phone, salary, salaryPayoutDate, dailyShiftDuration,
-                salaryPayoutDay, currentBalanceType, pendingAmount, disabled, deleted } = req.body;
+                salaryPayoutDay, currentBalanceType, pendingAmount, disabled, deleted, currentBalanceRefId } = req.body;
 
             let staffObj = {
                 staffName: staffName,
@@ -109,9 +109,17 @@ module.exports = {
                 }
 
                 /** Update the curent balance */
-                if (currentBalanceType && currentBalanceType !== "no_dues") {
-                    await staffIncomeMetaService.updateOrCreateLatestStaffIncomeMeta(updateCount[1][0].id, "current_balance", currentBalanceType, pendingAmount);
+                if(currentBalanceType) {
+                    if(currentBalanceType === "no_dues") {
+                        if(currentBalanceRefId) {
+                            /** Delete the already added outstanding balance */
+                            await staffIncomeMetaService.deleteStaffIncomeMeta(currentBalanceRefId);
+                        }
+                    } else {
+                        await staffIncomeMetaService.updateOrCreateLatestStaffIncomeMeta(updateCount[1][0].id, currentBalanceType, null, pendingAmount, null, currentBalanceRefId);
+                    }
                 }
+                
                 return res.status(200).send({ code: "success", message: "success" });
             }
         } catch (err) {
