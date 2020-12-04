@@ -109,7 +109,7 @@ module.exports = {
                 }
 
                 /** Update the curent balance */
-                if (currentBalanceType !== "no_dues") {
+                if (currentBalanceType && currentBalanceType !== "no_dues") {
                     await staffIncomeMetaService.updateOrCreateLatestStaffIncomeMeta(updateCount[1][0].id, "current_balance", currentBalanceType, pendingAmount);
                 }
                 return res.status(200).send({ code: "success", message: "success" });
