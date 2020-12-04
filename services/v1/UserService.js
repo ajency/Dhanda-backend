@@ -46,7 +46,7 @@ module.exports = class UserService {
     async fetchPostLoginCodeForUserByToken(token) {
         /** When the token is not passed */
         if(!token) {
-            return { code: "login" };
+            return { code: "add_business" };
         }
 
         /** Extract the reference id */
@@ -62,7 +62,7 @@ module.exports = class UserService {
 
             /** If no user is found */
             if(!user) {
-                return { code: "login" };
+                return { code: "add_business" };
             }
 
             /** Check if this user is an admin of any business */
@@ -118,7 +118,7 @@ module.exports = class UserService {
             } };
         } catch(err) {
             await logger.info("Error while finding post login code by token: ", err); // for debugging in the future
-            return { code: "login" };
+            return { code: "add_business" };
         }
     }
 

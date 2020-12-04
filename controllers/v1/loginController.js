@@ -4,12 +4,27 @@ const userService = new (require("../../services/v1/UserService"));
 const authService = new (require("../../services/AuthService"));
 const ormService = new (require("../../services/OrmService"));
 const ruleService = new (require("../../services/v1/RuleService"));
+const businessService = new (require("../../services/v1/BusinessService"));
 const moment = require("moment");
 
 module.exports = {
     sendOtp: async (req, res) => {
         try {
             let { countryCode, phone, type } = req.body;
+            
+            /** Check if the phone is a user or the phone is an invitee if the type is login */
+            if(type === "login") {
+                let user = await userService.fetchUserByPhone(countryCode, phone)
+                if(!user) {
+                    let invites = await businessService.fetchRoleInvitesFor("business_admin", null, countryCode, phone);
+                    if(invites.length === 0) {
+                        await logger.info("Send otp - Not a user or business admin invitee. countryCode: " + countryCode
+                            + " phone: " + phone);
+                        return res.status(200).send({ code: "error", message: "no_user" });
+                    }
+                }
+            }
+
             let resp = await otpService.generateAndSendOtpWrapper(countryCode, phone, type);
             return res.status(200).send(resp);
         } catch(err) {
