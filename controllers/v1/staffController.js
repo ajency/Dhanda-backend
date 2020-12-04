@@ -155,7 +155,7 @@ module.exports = {
                         return res.status(200).send({ code: "error", message: "staff_not_found" });
                     } else {
                         /** Fetch the staff income meta */
-                        let staffIncomeMeta = await staffIncomeMetaService.fetchStaffWithIncomeType(staffMembers[0].id, "current_balance");
+                        let staffIncomeMeta = await staffIncomeMetaService.fetchStaffIncomeType(staffMembers[0].id, "current_balance");
 
                         return res.status(200).send({
                             code: "success", message: "sucess", data: {
@@ -195,7 +195,10 @@ module.exports = {
             }
 
             /** Fetch the staff income meta */
-            let staffIncomeMeta = await staffIncomeMetaService.fetchStaffWithIncomeType(staff.id, "current_balance");
+            let staffIncomeMeta = await staffIncomeMetaService.fetchStaffIncomeType(staff.id, "pending_dues");
+            if(!staffIncomeMeta) {
+                staffIncomeMeta = await staffIncomeMetaService.fetchStaffIncomeType(staff.id, "outstanding_balance");
+            }
             let data = {
                 refId: staff.reference_id,
                 staffName: staff.name,
@@ -209,6 +212,7 @@ module.exports = {
                 salaryPayoutDay: staff.cycle_start_day,
                 currentBalanceType: (staffIncomeMeta) ? staffIncomeMeta.income_type.value : null,
                 pendingAmount: (staffIncomeMeta) ? staffIncomeMeta.amount : null,
+                currentBalanceRefId: (staffIncomeMeta) ? staffIncomeMeta.reference_id : null,
                 disabled: staff.disabled,
                 deleted: staff.deleted
             }
