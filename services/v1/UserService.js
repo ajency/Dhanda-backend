@@ -78,13 +78,15 @@ module.exports = class UserService {
             }
 
             /** Check if this user is invited to any business */
-            let userInvites = await businessService.fetchRoleInvitesFor("business_admin", null, user.country_code, user.phone);
-            if(userInvites.length > 0) {
-                return { code: "business_invite", data: { 
-                    inviterBusinessName: userInvites[0].business.name,
-                    inviterName: userInvites[0].invitedBy.name,
-                    inviteRefId: userInvites[0].reference_id
-                } };
+            if(user.country_code && user.phone) {
+                let userInvites = await businessService.fetchRoleInvitesFor("business_admin", null, user.country_code, user.phone);
+                if(userInvites.length > 0) {
+                    return { code: "business_invite", data: { 
+                        inviterBusinessName: userInvites[0].business.name,
+                        inviterName: userInvites[0].invitedBy.name,
+                        inviteRefId: userInvites[0].reference_id
+                    } };
+                }
             }
 
             /** If there are no businesses */
