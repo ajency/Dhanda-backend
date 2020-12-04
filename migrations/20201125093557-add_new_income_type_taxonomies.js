@@ -22,7 +22,8 @@ module.exports = {
     ]);
     await queryInterface.bulkDelete("taxonomies", { [Sequelize.Op.or]: [
       { type: "income_sub_type", value: "outstanding_balance" },
-      { type: "income_sub_type", value: "pending_dues" }
+      { type: "income_sub_type", value: "pending_dues" },
+      { type: "income_type", value: "current_balance" }
     ] });
   },
 
@@ -44,6 +45,14 @@ module.exports = {
         type: "income_sub_type",
         value: "pending_dues",
         default_label: "Pending Dues",
+        active: true,
+        created_at: new Date(),
+        updated_at: new Date()
+      },
+      {
+        type: "income_type",
+        value: "current_balance",
+        default_label: "Current Balance",
         active: true,
         created_at: new Date(),
         updated_at: new Date()

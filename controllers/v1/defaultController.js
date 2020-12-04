@@ -31,6 +31,9 @@ module.exports = {
             /** Format the data */
             let taxonomyValues = [];
             for(let tx of taxonomies) {
+                if(req.query.type === "income_type" && ["pending_dues", "outstanding_balance"].includes(tx.value)) {
+                    continue;
+                }
                 taxonomyValues.push({ key: tx.value, label: tx.default_label });
             }
             let data = {
