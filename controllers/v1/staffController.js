@@ -132,54 +132,6 @@ module.exports = {
 
             let { refId } = req.query;
 
-            // TODO: Remove this code later after we have listing
-            if (!refId) {
-                /** Fetch the default business for user */
-                let business = await userService.fetchDefaultBusinessForUser(req.user);
-
-                /** Fetch staff for this business */
-                if (business === null) {
-                    await logger.info("Fetch staff - staff not found because of no default business for user: " + req.user);
-                    return res.status(200).send({ code: "error", message: "staff_not_found" });
-                } else {
-                    /** Check if the user is an admin */
-                    let isAdmin = await businessService.isUserAdmin(req.user, business.id);
-                    if(!isAdmin) {
-                        await logger.info("Fetch staff - not an admin. user: " + req.user + " business: " + business.id);
-                        return res.status(200).send({ code: "error", message: "not_an_admin" });
-                    }
-
-                    let staffMembers = await staffService.fetchStaffForBusinessId(business.id);
-                    if (staffMembers.length === 0) {
-                        await logger.info("Fetch staff - no staff members present for default business for user: " + req.user);
-                        return res.status(200).send({ code: "error", message: "staff_not_found" });
-                    } else {
-                        /** Fetch the staff income meta */
-                        let staffIncomeMeta = await staffIncomeMetaService.fetchStaffIncomeType(staffMembers[0].id, "current_balance");
-
-                        return res.status(200).send({
-                            code: "success", message: "sucess", data: {
-                                refId: staffMembers[0].reference_id,
-                                staffName: staffMembers[0].name,
-                                businessRefId: business.reference_id,
-                                countryCode: staffMembers[0].country_code,
-                                phone: staffMembers[0].phone,
-                                salaryType: staffMembers[0].salaryType.value,
-                                salary: staffMembers[0].salary,
-                                salaryPayoutDate: staffMembers[0].cycle_start_date,
-                                dailyShiftDuration: staffMembers[0].daily_shift_duration,
-                                salaryPayoutDay: staffMembers[0].cycle_start_day,
-                                currentBalanceType: (staffIncomeMeta) ? staffIncomeMeta.income_type.value : null,
-                                pendingAmount: (staffIncomeMeta) ? staffIncomeMeta.amount : null,
-                                disabled: staff.disabled,
-                                deleted: staff.deleted
-                            }
-                        });
-                    }
-                }
-            }
-            // ----------------------------------
-
             let staff = await staffService.fetchStaff(refId, true);
 
             if (staff === null) {
