@@ -20,7 +20,7 @@ app.use(express.json());
 
 /** Log the request response in dev env */
 if(process.env.LOG_REQ_RES === "true") {
-	morganBody(app)
+	morganBody(app, { maxBodyLength: 10000 });
 }
 
 /** Routes */
