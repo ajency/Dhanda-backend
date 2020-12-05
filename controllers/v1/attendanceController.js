@@ -295,7 +295,7 @@ module.exports = {
             let attendanceRecord = await attendanceService.createOrUpdateAttendance(staff.id, date, params);
 
             /** Put a job in update salary queue */
-            awsService.addUpdateSalaryJob({ staffId: staffId, date: date });
+            awsService.addUpdateSalaryJob({ staffId: staff.id, date: date });
 
             let dayStatusObj = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
             let hours = "";
@@ -381,7 +381,7 @@ module.exports = {
             let attendanceRecord = await attendanceService.createOrUpdateAttendance(staff.id, date, params);
 
             /** Put a job in update salary queue */
-            awsService.addUpdateSalaryJob({ staffId: staffId, date: date });
+            awsService.addUpdateSalaryJob({ staffId: staff.id, date: date });
 
             let dayStatusObj = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
             let hours = "";
