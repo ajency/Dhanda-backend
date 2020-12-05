@@ -221,7 +221,7 @@ module.exports = {
                     periodType: staff.salaryType.value === "weekly" ? "weekly" : "monthly",
                     periodStart: salaryPeriodEntry.period_start,
                     periodEnd: salaryPeriodEntry.period_end,
-                    amountDue: salaryPeriodEntry.total_dues,
+                    amountDue: helperService.roundOff(salaryPeriodEntry.total_dues, 2),
                     daysWorked: salaryPeriodEntry.total_present + salaryPeriodEntry.total_paid_leave + salaryPeriodEntry.total_half_day,
                     daysTotal: moment(salaryPeriodEntry.period_end).diff(moment(salaryPeriodEntry.period_start), "days"),
                     hoursWorked: salaryPeriodEntry.total_hours,
@@ -239,8 +239,8 @@ module.exports = {
             let totalDue = "", currentPayable = "";
             if(rtSalaryPeriod) {
                 /** Basically last period's dues */
-                totalDue = parseFloat(rtSalaryPeriod.total_dues) + parseFloat(rtSalaryPeriod.total_salary) - parseFloat(rtSalaryPeriod.total_payments);
-                currentPayable = totalDue - parseFloat(rtSalaryPeriod.total_salary) + parseFloat(rtSalaryPeriod.total_payments);
+                totalDue = helperService.roundOff(parseFloat(rtSalaryPeriod.total_dues) + parseFloat(rtSalaryPeriod.total_salary) - parseFloat(rtSalaryPeriod.total_payments), 2);
+                currentPayable = helperService.roundOff(totalDue - parseFloat(rtSalaryPeriod.total_salary) + parseFloat(rtSalaryPeriod.total_payments), 2);
             }
             
             let data = {

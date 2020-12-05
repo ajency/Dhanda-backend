@@ -441,10 +441,11 @@ module.exports = {
             let totalAmountDue = 0;
             for(let staff of staffMembers) {
                 let att = staffAttendanceMap.has(staff.id) ? staffAttendanceMap.get(staff.id) : null;
+                let staffDetailAmountDue = staffSalaryPeriodMap.has(staff.id) ? parseFloat(staffSalaryPeriodMap.get(staff.id).total_dues) : null;
                 let staffDetail = {
                     refId: staff.reference_id,
                     name: staff.name,
-                    amountDue: staffSalaryPeriodMap.has(staff.id) ? parseFloat(staffSalaryPeriodMap.get(staff.id).total_dues) : "",
+                    amountDue: staffDetailAmountDue ? helperService.roundOff(staffDetailAmountDue) : "",
                     date: att ? att.date : "",
                     dateStatus: (att && dayStatusMap.has(att.day_status_txid)) ? dayStatusMap.get(att.day_status_txid) : "",
                     hours: ""

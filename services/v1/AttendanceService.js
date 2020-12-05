@@ -517,7 +517,7 @@ module.exports = class AttendanceService {
             if(att.late_fine_amount) {
                 transactions.push({
                     transactionType: "late_fine",
-                    amount: att.late_fine_amount,
+                    amount: helperService.roundOff(parseFloat(att.late_fine_amount), 2),
                     description: "",
                     date: att.date,
                     days: "",
@@ -544,7 +544,7 @@ module.exports = class AttendanceService {
                 let overtimeInMinutes = helperService.convertHoursStringToMinutes(att.overtime);
                 transactions.push({
                     transactionType: "overtime",
-                    amount: helperService.roundOff(overtimePayPerMinute * overtimeInMinutes),
+                    amount: helperService.roundOff(overtimePayPerMinute * overtimeInMinutes, 2),
                     description: "",
                     date: att.date,
                     days: "",
@@ -587,7 +587,7 @@ module.exports = class AttendanceService {
         if(salaryPeriod && salaryPeriod.total_hours !== "00:00") {
             transactions.push({
                 transactionType: "hours",
-                amount: salaryPeriod.total_hour_salary,
+                amount: helperService.roundOff(parseFloat(salaryPeriod.total_hour_salary), 2),
                 description: "",
                 date: statusMap.get(null) ? statusMap.get(null).date : null,
                 days: "",
@@ -602,7 +602,7 @@ module.exports = class AttendanceService {
         for(let tr of staffIncomeTransactions) {
             transactions.push({
                 transactionType: tr.income_type.value,
-                amount: parseFloat(tr.amount),
+                amount: helperService.roundOff(parseFloat(tr.amount), 2),
                 description: tr.description,
                 date: tr.date,
                 days: "",
