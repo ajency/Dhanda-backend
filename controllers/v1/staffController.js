@@ -203,8 +203,8 @@ module.exports = {
                 return res.status(200).send({ code: "error", message: "not_an_admin" });
             }
 
-            /** Fetch the latest 5 salary periods */
-            let salaryPeriodEntries = await salaryPeriodService.fetchSalaryPeriodsForStaff(staff.id);
+            /** Fetch the latest salary period plus the next five salary periods */
+            let salaryPeriodEntries = await salaryPeriodService.fetchSalaryPeriodsForStaff(staff.id, 1, 6);
             
             let salaryPeriodList = [];
             let totalAmountDue = null;
@@ -241,6 +241,11 @@ module.exports = {
                 /** Basically last period's dues */
                 totalDue = helperService.roundOff(parseFloat(rtSalaryPeriod.total_dues) + parseFloat(rtSalaryPeriod.total_salary) - parseFloat(rtSalaryPeriod.total_payments), 2);
                 currentPayable = helperService.roundOff(totalDue - parseFloat(rtSalaryPeriod.total_salary) + parseFloat(rtSalaryPeriod.total_payments), 2);
+            }
+
+            /** Remove the latest salary period from the list */
+            if(salaryPeriodList && salaryPeriodList.length > 1) {
+                salaryPeriodList.shift();
             }
             
             let data = {
