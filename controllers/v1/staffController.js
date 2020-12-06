@@ -361,9 +361,9 @@ module.exports = {
                     daysTotal: salaryPeriod ? moment(salaryPeriod.period_end).diff(moment(salaryPeriod.period_start), "days") : "",
                     hoursWorked: salaryPeriod ? salaryPeriod.total_hours : "",
                     salary: staff.salary,
-                    salaryType: staff.salaryType.value,
-                    transactions: transactions
-                }
+                    salaryType: staff.salaryType.value
+                },
+                transactions: transactions
             };
 
             return res.status(200).send({ code: "success", message: "success", data: data });
