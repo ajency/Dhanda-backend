@@ -445,7 +445,7 @@ module.exports = {
                 let staffDetail = {
                     refId: staff.reference_id,
                     name: staff.name,
-                    amountDue: staffDetailAmountDue ? helperService.roundOff(staffDetailAmountDue) : "",
+                    amountDue: staffDetailAmountDue ? helperService.roundOff(staffDetailAmountDue, 2) : "",
                     date: att ? att.date : "",
                     dateStatus: (att && dayStatusMap.has(att.day_status_txid)) ? dayStatusMap.get(att.day_status_txid) : "",
                     hours: ""
