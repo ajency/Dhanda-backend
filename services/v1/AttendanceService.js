@@ -504,7 +504,7 @@ module.exports = class AttendanceService {
         let businessMonthDays = 30;
         if(business.taxonomy.value === "calendar_month") {
             // businessMonthDays = dateObj.daysInMonth();
-            businessMonthDays = moment(endDate).diff(moment(startDate), "days");
+            businessMonthDays = moment(endDate).diff(moment(startDate), "days") + 1;
         }
 
         /** Update the salary */      
@@ -564,7 +564,7 @@ module.exports = class AttendanceService {
                 let businessMonthDays = 30;
                 if(business.taxonomy.value === "calendar_month") {
                     let { startDate, endDate } = await staffService.fetchPeriodDates(staff, att.date);
-                    businessMonthDays = moment(endDate).diff(moment(startDate), "days");
+                    businessMonthDays = moment(endDate).diff(moment(startDate), "days") + 1;
                 }
                 let { perMinuteSalary } = await this.fetchPerDayAndPerMinuteSalary(staff, businessMonthDays);
 

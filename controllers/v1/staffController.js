@@ -223,7 +223,7 @@ module.exports = {
                     periodEnd: salaryPeriodEntry.period_end,
                     amountDue: helperService.roundOff(parseFloat(salaryPeriodEntry.total_dues), 2),
                     daysWorked: salaryPeriodEntry.total_present + salaryPeriodEntry.total_paid_leave + salaryPeriodEntry.total_half_day,
-                    daysTotal: moment(salaryPeriodEntry.period_end).diff(moment(salaryPeriodEntry.period_start), "days"),
+                    daysTotal: moment(salaryPeriodEntry.period_end).diff(moment(salaryPeriodEntry.period_start), "days") + 1,
                     hoursWorked: salaryPeriodEntry.total_hours,
                     salary: staff.salary,
                     salaryType: staff.salaryType.value
@@ -302,7 +302,7 @@ module.exports = {
                     periodEnd: salaryPeriodEntry.period_end,
                     amountDue: helperService.roundOff(parseFloat(salaryPeriodEntry.total_dues), 2),
                     daysWorked: salaryPeriodEntry.total_present + salaryPeriodEntry.total_paid_leave + salaryPeriodEntry.total_half_day,
-                    daysTotal: moment(salaryPeriodEntry.period_end).diff(moment(salaryPeriodEntry.period_start), "days"),
+                    daysTotal: moment(salaryPeriodEntry.period_end).diff(moment(salaryPeriodEntry.period_start), "days") + 1,
                     hoursWorked: salaryPeriodEntry.total_hours,
                     salary: staff.salary,
                     salaryType: staff.salaryType.value
@@ -358,7 +358,7 @@ module.exports = {
                     periodEnd: salaryPeriod ? salaryPeriod.period_end : "",
                     amountDue: salaryPeriod ? helperService.roundOff(parseFloat(salaryPeriod.total_dues), 2) : "",
                     daysWorked: salaryPeriod ? salaryPeriod.total_present + salaryPeriod.total_paid_leave + salaryPeriod.total_half_day : "",
-                    daysTotal: salaryPeriod ? moment(salaryPeriod.period_end).diff(moment(salaryPeriod.period_start), "days") : "",
+                    daysTotal: salaryPeriod ? moment(salaryPeriod.period_end).diff(moment(salaryPeriod.period_start), "days") + 1 : "",
                     hoursWorked: salaryPeriod ? salaryPeriod.total_hours : "",
                     salary: staff.salary,
                     salaryType: staff.salaryType.value
