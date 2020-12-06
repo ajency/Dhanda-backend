@@ -233,7 +233,7 @@ module.exports = {
             /** Fetch the recent transactions */
             let recentTransactions = [];
             if(rtStartDate && rtEndDate) {
-                recentTransactions = await attendanceService.fetchStaffSalaryTransactions(staff.id, rtStartDate, rtEndDate, rtSalaryPeriod, 3);
+                recentTransactions = await attendanceService.fetchStaffSalaryTransactions(staff, rtStartDate, rtEndDate, rtSalaryPeriod, 3);
             }
 
             let totalDue = "", currentPayable = "";
@@ -344,7 +344,7 @@ module.exports = {
             /** Fetch the transactions */
             let transactions = [];
             if(salaryPeriod) {
-                transactions = await attendanceService.fetchStaffSalaryTransactions(staff.id, salaryPeriod.period_start, salaryPeriod.period_end, salaryPeriod);
+                transactions = await attendanceService.fetchStaffSalaryTransactions(staff, salaryPeriod.period_start, salaryPeriod.period_end, salaryPeriod);
             }
 
             let data = {

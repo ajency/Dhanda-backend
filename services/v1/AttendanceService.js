@@ -252,21 +252,11 @@ module.exports = class AttendanceService {
         }
     }
 
-    async createOrUpdateStaffPayroll(staff, periodType, periodStart, periodEnd, businessMonthDays = 30, periodAttendance = null, staffIsId = false) {
+    async fetchPerDayAndPerMinuteSalary(staff, businessMonthDays, staffIsId = false) {
         if(staffIsId) {
             staff = await staffService.fetchStaff(staff, false);
         }
 
-        /** Fetch the attendance if not passed */
-        if(periodAttendance === null) {
-            periodAttendance = await this.fetchAttendanceByStaffIdsForPeriod([ staff.id ], periodStart, periodEnd);
-        }
-
-        /** Data to be added to the payroll */
-        let totalPresent = 0, totalAbsent = 0, totalHalfDay = 0, totalPaidLeave = 0, totalHoursInMinutes = 0;
-        let presentSalary = 0, halfDaySalary = 0, paidLeaveSalary = 0, totalHourSalary = 0, totalOvertimeSalary = 0, totalLateFineSalary = 0, totalSalary = 0;
-
-        /** Salary per day */
         let perDaySalary = 0, perMinuteSalary = 0;
         if(staff.salaryType) {
             switch(staff.salaryType.value) {
@@ -287,7 +277,46 @@ module.exports = class AttendanceService {
                     break;
             }
         }
+        return { perDaySalary: perDaySalary, perMinuteSalary: perMinuteSalary };
+    }
 
+    async createOrUpdateStaffPayroll(staff, periodType, periodStart, periodEnd, businessMonthDays = 30, periodAttendance = null, staffIsId = false) {
+        if(staffIsId) {
+            staff = await staffService.fetchStaff(staff, false);
+        }
+
+        /** Fetch the attendance if not passed */
+        if(periodAttendance === null) {
+            periodAttendance = await this.fetchAttendanceByStaffIdsForPeriod([ staff.id ], periodStart, periodEnd);
+        }
+
+        /** Data to be added to the payroll */
+        let totalPresent = 0, totalAbsent = 0, totalHalfDay = 0, totalPaidLeave = 0, totalHoursInMinutes = 0;
+        let presentSalary = 0, halfDaySalary = 0, paidLeaveSalary = 0, totalHourSalary = 0, totalOvertimeSalary = 0, totalLateFineSalary = 0, totalSalary = 0;
+
+        // /** Salary per day */
+        // let perDaySalary = 0, perMinuteSalary = 0;
+        // if(staff.salaryType) {
+        //     switch(staff.salaryType.value) {
+        //         case "monthly":
+        //             perDaySalary = parseFloat(staff.salary) / businessMonthDays;
+        //             perMinuteSalary = perDaySalary / (helperService.convertHoursStringToMinutes(staff.daily_shift_duration));
+        //             break;
+        //         case "weekly":
+        //             perDaySalary = parseFloat(staff.salary) / 7;
+        //             perMinuteSalary = perDaySalary / (helperService.convertHoursStringToMinutes(staff.daily_shift_duration));
+        //             break;
+        //         case "daily":
+        //             perDaySalary = parseFloat(staff.salary);
+        //             perMinuteSalary = perDaySalary / (helperService.convertHoursStringToMinutes(staff.daily_shift_duration));
+        //             break;
+        //         case "hourly":
+        //             perMinuteSalary = parseFloat(staff.salary) / 60;
+        //             break;
+        //     }
+        // }
+
+        let { perDaySalary, perMinuteSalary } = await this.fetchPerDayAndPerMinuteSalary(staff, businessMonthDays);
 
         /** Salary calc rule for the staff  */
         let salaryRule = await ruleService.fetchRuleByNameAndGroup("salary_calculation", staff.rule_group_id);
@@ -465,16 +494,18 @@ module.exports = class AttendanceService {
         /** Fetch the staff information */
         let staff = await staffService.fetchStaff(staffId);
 
-        /** Calculate the business month days */
         let business = await businessService.fetchBusinessById(staff.business_id);
-        let dateObj = moment(date, "YYYY-MM-DD");
-        let businessMonthDays = 30;
-        if(business.taxonomy.value === "calendar_month") {
-            businessMonthDays = dateObj.daysInMonth();
-        }
 
         let { startDate, endDate } = await staffService.fetchPeriodDates(staff, date);
         let businessCurrentDate = moment().utcOffset(business.timezone).format("YYYY-MM-DD");
+
+        /** Calculate the business month days */
+        // let dateObj = moment(date, "YYYY-MM-DD");
+        let businessMonthDays = 30;
+        if(business.taxonomy.value === "calendar_month") {
+            // businessMonthDays = dateObj.daysInMonth();
+            businessMonthDays = moment(endDate).diff(moment(startDate), "days");
+        }
 
         /** Update the salary */      
         if(staff.salaryType && staff.salaryType.value === "weekly") {
@@ -505,11 +536,12 @@ module.exports = class AttendanceService {
      * @param {*} endDate 
      * @param {*} limit 
      */
-    async fetchStaffSalaryTransactions(staffId, startDate, endDate, salaryPeriod = null, limit = null) {
+    async fetchStaffSalaryTransactions(staff, startDate, endDate, salaryPeriod, limit = null) {
         let transactions = [];
         /** Fetch the attendance */
-        let staffAtt = await this.fetchAttendanceByStaffIdsForPeriod([staffId], startDate, endDate);
+        let staffAtt = await this.fetchAttendanceByStaffIdsForPeriod([staff.id], startDate, endDate);
         let statusMap = new Map();
+        let business = null;
         for(let att of staffAtt) {
             statusMap.set(att.day_status_txid, att);
 
@@ -526,9 +558,20 @@ module.exports = class AttendanceService {
                     refId: ""
                 });
             } else if(att.late_fine_hours) {
+                if(!business) {
+                    business = await businessService.fetchBusinessById(staff.business_id);
+                }
+                let businessMonthDays = 30;
+                if(business.taxonomy.value === "calendar_month") {
+                    let { startDate, endDate } = await staffService.fetchPeriodDates(staff, att.date);
+                    businessMonthDays = moment(endDate).diff(moment(startDate), "days");
+                }
+                let { perMinuteSalary } = await this.fetchPerDayAndPerMinuteSalary(staff, businessMonthDays);
+
+                let lateFineHoursAmount = (perMinuteSalary) ? perMinuteSalary * helperService.convertHoursStringToMinutes(att.late_fine_hours) : null;
                 transactions.push({
                     transactionType: "late_fine",
-                    amount: "",
+                    amount: lateFineHoursAmount ? helperService.roundOff(lateFineHoursAmount, 2) : "",
                     description: "",
                     date: att.date,
                     days: "",
@@ -549,7 +592,7 @@ module.exports = class AttendanceService {
                     date: att.date,
                     days: "",
                     hours: att.overtime,
-                    rate: helperService.roundOff(overtimePayPerMinute, 2),
+                    rate: helperService.roundOff(parseFloat(att.overtime_pay), 2),
                     refId: ""
                 });
             }
@@ -598,7 +641,7 @@ module.exports = class AttendanceService {
         }
 
         /** Fetch the transactions */
-        let staffIncomeTransactions = await staffIncomeMetaService.fetchPaymentsForStaffBetween(staffId, startDate, endDate);
+        let staffIncomeTransactions = await staffIncomeMetaService.fetchPaymentsForStaffBetween(staff.id, startDate, endDate);
         for(let tr of staffIncomeTransactions) {
             transactions.push({
                 transactionType: tr.income_type.value,
