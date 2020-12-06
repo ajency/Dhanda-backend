@@ -606,13 +606,13 @@ module.exports = class AttendanceService {
             let amount = "", days = "";
             if(att.dayStatus.value === "present") {
                 amount = (salaryPeriod && salaryPeriod.present_salary) ? helperService.roundOff(parseFloat(salaryPeriod.present_salary), 2) : "";
-                days = (salaryPeriod && salaryPeriod.present_total) ? salaryPeriod.present_total : "";
+                days = (salaryPeriod && salaryPeriod.total_present) ? salaryPeriod.total_present : "";
             } else if(att.dayStatus.value === "paid_leave") {
                 amount = (salaryPeriod && salaryPeriod.paid_leave_salary) ? helperService.roundOff(parseFloat(salaryPeriod.paid_leave_salary), 2) : "";
-                days = (salaryPeriod && salaryPeriod.paid_leave_total) ? salaryPeriod.paid_leave_total : "";
+                days = (salaryPeriod && salaryPeriod.total_paid_leave) ? salaryPeriod.total_paid_leave : "";
             } else if(att.dayStatus.value === "half_day") {
                 amount = (salaryPeriod && salaryPeriod.half_day_salary) ? helperService.roundOff(parseFloat(salaryPeriod.half_day_salary), 2) : "";
-                days = (salaryPeriod && salaryPeriod.half_day_total) ? salaryPeriod.half_day_total : "";
+                days = (salaryPeriod && salaryPeriod.total_half_day) ? salaryPeriod.total_half_day : "";
             }
             transactions.push({
                 transactionType: att.dayStatus.value,
