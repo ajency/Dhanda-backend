@@ -244,7 +244,7 @@ module.exports = {
             }
 
             /** Remove the latest salary period from the list */
-            if(salaryPeriodList && salaryPeriodList.length > 1) {
+            if(salaryPeriodList && salaryPeriodList.length > 0) {
                 salaryPeriodList.shift();
             }
             
