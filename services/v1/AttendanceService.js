@@ -531,6 +531,7 @@ module.exports = class AttendanceService {
 
     /**
      * Note: salaryPeriod will be used for getting the day status agg. This is to avoid calculations, already done.
+     * This includes the signs as per the staff i.e. deduction type transactions are -ve even though they are stored as _ve
      * @param {*} staffId 
      * @param {*} startDate 
      * @param {*} endDate 
@@ -549,7 +550,7 @@ module.exports = class AttendanceService {
             if(att.late_fine_amount) {
                 transactions.push({
                     transactionType: "late_fine",
-                    amount: helperService.roundOff(parseFloat(att.late_fine_amount), 2),
+                    amount: helperService.roundOff(parseFloat(att.late_fine_amount), 2) * -1,
                     description: "",
                     date: att.date,
                     days: "",
@@ -571,7 +572,7 @@ module.exports = class AttendanceService {
                 let lateFineHoursAmount = (perMinuteSalary) ? perMinuteSalary * helperService.convertHoursStringToMinutes(att.late_fine_hours) : null;
                 transactions.push({
                     transactionType: "late_fine",
-                    amount: lateFineHoursAmount ? helperService.roundOff(lateFineHoursAmount, 2) : "",
+                    amount: lateFineHoursAmount ? helperService.roundOff(lateFineHoursAmount, 2) * -1 : "",
                     description: "",
                     date: att.date,
                     days: "",
@@ -645,7 +646,7 @@ module.exports = class AttendanceService {
         for(let tr of staffIncomeTransactions) {
             transactions.push({
                 transactionType: tr.income_type.value,
-                amount: helperService.roundOff(parseFloat(tr.amount), 2),
+                amount: helperService.roundOff(parseFloat(tr.amount), 2) * -1,
                 description: tr.description,
                 date: tr.date,
                 days: "",
