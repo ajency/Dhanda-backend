@@ -615,7 +615,7 @@ module.exports = class AttendanceService {
                 amount = (salaryPeriod && salaryPeriod.half_day_salary) ? helperService.roundOff(parseFloat(salaryPeriod.half_day_salary), 2) : "";
                 days = (salaryPeriod && salaryPeriod.total_half_day) ? salaryPeriod.total_half_day : "";
             } else if(att.dayStatus.value === "absent") {
-                continue;
+                return;
             }
             transactions.push({
                 transactionType: att.dayStatus.value,
