@@ -159,6 +159,10 @@ module.exports = {
             if(!staffIncomeMeta) {
                 staffIncomeMeta = await staffIncomeMetaService.fetchStaffIncomeType(staff.id, "outstanding_balance");
             }
+            let pendingAmount = (staffIncomeMeta) ? staffIncomeMeta.amount : null;
+            if(pendingAmount && pendingAmount < 0) {
+                pendingAmount = pendingAmount * -1;
+            }
             let data = {
                 refId: staff.reference_id,
                 staffName: staff.name,
@@ -171,7 +175,7 @@ module.exports = {
                 dailyShiftDuration: staff.daily_shift_duration,
                 salaryPayoutDay: staff.cycle_start_day,
                 currentBalanceType: (staffIncomeMeta) ? staffIncomeMeta.income_type.value : null,
-                pendingAmount: (staffIncomeMeta) ? staffIncomeMeta.amount : null,
+                pendingAmount: pendingAmount,
                 currentBalanceRefId: (staffIncomeMeta) ? staffIncomeMeta.reference_id : null,
                 disabled: staff.disabled,
                 deleted: staff.deleted
