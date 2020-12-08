@@ -411,7 +411,7 @@ module.exports = class AttendanceService {
         let previousSalaryPeriod = await salaryPeriodService.fetchPreviousSalaryPeriod(staff.id, periodStart, periodEnd, periodType);
         let previousDues = previousSalaryPeriod ? parseFloat(previousSalaryPeriod.total_dues) : 0;
 
-        let totalDues = - totalSalary + totalPayments + previousDues;
+        let totalDues = - totalSalary - totalPayments + previousDues;
 
         /** Create of update the period salary */
         await salaryPeriodService.createOrUpdateSalaryPeriod(staff.id, {
