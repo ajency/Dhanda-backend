@@ -262,7 +262,8 @@ module.exports = {
                 currentPayableFrom: rtStartDate ? moment(rtStartDate).format("YYYY-MM-DD") : "",
                 currency: staff.business.currency,
                 salaryPeriod: salaryPeriodList,
-                recentTransactions: recentTransactions
+                recentTransactions: recentTransactions,
+                disableClearDues: false
             };
 
             return res.status(200).send({ code: "success", message: "success", data: data });
