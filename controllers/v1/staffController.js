@@ -237,7 +237,17 @@ module.exports = {
             /** Fetch the recent transactions */
             let recentTransactions = [];
             if(rtStartDate && rtEndDate) {
-                recentTransactions = await attendanceService.fetchStaffSalaryTransactions(staff, rtStartDate, rtEndDate, rtSalaryPeriod, 3);
+                /** Fetching all so that the disableClearDues can be determined */
+                recentTransactions = await attendanceService.fetchStaffSalaryTransactions(staff, rtStartDate, rtEndDate, rtSalaryPeriod);
+            }
+
+            let disableClearDues = false;
+            let totalDuesPaid = 0;
+            for(let rt of recentTransactions) {
+                /** Dues paid are stored negative but the above method returns the as -ve for the api */
+                if(rt.type === "dues_paid") {
+                    totalDuesPaid += (rt.amount) ? parseFloat(rt.amount) : 0;
+                }
             }
 
             let totalDue = "", currentPayable = "";
@@ -252,6 +262,15 @@ module.exports = {
                 salaryPeriodList.shift();
             }
             
+            if(totalDue && totalDue <= totalDuesPaid) {
+                disableClearDues = true;
+            }
+
+            /** Keep only 3 most recent transactions */
+            if(recentTransactions && recentTransactions.length > 0) {
+                recentTransactions = recentTransactions.slice(0, 3);
+            }
+
             let data = {
                 name: staff.name,
                 countryCode: staff.country_code,
@@ -263,7 +282,7 @@ module.exports = {
                 currency: staff.business.currency,
                 salaryPeriod: salaryPeriodList,
                 recentTransactions: recentTransactions,
-                disableClearDues: false
+                disableClearDues: disableClearDues
             };
 
             return res.status(200).send({ code: "success", message: "success", data: data });
