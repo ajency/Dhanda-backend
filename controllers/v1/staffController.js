@@ -263,7 +263,7 @@ module.exports = {
                 salaryPeriodList.shift();
             }
             
-            if(totalDue && totalDue <= totalDuesPaid) {
+            if(totalDue && (totalDue + totalDuesPaid) >= 0) {
                 disableClearDues = true;
             }
 
