@@ -245,7 +245,7 @@ module.exports = {
             let totalDuesPaid = 0;
             for(let rt of recentTransactions) {
                 /** Dues paid are stored negative but the above method returns the as -ve for the api */
-                if(rt.type === "dues_paid") {
+                if(rt.transactionType === "dues_paid") {
                     totalDuesPaid += (rt.amount) ? parseFloat(rt.amount) : 0;
                 }
             }
