@@ -402,7 +402,7 @@ module.exports = {
 
             let { refId, date, type, amount, description } = req.body;
 
-            if(['allowance', 'bonus', 'payment_given', 'loan_given'].includes(type)) {
+            if(['allowance', 'bonus', 'payment_given', 'loan_given', 'dues_paid'].includes(type)) {
                 amount = -1 * parseFloat(amount);
             }
 
