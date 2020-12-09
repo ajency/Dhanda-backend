@@ -30,7 +30,7 @@ module.exports = {
             let businessObj = {
                 name: businessName,
                 currency: currency,
-                salaryMonthType: salaryMonthType,
+                salaryMonthType: "calendar_month", // hardcoded to calendar month
                 shiftHours: shiftHours,
                 timezone: timezone,
                 countryCode: countryCode,
