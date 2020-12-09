@@ -115,7 +115,13 @@ module.exports = class AwsService {
                     }
 
                 },
-                sqs: new aws.SQS()
+                sqs: new aws.SQS({
+                    httpOptions: {
+                        agent: new https.Agent({
+                            keepAlive: true
+                        })
+                    }
+                })
             });
 
             sqsConsumer.on('error', async (err) => {
