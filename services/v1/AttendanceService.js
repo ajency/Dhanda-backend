@@ -211,10 +211,10 @@ module.exports = class AttendanceService {
         let dateObj = moment(date, "YYYY-MM-DD");
 
         /** Calculate the business month days */
-        let businessMonthDays = 30;
-        if(business.taxonomy.value === "calendar_month") {
-            businessMonthDays = dateObj.daysInMonth();
-        }
+        // let businessMonthDays = 30;
+        // if(business.taxonomy.value === "calendar_month") {
+        //     businessMonthDays = dateObj.daysInMonth();
+        // }
 
         /** Loop through each staff member and calculate the attendance */
         for(let staff of staffMembers) {
@@ -501,11 +501,11 @@ module.exports = class AttendanceService {
 
         /** Calculate the business month days */
         // let dateObj = moment(date, "YYYY-MM-DD");
-        let businessMonthDays = 30;
-        if(business.taxonomy.value === "calendar_month") {
+        // let businessMonthDays = 30;
+        // if(business.taxonomy.value === "calendar_month") {
             // businessMonthDays = dateObj.daysInMonth();
-            businessMonthDays = moment(endDate).diff(moment(startDate), "days") + 1;
-        }
+            let businessMonthDays = moment(endDate).diff(moment(startDate), "days") + 1;
+        // }
 
         /** Update the salary */      
         if(staff.salaryType && staff.salaryType.value === "weekly") {
@@ -562,11 +562,11 @@ module.exports = class AttendanceService {
                 if(!business) {
                     business = await businessService.fetchBusinessById(staff.business_id);
                 }
-                let businessMonthDays = 30;
-                if(business.taxonomy.value === "calendar_month") {
-                    let { startDate, endDate } = await staffService.fetchPeriodDates(staff, att.date);
-                    businessMonthDays = moment(endDate).diff(moment(startDate), "days") + 1;
-                }
+                // let businessMonthDays = 30;
+                // if(business.taxonomy.value === "calendar_month") {
+                    let { spStartDate, spEndDate } = await staffService.fetchPeriodDates(staff, att.date);
+                    let businessMonthDays = moment(spEndDate).diff(moment(spStartDate), "days") + 1;
+                // }
                 let { perMinuteSalary } = await this.fetchPerDayAndPerMinuteSalary(staff, businessMonthDays);
 
                 let lateFineHoursAmount = (perMinuteSalary) ? perMinuteSalary * helperService.convertHoursStringToMinutes(att.late_fine_hours) : null;
