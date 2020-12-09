@@ -323,7 +323,7 @@ module.exports = class AttendanceService {
 
         /** Loop through each day */
         for(let att of periodAttendance) {
-            let overtimePayPerMinute = 0, overtimeInMinutes = 0, lateFineMinutes = 0;
+            let overtimePayPerMinute = 0, overtimeInMinutes = 0, lateFineMinutes = 0, todaysMinutes = 0;
 
             /** Day status counts */
             if(att.dayStatus) {
@@ -350,6 +350,7 @@ module.exports = class AttendanceService {
                     let minutes = moment(moment().format("YYYY-MM-DD ") + att.punch_out_time)
                                         .diff(moment().format("YYYY-MM-DD ") + att.punch_in_time, 'minutes');
                     totalHoursInMinutes += minutes;
+                    todaysMinutes = minutes;
                 }
             }
 
@@ -369,7 +370,7 @@ module.exports = class AttendanceService {
                 salaryType: staff.salaryType ? staff.salaryType.value : "",
                 status: att.dayStatus ? att.dayStatus.value : "",
                 perDaySalary: perDaySalary,
-                dayInMinutes: totalHoursInMinutes,
+                dayInMinutes: todaysMinutes,
                 perMinuteSalary: perMinuteSalary,
                 overtimeMinutes: overtimeInMinutes,
                 overtimePayPerMinute: overtimePayPerMinute,
@@ -393,6 +394,9 @@ module.exports = class AttendanceService {
                 totalOvertimeSalary += ruleEngineOutput.overtimeSalary;
                 totalLateFineSalary += ruleEngineOutput.lateFineSalary;
             }
+
+            /** Resetting today's minutes value */
+            todaysMinutes = 0;
         }
 
         /** Calculate the total salary and hours */
