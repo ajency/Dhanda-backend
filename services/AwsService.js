@@ -8,6 +8,7 @@ const businessService = new (require("./v1/BusinessService"));
 const moment = require("moment");
 const models = require("../models");
 const salaryPeriodService = new (require("./v1/SalaryPeriodService"));
+const https = require("https");
 
 aws.config.update({
     region: awsConfig.credentials.region,
