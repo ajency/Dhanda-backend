@@ -215,9 +215,9 @@ module.exports = {
             /** Populate the data object */
             let attendanceRecord = await attendanceService.createOrUpdateAttendance(staff.id, date, params);
             
-            /** Put a job in update salary queue */
+            // /** Put a job in update salary queue */
             // awsService.addUpdateSalaryJob({ staffId: staff.id, date: date });
-            // TEMP
+            /* Not using queue to speed up the reflection time. */
             attendanceService.updateSalaryPeriod(staff.id, date);
             
             let dayStatusObj = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
@@ -296,8 +296,10 @@ module.exports = {
             /** Populate the data object */
             let attendanceRecord = await attendanceService.createOrUpdateAttendance(staff.id, date, params);
 
-            /** Put a job in update salary queue */
-            awsService.addUpdateSalaryJob({ staffId: staff.id, date: date });
+            // /** Put a job in update salary queue */
+            // awsService.addUpdateSalaryJob({ staffId: staff.id, date: date });
+            /* Not using queue to speed up the reflection time. */
+            attendanceService.updateSalaryPeriod(staff.id, date);
 
             let dayStatusObj = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
             let hours = "";
@@ -382,8 +384,10 @@ module.exports = {
             /** Populate the data object */
             let attendanceRecord = await attendanceService.createOrUpdateAttendance(staff.id, date, params);
 
-            /** Put a job in update salary queue */
-            awsService.addUpdateSalaryJob({ staffId: staff.id, date: date });
+            // /** Put a job in update salary queue */
+            // awsService.addUpdateSalaryJob({ staffId: staff.id, date: date });
+            /* Not using queue to speed up the reflection time. */
+            attendanceService.updateSalaryPeriod(staff.id, date);
 
             let dayStatusObj = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
             let hours = "";
