@@ -142,7 +142,8 @@ module.exports = class StaffIncomeMeta {
         return await models.staff_income_meta.findAll({ where: { 
                 staff_id: staffId,
                 date: { [Op.between]: [startDate, endDate] },
-                income_type_txid: { [Op.in]: paymentTxIds }
+                income_type_txid: { [Op.in]: paymentTxIds },
+                deleted: false
             }, include: [ { model: models.taxonomy, as: "income_type" }]
         });
     }
