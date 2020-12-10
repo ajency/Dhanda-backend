@@ -29,10 +29,10 @@ app.use((req, res) => {
 	res.status(404).send("ERR: 404");
 });
 
-/** SQS Consumers */
-if(process.env.SQSENV && process.env.SQSENV != 'local'){
-	awsService.runSqsConsumers();
-}
+// /** SQS Consumers */
+// if(process.env.SQSENV && process.env.SQSENV != 'local'){
+// 	awsService.runSqsConsumers();
+// }
 
 /** Cron */
 cron.schedule(" */30 * * * * ", async () => {
