@@ -394,7 +394,7 @@ module.exports = {
                     periodType: staff.salaryType.value === "weekly" ? "weekly" : "monthly",
                     periodStart: salaryPeriod ? salaryPeriod.period_start : "",
                     periodEnd: salaryPeriod ? salaryPeriod.period_end : "",
-                    amountDue: salaryPeriod ? helperService.roundOff(parseFloat(salaryPeriod.total_dues), 2) : "",
+                    amountDue: salaryPeriod ? helperService.roundOff(parseFloat(salaryPeriod.total_dues), 2) * -1 : "",
                     daysWorked: salaryPeriod ? salaryPeriod.total_present + salaryPeriod.total_paid_leave + salaryPeriod.total_half_day : "",
                     daysTotal: salaryPeriod ? moment(salaryPeriod.period_end).diff(moment(salaryPeriod.period_start), "days") + 1 : "",
                     hoursWorked: salaryPeriod ? salaryPeriod.total_hours : "",
