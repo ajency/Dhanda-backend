@@ -329,6 +329,9 @@ module.exports = {
                 perPage = 5;
             }
 
+            // The latest one is removed hence to remove repeating salary period we increment by 1
+            perPage += 1;
+
             /** Fetch the latest 5 salary periods */
             let salaryPeriodEntries = await salaryPeriodService.fetchSalaryPeriodsForStaff(staff.id, page, perPage);
             
