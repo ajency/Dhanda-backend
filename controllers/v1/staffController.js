@@ -216,7 +216,7 @@ module.exports = {
             }
 
             /** Fetch the latest salary period plus the next five salary periods */
-            let salaryPeriodEntries = await salaryPeriodService.fetchSalaryPeriodsForStaff(staff.id, 1, 6);
+            let salaryPeriodEntries = await salaryPeriodService.fetchSalaryPeriodsForStaff(staff.id, 1, 5);
             
             let salaryPeriodList = [];
             let totalAmountDue = null;
@@ -328,9 +328,6 @@ module.exports = {
             if(!perPage) {
                 perPage = 5;
             }
-
-            // The latest one is removed hence to remove repeating salary period we increment by 1
-            perPage += 1;
 
             /** Fetch the latest 5 salary periods */
             let salaryPeriodEntries = await salaryPeriodService.fetchSalaryPeriodsForStaff(staff.id, page, perPage);
