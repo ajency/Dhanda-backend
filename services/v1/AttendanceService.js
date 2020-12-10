@@ -519,6 +519,7 @@ module.exports = class AttendanceService {
                 let dates = await staffService.fetchPeriodDates(staff, moment(endDate).add(1, "days"));
                 startDate = dates.startDate;
                 endDate = dates.endDate;
+                businessMonthDays = moment(endDate).diff(moment(startDate), "days") + 1;
                 await this.createOrUpdateStaffPayroll(staff, "weekly", startDate, endDate, businessMonthDays);
             }
         } else {
@@ -528,6 +529,7 @@ module.exports = class AttendanceService {
                 let dates = await staffService.fetchPeriodDates(staff, moment(endDate).add(1, "days"));
                 startDate = dates.startDate;
                 endDate = dates.endDate;
+                businessMonthDays = moment(endDate).diff(moment(startDate), "days") + 1;
                 await this.createOrUpdateStaffPayroll(staff, "monthly", startDate, endDate, businessMonthDays);
             }
         }
