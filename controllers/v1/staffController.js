@@ -113,10 +113,18 @@ module.exports = {
                     if(currentBalanceType === "no_dues") {
                         if(currentBalanceRefId) {
                             /** Delete the already added outstanding balance */
-                            await staffIncomeMetaService.deleteStaffIncomeMeta(currentBalanceRefId);
+                            let updateRes = await staffIncomeMetaService.deleteStaffIncomeMeta(currentBalanceRefId);
+                            if(updateRes && updateRes[0] > 0) {
+                                /** Update the salary period */
+                                attendanceService.updateSalaryPeriod(updateRes[1][0].staff_id, updateRes[1][0].date);
+                            }
                         }
                     } else {
-                        await staffIncomeMetaService.updateOrCreateLatestStaffIncomeMeta(updateCount[1][0].id, currentBalanceType, null, pendingAmount, null, currentBalanceRefId);
+                        let updateRes = await staffIncomeMetaService.updateOrCreateLatestStaffIncomeMeta(updateCount[1][0].id, currentBalanceType, null, pendingAmount, null, currentBalanceRefId);
+                        if(updateRes && updateRes[0] > 0) {
+                            /** Update the salary period */
+                            attendanceService.updateSalaryPeriod(updateRes[1][0].staff_id, updateRes[1][0].date);
+                        }
                     }
                 }
                 

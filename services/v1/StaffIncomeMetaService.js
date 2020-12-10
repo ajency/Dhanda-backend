@@ -70,14 +70,14 @@ module.exports = class StaffIncomeMeta {
             if(date) {
                 updateValues.date = date;
             }
-            return await models.staff_income_meta.update(updateValues, { where: { id: staffIncomeMeta.id }});
+            return await models.staff_income_meta.update(updateValues, { where: { id: staffIncomeMeta.id }, returning: true});
         } else {
             return await this.createStaffIncomeMeta(staffId, incomeTypeSlug, incomeSubTypeSlug, amount, description, date);
         }
     }
 
     async deleteStaffIncomeMeta(referenceId) {
-        await models.staff_income_meta.update({ deleted: true }, { where: { reference_id: referenceId } });
+        await models.staff_income_meta.update({ deleted: true }, { where: { reference_id: referenceId }, returning: true });
     }
 
     /** To be used when there is only one entry for (incomeType, staffId) combination in staff income meta */
