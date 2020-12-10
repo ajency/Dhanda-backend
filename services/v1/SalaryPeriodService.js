@@ -78,7 +78,7 @@ module.exports = class SalaryPeriodService {
 
     async fetchSalaryPeriodsForStaff(staffId, page = 1, perPage = 5) {
         return models.staff_salary_period.findAll({ where: { staff_id: staffId }, 
-            offset: ((page - 1) * perPage) + 1, limit: perPage,
+            offset: (page - 1) * perPage, limit: perPage,
             order: [ [ "period_start", "desc" ] ] });
     }
 
