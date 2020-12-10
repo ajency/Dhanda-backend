@@ -150,7 +150,7 @@ module.exports = {
                         punchIn: att.punch_in_time,
                         punchOut: att.punch_out_time,
                         defaultPunchIn: defaultPunchInMap.has(staff.id) ? defaultPunchInMap.get(staff.id) : null,
-                        shiftHours: staff.shift_hours ? staff.shift_hours : ""
+                        shiftHours: staff.daily_shift_hours ? staff.daily_shift_hours : ""
                     }
 
                     if(staff.salaryType.value === "hourly") {
@@ -611,7 +611,7 @@ module.exports = {
                     punchIn: attendanceRecord.punch_in_time ? attendanceRecord.punch_in_time : "",
                     punchOut: attendanceRecord.punch_out_time ? attendanceRecord.punch_out_time : "",
                     defaultPunchIn: (latestPunchInTime.length > 0) ? latestPunchInTime[0].punch_in_time : null,
-                    shiftHours: staff.shift_hours ? staff.shift_hours : ""
+                    shiftHours: staff.daily_shift_hours ? staff.daily_shift_hours : ""
                 });
 
                 /** Update aggregate data */
