@@ -374,7 +374,7 @@ module.exports = class AttendanceService {
                 perMinuteSalary: perMinuteSalary,
                 overtimeMinutes: overtimeInMinutes,
                 overtimePayPerMinute: overtimePayPerMinute,
-                lateFineAmount: att.late_fine_amount ? att.late_fine_amount : 0,
+                lateFineAmount: att.late_fine_amount ? parseFloat(att.late_fine_amount) : 0,
                 lateFineMinutes: lateFineMinutes,
                 salary: 0,
                 presentSalary: 0,
