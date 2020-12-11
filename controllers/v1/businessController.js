@@ -287,7 +287,7 @@ module.exports = {
             /** Fetch the invite by the reference id */
             let invite = await businessService.fetchBusinessRoleInviteById(req.params.inviteRefId, true);
 
-            if(!invite) {
+            if(!invite || !invite.accepted || invite.deleted) {
                 await logger.info("Resend admin invite api - invite not found. ref_id: " + req.params.inviteRefId);
                 return res.status(200).send({ code: "error", message: "invite_not_found" });
             }
