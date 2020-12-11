@@ -248,4 +248,19 @@ module.exports = class BusinessService {
             return false;
         }
     }
+
+    async fetchBusinessForRoleUser(userId, roleName) {
+        let role = await models.role.findOne({ where: { name: roleName } });
+        if(!role) {
+            return null;
+        }
+
+        let businessUserRole = await models.business_user_role.findOne({ where: { user_id: userId, role_id: role.id },
+            include: [ { model: models.business, as: "business" } ] });
+        if(businessUserRole) {
+            return businessUserRole.business;
+        } else {
+            return null;
+        }
+    }
 }

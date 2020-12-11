@@ -5,6 +5,7 @@ const userService = new (require("../../services/v1/UserService"));
 const ormService = new (require("../../services/OrmService"));
 const moment = require("moment");
 const ruleService = new (require("../../services/v1/RuleService"));
+const businessService = new (require("../../services/v1/BusinessService"));
 
 module.exports = {
     default: (req, res) => {
@@ -131,6 +132,11 @@ module.exports = {
             }
 
             let business = await userService.fetchDefaultBusinessForUser(req.user);
+
+            /** If business not found, check if this an admin */
+            if(!business) {
+                business = await businessService.fetchBusinessForRoleUser(req.user, "business_admin");
+            }
             
             let data = {
                 name: user.name,
@@ -138,13 +144,13 @@ module.exports = {
                 verified: user.verified,
                 countryCode: user.country_code,
                 phone: user.phone,
-                defaultBusinessRefId: business.reference_id
+                defaultBusinessRefId: business ? business.reference_id : ""
             }
 
             /** If user doesn't have a phone number (i.e. user is unverified), fetch it from the business */
             if(!user.country_code || !user.phone) {
-                data.countryCode = business.ph_country_code;
-                data.phone = business.phone;
+                data.countryCode = business ? business.ph_country_code : "";
+                data.phone = business ? business.phone : "";
             }
 
             return res.status(200).send({ code: "success", message: "success", data: data });
