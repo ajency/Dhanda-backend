@@ -2,6 +2,7 @@ const logger = require("simple-node-logger").createSimpleLogger({ timestampForma
 const models = require("../../models");
 const moment = require("moment");
 const ormService = new (require("../OrmService"));
+const staffService = new (require("./StaffService"));
 
 module.exports = class SalaryPeriodService {
     async fetchSalaryPeriodFor(staffId, periodStart, periodEnd) {
@@ -21,16 +22,8 @@ module.exports = class SalaryPeriodService {
     }
 
     async fetchPreviousSalaryPeriod(staffId, periodStart, periodEnd, periodType) {
-        let lastPeriodStart = moment(periodStart);
-        let lastPeriodEnd = moment(periodEnd);
-        if(periodType === "weekly") {
-            lastPeriodStart.subtract(7, "days");
-            lastPeriodEnd.subtract(7, "days");
-        } else {
-            lastPeriodStart.subtract(1, "month");
-            lastPeriodEnd.subtract(1, "month");
-        }
-        return await this.fetchSalaryPeriodFor(staffId, lastPeriodStart, lastPeriodEnd);
+        let { startDate, endDate } = await staffService.fetchPeriodDates(staffId, moment(periodStart).subtract(1, "days").format("YYYY-MM-DD"), true);
+        return await this.fetchSalaryPeriodFor(staffId, startDate, endDate);
     }
 
     async createOrUpdateSalaryPeriod(staffId, staffSalaryPeriodObj, lastPeriodEntry = null) {

@@ -100,7 +100,10 @@ module.exports = class StaffService {
                 { model: models.business } ] });
     }
 
-    async fetchPeriodDates(staff, date) {
+    async fetchPeriodDates(staff, date, isStaffId = false) {
+        if(isStaffId) {
+            staff = await this.fetchStaff(staff);
+        }
         let startDate = null, endDate = null;
         if(["monthly", "daily", "hourly", "work_basis"].includes(staff.salaryType.value)) {
             /** Monthly Staff */
