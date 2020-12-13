@@ -63,6 +63,7 @@ module.exports = class StaffIncomeMeta {
 
         if(staffIncomeMeta) {
             let updateValues = {
+                income_type_txid: incomeTypeTxId,
                 income_sub_type_txid: incomeSubTypeTxId,
                 amount: amount,
                 description: description
