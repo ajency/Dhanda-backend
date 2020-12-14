@@ -570,7 +570,8 @@ module.exports = class AttendanceService {
                 }
                 // let businessMonthDays = 30;
                 // if(business.taxonomy.value === "calendar_month") {
-                    let { spStartDate, spEndDate } = await staffService.fetchPeriodDates(staff, att.date);
+                    let pd = await staffService.fetchPeriodDates(staff, att.date);
+                    let spStartDate = pd.startDate, spEndDate = pd.endDate;
                     let businessMonthDays = moment(spEndDate).diff(moment(spStartDate), "days") + 1;
                 // }
                 let { perMinuteSalary } = await this.fetchPerDayAndPerMinuteSalary(staff, businessMonthDays);
