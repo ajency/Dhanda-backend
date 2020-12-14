@@ -347,8 +347,6 @@ module.exports = {
                 });
             }
 
-            salaryPeriodList.shift();
-
             let data = {
                 salaryPeriod: salaryPeriodList
             };
