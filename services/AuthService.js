@@ -44,4 +44,12 @@ module.exports = class AuthService {
             return null;
         }
     }
+
+    async invalidateToken(token) {
+        let jwtToken = token.split(' ')[1];
+        console.log(jwtToken);
+        let payload = jwt.verify(jwtToken, process.env.JWT_SECRET);
+        let tokenId = b64.encode(JSON.stringify(payload));
+        await models.auth_token.update({ invalid: true }, { where: { token_id: tokenId } });
+    }
 }

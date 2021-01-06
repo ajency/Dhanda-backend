@@ -9,14 +9,8 @@ const models = require("../models");
 
 module.exports = class HelperService {
     
-    roundedValueCalculate(number, fixed) {
-        if(fixed == 0) {
-            return Math.round(number + Number.EPSILON);
-        } else if(fixed == 2) {
-            return Math.round((number + Number.EPSILON) * 100) / 100;
-        } else {
-            return number;
-        }
+    roundOff(number, precision) {
+        return Math.round((number + Number.EPSILON) * Math.pow(10, precision)) / Math.pow(10, precision);
     }
 
     getOtp(n) {
@@ -79,10 +73,6 @@ module.exports = class HelperService {
         return sign+(otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ","))+lastThree+decimals;
     }
 
-    roundedValue(number, fixed) {
-        return roundedValueCalculate(number, fixed);
-    }
-
     validateRequiredRequestParams(req, requierdParams) {
         return requierdParams.every(key => Object.keys(req).includes(key));
     }
@@ -107,5 +97,64 @@ module.exports = class HelperService {
         /** Convert this to the shift hours string */
         return (("00" + Math.floor(seconds / (60 * 60))).slice(-2)) + ":" + (("00" + (Math.floor(seconds % (60 * 60) / 60))).slice(-2)) 
             + ":" + (("00" + (seconds % (60 * 60) % 60)).slice(-2));
+    }
+
+    /**
+     * 
+     * @param {*} hoursString 45:00
+     */
+    convertHoursStringToMinutes(hoursString) {
+        if(!hoursString) {
+            return 0;
+        }
+        let explodedTime = hoursString.split(":");
+        return parseInt(explodedTime[0]) * 60 + parseInt(explodedTime[1]);
+    }
+
+    convertMinutesToHoursString(minutes) {
+        let hours = Math.floor(minutes / 60);
+        let min = minutes % 60;
+        return ("00" + hours).slice(-2) + ":" + ("00" + min).slice(-2);
+    }
+
+    rulesToJSON(rules) {
+        if (rules instanceof Array) {
+            rules = rules.map(function(rule) {
+                rule.condition = rule.condition.toString();
+                rule.consequence = rule.consequence.toString();
+                return rule;
+            });
+        } else if (typeof(rules) != "undefined") {
+            rules.condition = rules.condition.toString();
+            rules.consequence = rules.consequence.toString();
+        }
+        return rules;
+    }
+    
+    rulesFromJSON(rules) {
+        if (typeof(rules) == "string") {
+            rules = JSON.parse(rules);
+        }
+        if (rules instanceof Array) {
+            rules = rules.map(function(rule) {
+                rule.condition = eval("(" + rule.condition + ")");
+                rule.consequence = eval("(" + rule.consequence + ")");
+                return rule;
+            });
+        } else if (rules !== null && typeof(rules) == "object") {
+            rules.condition = eval("(" + rules.condition + ")");
+            rules.consequence = eval("(" + rules.consequence + ")");
+        }
+        return rules;
+    };
+
+    getTimeDifference(startTime, endTime) {
+        let durationHours = "00" + moment(moment().format("YYYY-MM-DD ") + endTime)
+                            .diff(moment().format("YYYY-MM-DD ") + startTime, 'hour');
+        let durationMinutes = "00" + (moment(moment().format("YYYY-MM-DD ") + endTime)
+                            .diff(moment().format("YYYY-MM-DD ") + startTime, 'minute')) % 60;
+        let durationSeconds = "00" + (moment(moment().format("YYYY-MM-DD ") + endTime)
+                            .diff(moment().format("YYYY-MM-DD ") + startTime, 'second')) % 60;
+        return durationHours.slice(-2) + ":" + durationMinutes.slice(-2) + ":" + durationSeconds.slice(-2);
     }
 }

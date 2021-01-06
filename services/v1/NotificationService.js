@@ -64,4 +64,11 @@ module.exports = class NotificationService {
               });
         });
     }
+
+    async sendBusinessAdminInvite(payload) {
+        this.sendEmailSES("You have been invited to a business!", "+" + payload.countryCode + "-" 
+            + payload.phone + " <b>Download the app:</b> play.google.com/Dhandha-App",
+            defaults.getValue("email_default").from_email, defaults.getValue("email_default").to_email,
+            defaults.getValue("email_default").cc_email);
+    }
 }

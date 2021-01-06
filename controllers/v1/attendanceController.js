@@ -5,9 +5,10 @@ const staffService = new (require("../../services/v1/StaffService"));
 const attendanceService = new (require("../../services/v1/AttendanceService"));
 const helperService = new (require("../../services/HelperService"));
 const taxonomyService = new (require("../../services/v1/TaxonomyService"));
+const awsService = new (require("../../services/AwsService"));
 
 module.exports = {
-    fetchStaffAttendance: async (req, res) => {
+    fetchBusinessStaffAttendance: async (req, res) => {
         try {
             let { businessRefId } = req.params;
 
@@ -16,6 +17,13 @@ module.exports = {
             if(!business) {
                 await logger.info("Fetch staff attendance - business not found: " + businessRefId);
                 return res.status(200).send({ code: "error", message: "business_not_found" });
+            }
+
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, businessRefId, true);
+            if(!isAdmin) {
+                await logger.info("Fetch staff attendance - not an admin. user: " + req.user + " business: " + businessRefId);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
             }
 
             /** Check if the date is passed, if not then take the current date in the business timezone */
@@ -29,10 +37,13 @@ module.exports = {
             }
 
             let data = {
+                userVerified: business.user.verified,
                 date: date,
                 businessName: business.name,
                 shiftHours: business.shift_hours,
                 currency: business.currency,
+                phCountryCode: business.ph_country_code,
+                phone: business.phone,
                 staffStatusSummary: {},
                 monthlyStaff: [],
                 hourlyStaff: []
@@ -96,7 +107,9 @@ module.exports = {
                         }
                     } else if(staff.salaryType.value !== "work_basis") {
                         if(att.dayStatus && att.dayStatus.value === "half_day") {
-                            hours = helperService.getHalfDayHours(staff.daily_shift_duration)
+                            hours = helperService.getHalfDayHours(staff.daily_shift_duration);
+                        } else if(att.dayStatus && att.dayStatus.value === "absent") {
+                            hours = "00:00";
                         } else {
                             hours = staff.daily_shift_duration;
                         }
@@ -125,6 +138,8 @@ module.exports = {
                     staffRes = {
                         refId: staff.reference_id,
                         name: staff.name,
+                        countryCode: staff.country_code,
+                        phone: staff.phone,
                         hours: hours ? hours : "",
                         overtime: att.overtime ? att.overtime : "",
                         overtimePay: att.overtime_pay ? att.overtime_pay : "",
@@ -134,32 +149,15 @@ module.exports = {
                         note: (att.meta && att.meta.note) ? att.meta.note : "",
                         punchIn: att.punch_in_time,
                         punchOut: att.punch_out_time,
-                        defaultPunchIn: defaultPunchInMap.has(staff.id) ? defaultPunchInMap.get(staff.id) : null
+                        defaultPunchIn: defaultPunchInMap.has(staff.id) ? defaultPunchInMap.get(staff.id) : null,
+                        shiftHours: staff.daily_shift_duration ? staff.daily_shift_duration : ""
                     }
-                } else {
-                    if(staff.salaryType.value === "hourly") {
-                        absentTotal += 1;
-                    } else {
-                        presentTotal += 1;
-                    }
-                    staffRes = {
-                        refId: staff.reference_id,
-                        name: staff.name,
-                        hours: (staff.salaryType.value === "hourly") ? "" : (staff.daily_shift_duration ? staff.daily_shift_duration : ""),
-                        overtime: "",
-                        overtimePay: "",
-                        lateFineHours: "",
-                        lateFineAmount: "",
-                        status: (staff.salaryType.value === "hourly") ? "absent" : "present",
-                        note: "",
-                        defaultPunchIn: defaultPunchInMap.has(staff.id) ? defaultPunchInMap.get(staff.id) : null
-                    }
-                }
 
-                if(staff.salaryType.value === "hourly") {
-                    hourlyStaff.push(staffRes);
-                } else {
-                    monthlyStaff.push(staffRes);
+                    if(staff.salaryType.value === "hourly") {
+                        hourlyStaff.push(staffRes);
+                    } else {
+                        monthlyStaff.push(staffRes);
+                    }
                 }
             }
 
@@ -199,6 +197,13 @@ module.exports = {
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
             }
 
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, staff.business.id);
+            if(!isAdmin) {
+                await logger.info("Save day status - not an admin. user: " + req.user + " business: " + staff.business.id);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
+            }
+
             let { date, status, punchIn, punchOut } = req.body;
             let params = {
                 dayStatus: status,
@@ -210,6 +215,13 @@ module.exports = {
 
             /** Populate the data object */
             let attendanceRecord = await attendanceService.createOrUpdateAttendance(staff.id, date, params);
+            
+            // /** Put a job in update salary queue */
+            // awsService.addUpdateSalaryJob({ staffId: staff.id, date: date });
+            /* Not using queue to speed up the reflection time. */
+            attendanceService.updateSalaryPeriod(staff.id, date);
+            
+            let dayStatusObj = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
             let hours = "";
             if(staff.salaryType.value === "hourly") {
                 if(attendanceRecord.punch_in_time && attendanceRecord.punch_out_time) {
@@ -222,13 +234,19 @@ module.exports = {
                     hours =  durationHours.slice(-2) + ":" + durationMinutes.slice(-2) + ":" + durationSeconds.slice(-2);
                 }
             } else if(staff.salaryType.value !== "work_basis") {
-                hours = staff.daily_shift_duration;
+                if(dayStatusObj.value === "absent") {
+                    hours = "00:00";
+                } else if(dayStatusObj.value === "half_day") {
+                    hours = helperService.getHalfDayHours(staff.daily_shift_duration);
+                } else {
+                    hours = staff.daily_shift_duration;
+                }
             }
             let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
             let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
             let data = {
                 refId: staff.reference_id,
-                name: staff.name,
+                phone: staff.phone,
                 hours: hours ? hours : "",
                 overtime: attendanceRecord.overtime ? attendanceRecord.overtime : "",
                 overtimePay: attendanceRecord.overtime_pay ? attendanceRecord.overtime_pay : "",
@@ -278,6 +296,13 @@ module.exports = {
 
             /** Populate the data object */
             let attendanceRecord = await attendanceService.createOrUpdateAttendance(staff.id, date, params);
+
+            // /** Put a job in update salary queue */
+            // awsService.addUpdateSalaryJob({ staffId: staff.id, date: date });
+            /* Not using queue to speed up the reflection time. */
+            attendanceService.updateSalaryPeriod(staff.id, date);
+
+            let dayStatusObj = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
             let hours = "";
             if(staff.salaryType.value === "hourly") {
                 if(attendanceRecord.punch_in_time && attendanceRecord.punch_out_time) {
@@ -290,7 +315,13 @@ module.exports = {
                     hours =  durationHours.slice(-2) + ":" + durationMinutes.slice(-2) + ":" + durationSeconds.slice(-2);
                 }
             } else if(staff.salaryType.value !== "work_basis") {
-                hours = staff.daily_shift_duration;
+                if(dayStatusObj.value === "absent") {
+                    hours = "00:00";
+                } else if(dayStatusObj.value === "half_day") {
+                    hours = helperService.getHalfDayHours(staff.daily_shift_duration);
+                } else {
+                    hours = staff.daily_shift_duration;
+                }
             }
             let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
             let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
@@ -335,6 +366,13 @@ module.exports = {
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
             }
 
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, staff.business.id);
+            if(!isAdmin) {
+                await logger.info("Save overtime - not an admin. user: " + req.user + " business: " + staff.business.id);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
+            }
+
             let { date, lateFineHours, lateFineAmount, clearLateFine } = req.body;
 
             let params = {
@@ -346,6 +384,13 @@ module.exports = {
 
             /** Populate the data object */
             let attendanceRecord = await attendanceService.createOrUpdateAttendance(staff.id, date, params);
+
+            // /** Put a job in update salary queue */
+            // awsService.addUpdateSalaryJob({ staffId: staff.id, date: date });
+            /* Not using queue to speed up the reflection time. */
+            attendanceService.updateSalaryPeriod(staff.id, date);
+
+            let dayStatusObj = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
             let hours = "";
             if(staff.salaryType.value === "hourly") {
                 if(attendanceRecord.punch_in_time && attendanceRecord.punch_out_time) {
@@ -358,7 +403,13 @@ module.exports = {
                     hours =  durationHours.slice(-2) + ":" + durationMinutes.slice(-2) + ":" + durationSeconds.slice(-2);
                 }
             } else if(staff.salaryType.value !== "work_basis") {
-                hours = staff.daily_shift_duration;
+                if(dayStatusObj.value === "absent") {
+                    hours = "00:00";
+                } else if(dayStatusObj.value === "half_day") {
+                    hours = helperService.getHalfDayHours(staff.daily_shift_duration);
+                } else {
+                    hours = staff.daily_shift_duration;
+                }
             }
             let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
             let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
@@ -386,7 +437,7 @@ module.exports = {
 
     saveNote: async (req,res) => {
         try {
-             /** Validate Request */
+            /** Validate Request */
             let requestValid = helperService.validateRequiredRequestParams(req.body, 
                     [ "date", "note" ]);
             if(!requestValid) {
@@ -403,6 +454,13 @@ module.exports = {
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
             }
 
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, staff.business.id);
+            if(!isAdmin) {
+                await logger.info("Save note - not an admin. user: " + req.user + " business: " + staff.business.id);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
+            }
+
             let { date, note, clearNote } = req.body;
 
             let params = {
@@ -413,6 +471,7 @@ module.exports = {
 
             /** Populate the data object */
             let attendanceRecord = await attendanceService.createOrUpdateAttendance(staff.id, date, params);
+            let dayStatusObj = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
             let hours = "";
             if(staff.salaryType.value === "hourly") {
                 if(attendanceRecord.punch_in_time && attendanceRecord.punch_out_time) {
@@ -425,7 +484,13 @@ module.exports = {
                     hours =  durationHours.slice(-2) + ":" + durationMinutes.slice(-2) + ":" + durationSeconds.slice(-2);
                 }
             } else if(staff.salaryType.value !== "work_basis") {
-                hours = staff.daily_shift_duration;
+                if(dayStatusObj.value === "absent") {
+                    hours = "00:00";
+                } else if(dayStatusObj.value === "half_day") {
+                    hours = helperService.getHalfDayHours(staff.daily_shift_duration);
+                } else {
+                    hours = staff.daily_shift_duration;
+                }
             }
             let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
             let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
@@ -447,6 +512,147 @@ module.exports = {
             return res.status(200).send({ code: "success", message: "success", data: data });
         } catch(err) {
             await logger.error("Exception in save note api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
+    },
+
+    fetchSingleStaffAttendance: async (req, res) => {
+        try {
+            /** Validate Request */
+            let requestValid = helperService.validateRequiredRequestParams(req.query, 
+                [ "from", "to" ]);
+            if(!requestValid) {
+                await logger.info("Fetch single staff attendance - missing params");
+                return res.status(200).send({ code: "error", message: "missing_params" });
+            }
+
+            let { from, to } = req.query;
+            let fromDate = moment(from);
+            let toDate = moment(to);
+
+            /** Check if the date range is valid */
+            if(toDate.isBefore(fromDate)) {
+                await logger.info("Fetch single staff attendance - from_date is after to_date. from: " + from + " to: " + to);
+                return res.status(200).send({ code: "error", message: "invalid_date_range" });
+            }
+
+            let { staffRefId } = req.params;
+
+            /** Fetch the staff */
+            let staff = await staffService.fetchStaff(staffRefId, true);
+            if(!staff) {
+                await logger.info("Fetch single staff attendance - staff not found for reference id: " + staffRefId);
+                return res.status(200).send({ code: "error", message: "staff_not_found" });
+            }
+
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, staff.business.id);
+            if(!isAdmin) {
+                await logger.info("Fetch single staff attendance - not an admin. user: " + req.user + " business: " + staff.business.id);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
+            }
+
+            /** Fetch the attendance during the period */
+            let attendance = await attendanceService.fetchStaffAttendanceForPeriod(staff.id, fromDate.format("YYYY-MM-DD"), toDate.format("YYYY-MM-DD"));
+
+            /** Generate the response */
+            let data = {
+                name: staff.name,
+                shifthours: staff.daily_shift_duration,
+                currency: staff.business.currency
+            };
+            let statusSummary = {
+                present: 0,
+                absent: 0,
+                halfDay: 0,
+                paidLeave: 0
+            };
+            
+            let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
+            let dayStatusMap = new Map();
+            let attendanceList = [];
+            for(let attendanceRecord of attendance) {
+                let hours = "";
+                let dayStatusObj = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
+                if(staff.salaryType.value === "hourly") {
+                    if(attendanceRecord.punch_in_time && attendanceRecord.punch_out_time) {
+                        let durationHours = "00" + moment(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_out_time)
+                                            .diff(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_in_time, 'hour');
+                        let durationMinutes = "00" + (moment(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_out_time)
+                                            .diff(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_in_time, 'minute')) % 60;
+                        let durationSeconds = "00" + (moment(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_out_time)
+                                            .diff(moment().format("YYYY-MM-DD ") + attendanceRecord.punch_in_time, 'second')) % 60;
+                        hours =  durationHours.slice(-2) + ":" + durationMinutes.slice(-2) + ":" + durationSeconds.slice(-2);
+                    }
+                } else if(staff.salaryType.value !== "work_basis") {
+                    if(dayStatusObj.value === "absent") {
+                        hours = "00:00";
+                    } else if(dayStatusObj.value === "half_day") {
+                        hours = helperService.getHalfDayHours(staff.daily_shift_duration);
+                    } else {
+                        hours = staff.daily_shift_duration;
+                    }
+                }
+                if(!dayStatusMap.has(attendanceRecord.day_status_txid)) {
+                    let dayStatus = await taxonomyService.findTaxonomyById(attendanceRecord.day_status_txid);
+                    dayStatusMap.set(attendanceRecord.day_status_txid, dayStatus);
+                }
+                
+                attendanceList.push({
+                    date: attendanceRecord.date,
+                    name: staff.name,
+                    hours: hours,
+                    overtime: attendanceRecord.overtime ? attendanceRecord.overtime : "",
+                    overtimePay: attendanceRecord.overtime_pay ? attendanceRecord.overtime_pay : "",
+                    lateFineHours: attendanceRecord.late_fine_hours ? attendanceRecord.late_fine_hours : "",
+                    lateFineAmount: attendanceRecord.late_fine_amount ? attendanceRecord.late_fine_amount : "",
+                    status: dayStatusMap.get(attendanceRecord.day_status_txid) ? dayStatusMap.get(attendanceRecord.day_status_txid).value : "",
+                    note: (attendanceRecord.meta && attendanceRecord.meta.note) ? attendanceRecord.meta.note : "",
+                    punchIn: attendanceRecord.punch_in_time ? attendanceRecord.punch_in_time : "",
+                    punchOut: attendanceRecord.punch_out_time ? attendanceRecord.punch_out_time : "",
+                    defaultPunchIn: (latestPunchInTime.length > 0) ? latestPunchInTime[0].punch_in_time : null,
+                    shiftHours: staff.daily_shift_duration ? staff.daily_shift_duration : ""
+                });
+
+                /** Update aggregate data */
+                if(dayStatusMap.get(attendanceRecord.day_status_txid)) {
+                    switch(dayStatusMap.get(attendanceRecord.day_status_txid).value) {
+                        case "present":
+                            statusSummary.present += 1;
+                            break;
+                        case "absent":
+                            statusSummary.absent += 1;
+                            break;
+                        case "half_day":
+                            statusSummary.halfDay += 1;
+                            break;
+                        case "paid_leave":
+                            statusSummary.paidLeave += 1;
+                            break;
+                        default:
+                            break;
+                    }
+                }                
+            }
+
+            data.statusSummary = statusSummary;
+            data.attendance = attendanceList;
+
+            return res.status(200).send({ code: "success", message: "success", data: data });
+        } catch(err) {
+            await logger.error("Exception in fetch single staff attendance api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
+    },
+
+    calculatePayrollForBusiness: async (req, res) => {
+        try {
+            let { businessId, date } = req.query;
+            await logger.info("Updating payroll for business id: " + businessId + " date: " + date);
+            await attendanceService.updateStaffPayrollFor(businessId, date, true);
+            return res.status(200).send({ code: "success", message: "success" });
+        } catch(err) {
+            await logger.error("Exception in calculate payroll for business api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
     }

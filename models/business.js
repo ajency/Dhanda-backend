@@ -28,7 +28,9 @@ module.exports = (sequelize, DataTypes) => {
     shift_hours: DataTypes.TIME,
     timezone: DataTypes.STRING,
     country_code: DataTypes.STRING,
-    country: DataTypes.STRING
+    country: DataTypes.STRING,
+    ph_country_code: DataTypes.INTEGER,
+    phone: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'business',

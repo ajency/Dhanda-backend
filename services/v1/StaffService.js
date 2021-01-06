@@ -2,6 +2,7 @@ const logger = require("simple-node-logger").createSimpleLogger({ timestampForma
 const models = require("../../models");
 const taxonomyService = new (require("./TaxonomyService"));
 const helperService = new (require("../HelperService"));
+const moment = require("moment");
 
 module.exports = class StaffService {
     
@@ -14,11 +15,19 @@ module.exports = class StaffService {
      *      salary: salary, 
      *      salaryPayoutDate: salaryPayoutDate, 
      *      dailyShiftDuration: dailyShiftDuration, 
-     *      salaryPayoutDay: salaryPayoutDay
+     *      salaryPayoutDay: salaryPayoutDay,
+     *      ruleGroupId: ruleGroupId
      *  }
      */
     async createStaff(businessId, staffObj) {
         let salaryTypeTx = await taxonomyService.findTaxonomy("salary_type", staffObj.salaryType);
+
+        /** If rule group is not passed then fetch and add the default rule group */
+        let defaultRuleGroup = null;
+        if(!staffObj.ruleGroupId) {
+            /** Fetch the default rule group */
+            defaultRuleGroup = await models.rule_group.findOne({ where: { name: "default", business_id: null } });
+        }
         
         return await models.staff.create({
             reference_id: "S" + helperService.generateReferenceId(),
@@ -30,7 +39,10 @@ module.exports = class StaffService {
             salary: staffObj.salary ? staffObj.salary : null,
             cycle_start_day: staffObj.salaryPayoutDay ? staffObj.salaryPayoutDay : null,
             cycle_start_date: staffObj.salaryPayoutDate ? staffObj.salaryPayoutDate : null,
-            daily_shift_duration: staffObj.dailyShiftDuration ? staffObj.dailyShiftDuration : null
+            daily_shift_duration: staffObj.dailyShiftDuration ? staffObj.dailyShiftDuration : null,
+            rule_group_id: defaultRuleGroup  ? defaultRuleGroup.id : null,
+            disabled: staffObj.disabled,
+            deleted: staffObj.deleted
         });
     }
 
@@ -57,7 +69,9 @@ module.exports = class StaffService {
             salary: staffObj.salary ? staffObj.salary : null,
             cycle_start_day: staffObj.salaryPayoutDay ? staffObj.salaryPayoutDay : null,
             cycle_start_date: staffObj.salaryPayoutDate ? staffObj.salaryPayoutDate : null,
-            daily_shift_duration: staffObj.dailyShiftDuration ? staffObj.dailyShiftDuration : null
+            daily_shift_duration: staffObj.dailyShiftDuration ? staffObj.dailyShiftDuration : null,
+            disabled: staffObj.disabled,
+            deleted: staffObj.deleted
         }, { where: { reference_id: refId }, returning: true });
     }
 
@@ -69,14 +83,52 @@ module.exports = class StaffService {
             ] });
         } else {
             return await models.staff.findOne({ where: { id: staffId }, include: [ 
-                { model: models.taxonomy },
+                { model: models.taxonomy, as: "salaryType" },
                 { model: models.business } 
             ] });
         }
     }
 
-    async fetchStaffForBusinessId(businessId) {
-        return await models.staff.findAll({ where: { business_id: businessId },
-            include: [ { model: models.taxonomy, as: "salaryType" } ] });
+    async fetchStaffForBusinessId(businessId, includeDeleted = false) {
+        let whereClause = { business_id: businessId };
+        if(!includeDeleted) {
+            whereClause.deleted = false;
+        }
+        return await models.staff.findAll({ where: whereClause,
+            order: [ [ "name", "asc" ] ],
+            include: [ { model: models.taxonomy, as: "salaryType" },
+                { model: models.business } ] });
     }
+
+    async fetchPeriodDates(staff, date, isStaffId = false) {
+        if(isStaffId) {
+            staff = await this.fetchStaff(staff);
+        }
+        let startDate = null, endDate = null;
+        if(["monthly", "daily", "hourly", "work_basis"].includes(staff.salaryType.value)) {
+            /** Monthly Staff */
+            startDate = moment(date).startOf("month");
+            if (staff.cycle_start_date) {
+                startDate.add(staff.cycle_start_date - 1, "days");
+                if (startDate.isAfter(moment(date))) {
+                    startDate.subtract(1, "months");
+                }
+            }
+            endDate = moment(startDate).add(1, "month").subtract(1, "day");
+        } else if (["weekly"].includes(staff.salaryType.value)) {
+            /** Weekly Staff */
+            startDate = moment(date).startOf("week");
+            if (staff.cycle_start_day) {
+                startDate.add(staff.cycle_start_day, "days");
+                if (startDate.isAfter(moment(date))) {
+                    startDate.subtract(1, "weeks");
+                }
+            }
+            endDate = moment(startDate).add(1, "week").subtract(1, "day");
+        }
+        return {
+            startDate: startDate.format("YYYY-MM-DD"),
+            endDate: endDate.format("YYYY-MM-DD")
+        };
+    } 
 }

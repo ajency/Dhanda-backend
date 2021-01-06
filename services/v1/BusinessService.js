@@ -15,6 +15,8 @@ module.exports = class BusinessService {
      *      shiftHours: shiftHours,
      *      timezone: timezone,
      *      countryCode: countryCode
+     *      phCountryCode: 91
+     *      phone: "9876543210"
      * }
      * @param {*} userId 
      * @param {*} businessObj 
@@ -41,7 +43,9 @@ module.exports = class BusinessService {
             default: def,
             active: true,
             timezone: businessObj.timezone,
-            country_code: businessObj.countryCode
+            country_code: businessObj.countryCode,
+            ph_country_code: businessObj.phCountryCode,
+            phone: businessObj.phone
         });
     }
 
@@ -53,6 +57,8 @@ module.exports = class BusinessService {
      *      shiftHours: shiftHours,
      *      timezone: timezone,
      *      countryCode: countryCode
+     *      phCountryCode: 91
+     *      phone: "9876543210"
      * }
      * @param {*} refId 
      * @param {*} businessObj 
@@ -68,9 +74,12 @@ module.exports = class BusinessService {
             salary_month_txid: salaryMonthTaxonomy.id,
             shift_hours: businessObj.shiftHours ? businessObj.shiftHours : null,
             timezone: businessObj.timezone,
-            country_code: businessObj.countryCode
+            country_code: businessObj.countryCode,
+            country: businessObj.country,
+            ph_country_code: businessObj.phCountryCode,
+            phone: businessObj.phone
         }
-        return await models.business.update(saveBusinessObj, { where: { reference_id: refId } });
+        return await models.business.update(saveBusinessObj, { where: { reference_id: refId }, returning: true });
     }
 
     async fetchBusinessById(businessId, isRefId = false) {
@@ -88,7 +97,7 @@ module.exports = class BusinessService {
     }
 
     async fetchBusinessByTimezone(timezone) {
-        return await models.business.findAll({ where: { timezone: timezone } });
+        return await models.business.findAll({ where: { timezone: timezone }, include: [ { model: models.taxonomy } ] });
     }
 
     async createRoleInviteForUser(businessId, roleName, countryCode, phone, name, invitedByUserId) {
@@ -142,11 +151,12 @@ module.exports = class BusinessService {
         /** Add the owner to the list */
         adminList.push({
             name: business.user.name,
-            countryCode: business.user.country_code,
-            phone: business.user.phone,
+            countryCode: business.user.country_code ? business.user.country_code : business.ph_country_code,
+            phone: business.user.phone ? business.user.phone : business.phone,
             owner: true,
             invited: false,
-            inviteRefId: null
+            inviteRefId: null,
+            adminRefId: business.user.reference_id
         });
 
         /** Fetch the admins */
@@ -158,7 +168,8 @@ module.exports = class BusinessService {
                 phone: roleUser.user.phone,
                 owner: false,
                 invited: false,
-                inviteRefId: null
+                inviteRefId: null,
+                adminRefId: roleUser.user.reference_id
             });
         }
 
@@ -211,4 +222,45 @@ module.exports = class BusinessService {
                 { model: models.business, as: "business" } ] });
     }
 
+    async createBusinessUserRole(businessId, userId, roleId) {
+        return await models.business_user_role.create({
+            business_id: businessId,
+            user_id: userId,
+            role_id: roleId,
+            deleted: false
+        });
+    }
+
+    async isUserAdmin(userId, businessId, isBusinessRefId = false) {
+        let business = await this.fetchBusinessById(businessId, isBusinessRefId);
+
+        /** Check if the user is the owner */
+        if(business.user_id === userId) {
+            return true;
+        } else {
+            /** Fetch the admin list */
+            let adminList = await this.fetchBusUserRoleByRoleForBusiness("business_admin", business.id);
+            for(let admin of adminList) {
+                if(admin.user_id === userId) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    async fetchBusinessForRoleUser(userId, roleName) {
+        let role = await models.role.findOne({ where: { name: roleName } });
+        if(!role) {
+            return null;
+        }
+
+        let businessUserRole = await models.business_user_role.findOne({ where: { user_id: userId, role_id: role.id },
+            include: [ { model: models.business, as: "business" } ] });
+        if(businessUserRole) {
+            return businessUserRole.business;
+        } else {
+            return null;
+        }
+    }
 }

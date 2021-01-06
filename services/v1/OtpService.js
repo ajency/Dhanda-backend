@@ -125,4 +125,34 @@ module.exports = class OtpService {
         }
 
     }
+
+    async generateAndSendOtpWrapper(countryCode, phone, type) {
+        /** Check if there is a valid OTP already present */
+        let { otp, otpCount } = await this.getLastValidOtpAndCount(countryCode, phone, type);
+
+        /** Check if max tries have been exceeded */
+        let canGenerateOtp = await this.canGenerateOtp(otpCount);
+        if(!canGenerateOtp) {
+            await logger.info("Send otp - otp limit reached");
+            return { code: "error", message: "otp_limit_reached" };
+        }
+
+
+        /** Generate the OTP if not already present */
+        if(otp === null) {
+            otp = await this.generateOtp();
+        }
+
+        if(process.env.OTP_SANDBOX && process.env.OTP_SANDBOX === "true") {
+            await logger.info("OTP for " + phone + " is " + otp);
+        }
+        
+        /** Save OTP */
+        await this.saveOtp(countryCode, phone, otp, type);
+
+        /** Send OTP */
+        await this.sendOtp(countryCode, phone, otp);
+
+        return { code: "verify_otp", message: "success" };
+    }
 }

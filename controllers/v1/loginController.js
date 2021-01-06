@@ -2,39 +2,31 @@ const logger = require("simple-node-logger").createSimpleLogger({ timestampForma
 const otpService = new (require("../../services/v1/OtpService"));
 const userService = new (require("../../services/v1/UserService"));
 const authService = new (require("../../services/AuthService"));
+const ormService = new (require("../../services/OrmService"));
+const ruleService = new (require("../../services/v1/RuleService"));
+const businessService = new (require("../../services/v1/BusinessService"));
+const moment = require("moment");
 
 module.exports = {
     sendOtp: async (req, res) => {
         try {
-            let { countryCode, phone } = req.body;
-
-            /** Check if there is a valid OTP already present */
-            let { otp, otpCount } = await otpService.getLastValidOtpAndCount(countryCode, phone, "login");
-
-            /** Check if max tries have been exceeded */
-            let canGenerateOtp = await otpService.canGenerateOtp(otpCount);
-            if(!canGenerateOtp) {
-                await logger.info("Send otp - otp limit reached");
-                return res.status(200).send({ code: "error", message: "otp_limit_reached" });
-            }
-
-
-            /** Generate the OTP if not already present */
-            if(otp === null) {
-                otp = await otpService.generateOtp();
-            }
-
-            if(process.env.OTP_SANDBOX && process.env.OTP_SANDBOX === "true") {
-                await logger.info("OTP for " + phone + " is " + otp);
-            }
+            let { countryCode, phone, type } = req.body;
             
-            /** Save OTP */
-            await otpService.saveOtp(countryCode, phone, otp, "login");
+            /** Check if the phone is a user or the phone is an invitee if the type is login */
+            if(type === "login") {
+                let user = await userService.fetchUserByPhone(countryCode, phone)
+                if(!user) {
+                    let invites = await businessService.fetchRoleInvitesFor("business_admin", null, countryCode, phone);
+                    if(invites.length === 0) {
+                        await logger.info("Send otp - Not a user or business admin invitee. countryCode: " + countryCode
+                            + " phone: " + phone);
+                        return res.status(200).send({ code: "error", message: "no_user" });
+                    }
+                }
+            }
 
-            /** Send OTP */
-            await otpService.sendOtp(countryCode, phone, otp);
-
-            res.status(200).send({ code: "verify_otp", message: "success" });
+            let resp = await otpService.generateAndSendOtpWrapper(countryCode, phone, type);
+            return res.status(200).send(resp);
         } catch(err) {
             await logger.error("Exception in send otp api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
@@ -43,11 +35,11 @@ module.exports = {
 
     verifyOtp: async (req, res) => {
         try {
-            let { countryCode, phone, lang } = req.body;
+            let { countryCode, phone, lang, type, businessRefId } = req.body;
             let enteredOtp = req.body.otp;
 
             /** Fetch the latest OTP */
-            let { otp, otpMsgCode, otpObj } = await otpService.getLastValidOtpAndCount(countryCode, phone, "login");
+            let { otp, otpMsgCode, otpObj } = await otpService.getLastValidOtpAndCount(countryCode, phone, type);
 
             if(otp === null) {
                 if(otpMsgCode === "no_otp") {
@@ -77,34 +69,84 @@ module.exports = {
                 }
             }
 
-            /** Check if the user exists */
-            let user = await userService.fetchUserByPhone(countryCode, phone);
+            let code = "";
+            let data = {};
 
-            /** Create a new user if not present */
-            if(user === null) {
-                user = await userService.createUser(countryCode, phone, lang);
-                // code = "business_details";
-            } /*else {
-                // code = "home";
-            }*/
+            if(type === "login") {
+                /** Check if the user exists */
+                let user = await userService.fetchUserByPhone(countryCode, phone);
+                
+                /** Create a new user if not present */
+                if(user === null) {
+                    user = await userService.createUser(countryCode, phone, lang);
+                    /** Set verified to true */
+                    await ormService.updateModel("user", user.id, { verified: true });
+                    // code = "business_details";
+                } /*else {
+                    // code = "home";
+                }*/
 
-            /** Generate access token */
-            let token = await authService.generateTokenForUser(user, true);
-            
-            let data = {
-                token: token,
-                lang: user.lang
-            };
+                /** Update the users last login */
+                ormService.updateModel("user", user.id, { last_login: new Date() });
 
-            let postLoginObj = await userService.fetchPostLoginCodeForUserByToken("Bearer " + token);
-            let code = postLoginObj.code;
-            if(postLoginObj.hasOwnProperty("data")) {
-                data = { ...data, ...postLoginObj.data }
+                /** Check if we need to force verification */
+                if(!user.verified) {
+                    let firstStaffCreationDate = await userService.fetchFirstStaffUserCreationDate(user.id);
+                    firstStaffCreationDate = firstStaffCreationDate.length > 0 ? moment(firstStaffCreationDate[0].created_at) : moment();
+                    let facts = {
+                        lastLogin: moment(),
+                        firstStaffCreationDate: firstStaffCreationDate,
+                        staffCount: await userService.fetchStaffCountFromUserId(user.id)
+
+                    }
+                    let ruleRes = await ruleService.executeRuleFor("force_user_verification", facts, null);
+                    if(ruleRes) {
+                        await logger.error("Forcing user verification for user: " + user.id);
+                        let business = await userService.fetchDefaultBusinessForUser(user.id);
+                        return res.status(200).send({ code: "verify_user", message: "success", data: {
+                            businessRefId: business.reference_id,
+                            phCountryCode: business.ph_country_code,
+                            phone: business.phone
+                        } });
+                    }
+                }
+
+                /** Generate access token */
+                let token = await authService.generateTokenForUser(user, true);
+                
+                data = {
+                    token: token,
+                    lang: user.lang
+                };
+
+                let postLoginObj = await userService.fetchPostLoginCodeForUserByToken("Bearer " + token);
+                code = postLoginObj.code;
+                if(postLoginObj.hasOwnProperty("data")) {
+                    data = { ...data, ...postLoginObj.data }
+                }
+            } else if(type === "verify_user") {
+                let result = await userService.updateUserPhone(businessRefId);
+                if(result.code === "error") {
+                    return res.status(200).send(result);
+                }
+                code = "home";
             }
 
             return res.status(200).send({ code: code, message: "success", data: data });
         } catch(err) {
             await logger.error("Exception in verify otp api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
+    },
+
+    logout: async (req, res) => {
+        try {
+            /** Invalidate the token */
+            let token = req.headers.authorization;
+            await authService.invalidateToken(token);
+            return res.status(200).send({ code: "success", message: "success" });
+        } catch(err) {
+            await logger.error("Exception in logout api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
     }

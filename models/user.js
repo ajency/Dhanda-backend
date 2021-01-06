@@ -11,7 +11,8 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      this.hasMany(models.business, { foreignKey: "user_id" })
+      this.hasMany(models.business, { foreignKey: "user_id", as: "businesses" });
+      this.hasMany(models.business_user_role, { foreignKey: "user_id", as: "businessUserRoles" });
     }
   };
   user.init({
@@ -20,6 +21,8 @@ module.exports = (sequelize, DataTypes) => {
     country_code: DataTypes.INTEGER,
     phone: DataTypes.STRING,
     lang: DataTypes.STRING,
+    verified: DataTypes.BOOLEAN,
+    last_login: DataTypes.DATE
   }, {
     sequelize,
     modelName: 'user',
