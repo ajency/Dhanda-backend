@@ -43,4 +43,8 @@ module.exports = class StaffWorkService {
     async fetchStaffWorkRatesByStaffId(staffId) {
         return await models.staff_work_rate.findAll({ where: { staff_id: staffId, deleted: false } });
     }
+
+    async fetchStaffWorkByStaffId(staffId) {
+        return await models.staff_work.findAll({ where: { staff_id: staffId, deleted: false } });
+    }
 }

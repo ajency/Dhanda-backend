@@ -11,6 +11,7 @@ const helperService = new (require("../HelperService"));
 const salaryPeriodService = new (require("./SalaryPeriodService"));
 const ruleService = new (require("./RuleService"));
 const staffIncomeMetaService = new (require("./StaffIncomeMetaService"));
+const staffWorkService = new (require("./StaffWorkService"));
 
 module.exports = class AttendanceService {
     async fetchAttendanceByStaffIdsAndDate(staffIds, date) {
@@ -562,7 +563,10 @@ module.exports = class AttendanceService {
                     days: "",
                     hours: "",
                     rate: "",
-                    refId: ""
+                    refId: "",
+                    units: "",
+                    displayTypeAsIs: false,
+                    entryType: "attendance"
                 });
             } else if(att.late_fine_hours) {
                 if(!business) {
@@ -585,7 +589,10 @@ module.exports = class AttendanceService {
                     days: "",
                     hours: att.late_fine_hours,
                     rate: "",
-                    refId: ""
+                    refId: "",
+                    units: "",
+                    displayTypeAsIs: false,
+                    entryType: "attendance"
                 });
             }
 
@@ -601,7 +608,10 @@ module.exports = class AttendanceService {
                     days: "",
                     hours: att.overtime,
                     rate: helperService.roundOff(parseFloat(att.overtime_pay), 2),
-                    refId: ""
+                    refId: "",
+                    units: "",
+                    displayTypeAsIs: false,
+                    entryType: "attendance"
                 });
             }
         }
@@ -632,7 +642,10 @@ module.exports = class AttendanceService {
                 days: days,
                 hours: "",
                 rate: "",
-                refId: ""
+                refId: "",
+                units: "",
+                displayTypeAsIs: false,
+                entryType: "attendance"
             });
         });
 
@@ -646,7 +659,10 @@ module.exports = class AttendanceService {
                 days: "",
                 hours: salaryPeriod.total_hours,
                 rate: "",
-                refId: ""
+                refId: "",
+                units: "",
+                displayTypeAsIs: false,
+                entryType: "attendance"
             });
         }
 
@@ -661,7 +677,28 @@ module.exports = class AttendanceService {
                 days: "",
                 hours: "",
                 rate: "",
-                refId: tr.reference_id
+                refId: tr.reference_id,
+                units: "",
+                displayTypeAsIs: false,
+                entryType: "transaction"
+            });
+        }
+
+        /** Fetch the work done by the staff */
+        let workDone = await staffWorkService.fetchStaffWorkByStaffId(staff.id);
+        for(let wd of workDone) {
+            transactions.push({
+                transactionType: wd.type,
+                amount: helperService.roundOff(parseFloat(wd.total), 2) * -1,
+                description: "",
+                date: wd.date,
+                days: "",
+                hours: "",
+                rate: wd.rate,
+                refId: wd.reference_id,
+                units: wd.units,
+                displayTypeAsIs: true,
+                entryType: "work"
             });
         }
 
