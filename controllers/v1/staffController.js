@@ -9,6 +9,7 @@ const attendanceService = new (require("../../services/v1/AttendanceService"));
 const moment = require("moment");
 const taxonomyService = new (require("../../services/v1/TaxonomyService"));
 const salaryPeriodService = new (require("../../services/v1/SalaryPeriodService"));
+const staffWorkService = new (require("../../services/v1/StaffWorkService"));
 
 module.exports = {
     saveStaff: async (req, res) => {
@@ -493,26 +494,37 @@ module.exports = {
             /** Fetch the staff */
             let staff = await staffService.fetchStaff(staffRefId, true);
             if(!staff) {
-                await logger.info("Add staff work - staff not found for reference id: " + staffRefId);
+                await logger.info("Save staff work - staff not found for reference id: " + staffRefId);
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
             }
 
             /** Check if the user is an admin */
             let isAdmin = await businessService.isUserAdmin(req.user, staff.business.id);
             if(!isAdmin) {
-                await logger.info("Add staff work - not an admin. user: " + req.user + " business: " + staff.business.id);
+                await logger.info("Save staff work - not an admin. user: " + req.user + " business: " + staff.business.id);
                 return res.status(200).send({ code: "error", message: "not_an_admin" });
             }
 
             /** Check if the staff is of the type work basis */
             if(staff.salaryType.value !== "work_basis") {
-                await logger.info("Add staff work - staff not of type work basis for reference id: " + staffRefId);
+                await logger.info("Save staff work - staff not of type work basis for reference id: " + staffRefId);
                 return res.status(200).send({ code: "error", message: "staff_not_work_basis" });
             }
 
+            /** Check if the staff_work entry exists for the provided reference id */
+            if(req.refId) {
+                let staffWork = await staffWorkService.fetchStaffWorkByRefId(req.refId);
+                if(!staffWork) {
+                    await logger.info("Save staff work - staff work not found for staff work reference id: " + req.refId);
+                    return res.status(200).send({ code: "error", message: "staff_not_work_basis" });
+                }
+            }
+
+            /**  */
+
             return res.status(200).send({ code: "success", message: "success" });
         } catch(err) {
-            await logger.error("Exception in add staff work api: ", err);
+            await logger.error("Exception in save staff work api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
     }
