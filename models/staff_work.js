@@ -14,6 +14,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   staff_work.init({
+    reference_id: DataTypes.STRING,
     staff_id: DataTypes.INTEGER,
     date: DataTypes.DATE,
     type: DataTypes.STRING,

@@ -14,6 +14,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   staff_work_rate.init({
+    reference_id: DataTypes.STRING,
     staff_id: DataTypes.INTEGER,
     type: DataTypes.STRING,
     rate: DataTypes.DECIMAL
