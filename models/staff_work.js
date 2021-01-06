@@ -20,7 +20,8 @@ module.exports = (sequelize, DataTypes) => {
     type: DataTypes.STRING,
     rate: DataTypes.DECIMAL,
     units: DataTypes.INTEGER,
-    total: DataTypes.DECIMAL
+    total: DataTypes.DECIMAL,
+    deleted: DataTypes.BOOLEAN
   }, {
     sequelize,
     modelName: 'staff_work',

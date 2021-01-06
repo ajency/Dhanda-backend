@@ -24,6 +24,9 @@ module.exports = {
       rate: {
         type: Sequelize.DECIMAL
       },
+      deleted: {
+        type: Sequelize.BOOLEAN
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE

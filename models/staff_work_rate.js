@@ -17,7 +17,8 @@ module.exports = (sequelize, DataTypes) => {
     reference_id: DataTypes.STRING,
     staff_id: DataTypes.INTEGER,
     type: DataTypes.STRING,
-    rate: DataTypes.DECIMAL
+    rate: DataTypes.DECIMAL,
+    deleted: DataTypes.BOOLEAN
   }, {
     sequelize,
     modelName: 'staff_work_rate',

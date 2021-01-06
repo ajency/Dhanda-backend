@@ -33,6 +33,9 @@ module.exports = {
       total: {
         type: Sequelize.DECIMAL
       },
+      deleted: {
+        type: Sequelize.BOOLEAN
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE
