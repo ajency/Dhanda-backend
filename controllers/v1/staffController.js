@@ -606,5 +606,36 @@ module.exports = {
             await logger.error("Exception in save staff work rate api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
+    },
+
+    fetchStaffWorkRate: async (req, res) => {
+        try {
+            let { staffRefId } = req.params;
+
+            /** Fetch the staff */
+            let staff = await staffService.fetchStaff(staffRefId, true);
+            if(!staff) {
+                await logger.info("Fetch staff work rate - staff not found for reference id: " + staffRefId);
+                return res.status(200).send({ code: "error", message: "staff_not_found" });
+            }
+
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, staff.business.id);
+            if(!isAdmin) {
+                await logger.info("Fetch staff work rate - not an admin. user: " + req.user + " business: " + staff.business.id);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
+            }
+
+            /** Check if the staff is of the type work basis */
+            if(staff.salaryType.value !== "work_basis") {
+                await logger.info("Fetch staff work rate - staff not of type work basis for reference id: " + staffRefId);
+                return res.status(200).send({ code: "error", message: "staff_not_work_basis" });
+            }
+
+            return res.status(200).send({ code: "success", message: "success" });
+        } catch(err) {
+            await logger.error("Exception in fetch staff work rate api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
     }
 }

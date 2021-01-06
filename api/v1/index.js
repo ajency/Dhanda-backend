@@ -53,6 +53,7 @@ router.post("/staff/:staffRefId/payment", passport.authenticate('jwt', { session
 router.post("/staff/:staffRefId/addSalaryCycle", passport.authenticate('jwt', { session: false }), staffController.addSalaryCycle);
 router.post("/staff/:staffRefId/work", passport.authenticate('jwt', { session: false }), staffController.saveStaffWork);
 router.post("/staff/:staffRefId/workRate", passport.authenticate('jwt', { session: false }), staffController.saveStaffWorkRate);
+router.get("/staff/:staffRefId/workRate", passport.authenticate('jwt', { session: false }), staffController.fetchStaffWorkRate);
 
 /** Others */
 router.get("/taxonomy", passport.authenticate('jwt', { session: false }), defaultController.fetchTaxonomyValues);
