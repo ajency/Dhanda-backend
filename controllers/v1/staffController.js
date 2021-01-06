@@ -485,7 +485,7 @@ module.exports = {
             return res.status(200).send({ code: "error", message: "error" });
         }
     },
-    
+
     addStaffWork: async (req, res) => {
         try {
             let { staffRefId } = req.params;
@@ -493,18 +493,22 @@ module.exports = {
             /** Fetch the staff */
             let staff = await staffService.fetchStaff(staffRefId, true);
             if(!staff) {
-                await logger.info("Add staff salary cycle - staff not found for reference id: " + staffRefId);
+                await logger.info("Add staff work - staff not found for reference id: " + staffRefId);
                 return res.status(200).send({ code: "error", message: "staff_not_found" });
             }
 
             /** Check if the user is an admin */
             let isAdmin = await businessService.isUserAdmin(req.user, staff.business.id);
             if(!isAdmin) {
-                await logger.info("Add staff salary cycle - not an admin. user: " + req.user + " business: " + staff.business.id);
+                await logger.info("Add staff work - not an admin. user: " + req.user + " business: " + staff.business.id);
                 return res.status(200).send({ code: "error", message: "not_an_admin" });
             }
 
-
+            /** Check if the staff is of the type work basis */
+            if(staff.salaryType.value !== "work_basis") {
+                await logger.info("Add staff work - staff not of type work basis for reference id: " + staffRefId);
+                return res.status(200).send({ code: "error", message: "staff_not_work_basis" });
+            }
 
             return res.status(200).send({ code: "success", message: "success" });
         } catch(err) {
