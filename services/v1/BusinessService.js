@@ -151,8 +151,8 @@ module.exports = class BusinessService {
         /** Add the owner to the list */
         adminList.push({
             name: business.user.name,
-            countryCode: business.user.country_code,
-            phone: business.user.phone,
+            countryCode: business.user.country_code ? business.user.country_code : business.ph_country_code,
+            phone: business.user.phone ? business.user.phone : business.phone,
             owner: true,
             invited: false,
             inviteRefId: null,
