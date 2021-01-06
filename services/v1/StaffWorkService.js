@@ -20,4 +20,23 @@ module.exports = class StaffWorkService {
     async deleteStaffWork(refId) {
         await models.staff_work.update({ deleted: true }, { where: { reference_id: refId } });
     }
+
+    async fetchStaffWorkRateByRefId(refId) {
+        return await models.staff_work_rate.findOne({ where: { reference_id: refId, deleted: false } });
+    }
+    
+    async saveOrUpdateStaffWorkRate(staffWorkRateObj, refId) {
+        if(refId) {
+            /** Update the staff work object */
+            await models.staff_work_rate.update(staffWorkRateObj, { where: { reference_id: refId } });
+        } else {
+            /** Create a new entry */
+            staffWorkRateObj.reference_id = "SWR" + helperService.generateReferenceId();
+            await models.staff_work_rate.create(staffWorkRateObj);
+        }
+    }
+
+    async deleteStaffWorkRate(refId) {
+        await models.staff_work_rate.update({ deleted: true }, { where: { reference_id: refId } });
+    }
 }

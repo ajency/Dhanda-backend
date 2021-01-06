@@ -19,7 +19,7 @@ module.exports = {
         }
       },
       date: {
-        type: Sequelize.DATE
+        type: Sequelize.DATEONLY
       },
       type: {
         type: Sequelize.STRING

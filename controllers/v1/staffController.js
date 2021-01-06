@@ -573,6 +573,34 @@ module.exports = {
                 return res.status(200).send({ code: "error", message: "staff_not_work_basis" });
             }
 
+            /** Check if the staff_work_rate entry exists for the provided reference id */
+            let staffWorkRate = null;
+            if(req.body.refId) {
+                staffWorkRate = await staffWorkService.fetchStaffWorkRateByRefId(req.body.refId);
+                if(!staffWorkRate) {
+                    await logger.info("Save staff work rate - staff work rate not found for staff work rate reference id: " + req.body.refId);
+                    return res.status(200).send({ code: "error", message: "rate_not_found" });
+                }
+            }
+
+            /** Check if we need to delete the entry */
+            if(req.body.delete) {
+                if(!staffWorkRate) {
+                    await logger.info("Save staff work rate - cannot delete because staff work rate not found for staff work rate reference id: " + req.body.refId);
+                    return res.status(200).send({ code: "error", message: "rate_not_found" });
+                }
+                await staffWorkService.deleteStaffWorkRate(req.body.refId);
+                return res.status(200).send({ code: "success", message: "success" });
+            }
+
+            /** Add or update the staff work entry */
+            let staffWorkRateObj = {
+                staff_id: staff.id,
+                type: req.body.type,
+                rate: req.body.rate
+            }
+            await staffWorkService.saveOrUpdateStaffWorkRate(staffWorkRateObj, req.body.refId);
+
             return res.status(200).send({ code: "success", message: "success" });
         } catch(err) {
             await logger.error("Exception in save staff work rate api: ", err);
