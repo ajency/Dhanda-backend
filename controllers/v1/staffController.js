@@ -512,15 +512,35 @@ module.exports = {
             }
 
             /** Check if the staff_work entry exists for the provided reference id */
-            if(req.refId) {
-                let staffWork = await staffWorkService.fetchStaffWorkByRefId(req.refId);
+            let staffWork = null;
+            if(req.body.refId) {
+                staffWork = await staffWorkService.fetchStaffWorkByRefId(req.body.refId);
                 if(!staffWork) {
-                    await logger.info("Save staff work - staff work not found for staff work reference id: " + req.refId);
-                    return res.status(200).send({ code: "error", message: "staff_not_work_basis" });
+                    await logger.info("Save staff work - staff work not found for staff work reference id: " + req.body.refId);
+                    return res.status(200).send({ code: "error", message: "staff_work_not_found" });
                 }
             }
 
-            /**  */
+            /** Check if we need to delete the entry */
+            if(req.body.delete) {
+                if(!staffWork) {
+                    await logger.info("Save staff work - cannot delete because staff work not found for staff work reference id: " + req.body.refId);
+                    return res.status(200).send({ code: "error", message: "staff_work_not_found" });
+                }
+                await staffWorkService.deleteStaffWork(req.body.refId);
+                return res.status(200).send({ code: "success", message: "success" });
+            }
+
+            /** Add or update the staff work entry */
+            let staffWorkObj = {
+                staff_id: staff.id,
+                date: req.body.date,
+                type: req.body.type,
+                rate: req.body.rate,
+                units: req.body.units,
+                total: parseFloat(req.body.rate) * parseFloat(req.body.units)
+            }
+            await staffWorkService.saveOrUpdateStaffWork(staffWorkObj, req.body.refId);
 
             return res.status(200).send({ code: "success", message: "success" });
         } catch(err) {
