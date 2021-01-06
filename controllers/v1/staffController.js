@@ -632,7 +632,22 @@ module.exports = {
                 return res.status(200).send({ code: "error", message: "staff_not_work_basis" });
             }
 
-            return res.status(200).send({ code: "success", message: "success" });
+            /** Fetch the staff work rates */
+            let staffRates = await staffWorkService.fetchStaffWorkRatesByStaffId(staff.id);
+            let rates = [];
+            for(let sr of staffRates) {
+                rates.push({
+                    refId: sr.reference_id,
+                    type: sr.type,
+                    rate: parseFloat(sr.rate)
+                });
+            }
+            
+            let data = {
+                rates: rates
+            }
+
+            return res.status(200).send({ code: "success", message: "success", data: data });
         } catch(err) {
             await logger.error("Exception in fetch staff work rate api: ", err);
             return res.status(200).send({ code: "error", message: "error" });

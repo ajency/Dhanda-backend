@@ -39,4 +39,8 @@ module.exports = class StaffWorkService {
     async deleteStaffWorkRate(refId) {
         await models.staff_work_rate.update({ deleted: true }, { where: { reference_id: refId } });
     }
+
+    async fetchStaffWorkRatesByStaffId(staffId) {
+        return await models.staff_work_rate.findAll({ where: { staff_id: staffId, deleted: false } });
+    }
 }
