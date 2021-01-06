@@ -51,6 +51,7 @@ router.get("/staff/:staffRefId/dues/paginated", passport.authenticate('jwt', { s
 router.get("/staff/:staffRefId/dues/:date", passport.authenticate('jwt', { session: false }), staffController.fetchStaffDuesBreakup);
 router.post("/staff/:staffRefId/payment", passport.authenticate('jwt', { session: false }), staffController.addStaffPayment);
 router.post("/staff/:staffRefId/addSalaryCycle", passport.authenticate('jwt', { session: false }), staffController.addSalaryCycle);
+router.post("/staff/:staffRefId/work", passport.authenticate('jwt', { session: false }), staffController.addStaffWork);
 
 /** Others */
 router.get("/taxonomy", passport.authenticate('jwt', { session: false }), defaultController.fetchTaxonomyValues);

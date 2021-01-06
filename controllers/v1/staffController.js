@@ -484,5 +484,32 @@ module.exports = {
             await logger.error("Exception in add staff salary cycle api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
+    },
+    
+    addStaffWork: async (req, res) => {
+        try {
+            let { staffRefId } = req.params;
+
+            /** Fetch the staff */
+            let staff = await staffService.fetchStaff(staffRefId, true);
+            if(!staff) {
+                await logger.info("Add staff salary cycle - staff not found for reference id: " + staffRefId);
+                return res.status(200).send({ code: "error", message: "staff_not_found" });
+            }
+
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, staff.business.id);
+            if(!isAdmin) {
+                await logger.info("Add staff salary cycle - not an admin. user: " + req.user + " business: " + staff.business.id);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
+            }
+
+
+
+            return res.status(200).send({ code: "success", message: "success" });
+        } catch(err) {
+            await logger.error("Exception in add staff work api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
     }
 }
