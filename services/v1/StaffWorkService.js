@@ -1,5 +1,7 @@
 const models = require("../../models");
 const helperService = new (require("../HelperService"));
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 
 module.exports = class StaffWorkService {
     async fetchStaffWorkByRefId(refId) {
@@ -44,7 +46,8 @@ module.exports = class StaffWorkService {
         return await models.staff_work_rate.findAll({ where: { staff_id: staffId, deleted: false } });
     }
 
-    async fetchStaffWorkByStaffId(staffId) {
-        return await models.staff_work.findAll({ where: { staff_id: staffId, deleted: false } });
+    async fetchStaffWorkByStaffId(staffId, startDate, endDate) {
+        return await models.staff_work.findAll({ where: { staff_id: staffId, deleted: false,
+            date: { [Op.between]: [ startDate, endDate ] } } });
     }
 }

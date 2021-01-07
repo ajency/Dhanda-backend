@@ -538,7 +538,7 @@ module.exports = class AttendanceService {
 
     /**
      * Note: salaryPeriod will be used for getting the day status agg. This is to avoid calculations, already done.
-     * This includes the signs as per the staff i.e. deduction type transactions are -ve even though they are stored as _ve
+     * This includes the signs as per the staff i.e. deduction type transactions are -ve even though they are stored as +ve
      * @param {*} staffId 
      * @param {*} startDate 
      * @param {*} endDate 
@@ -685,11 +685,11 @@ module.exports = class AttendanceService {
         }
 
         /** Fetch the work done by the staff */
-        let workDone = await staffWorkService.fetchStaffWorkByStaffId(staff.id);
+        let workDone = await staffWorkService.fetchStaffWorkByStaffId(staff.id, startDate, endDate);
         for(let wd of workDone) {
             transactions.push({
                 transactionType: wd.type,
-                amount: helperService.roundOff(parseFloat(wd.total), 2) * -1,
+                amount: helperService.roundOff(parseFloat(wd.total), 2),
                 description: "",
                 date: wd.date,
                 days: "",
