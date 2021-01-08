@@ -39,7 +39,8 @@ module.exports = (sequelize, DataTypes) => {
     total_salary: DataTypes.DECIMAL,
     total_payments: DataTypes.DECIMAL,
     total_dues: DataTypes.DECIMAL,
-    payslip_url: DataTypes.STRING
+    payslip_url: DataTypes.STRING,
+    total_work_salary: DataTypes.DECIMAL
   }, {
     sequelize,
     modelName: 'staff_salary_period',

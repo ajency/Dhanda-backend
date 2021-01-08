@@ -542,6 +542,9 @@ module.exports = {
             }
             await staffWorkService.saveOrUpdateStaffWork(staffWorkObj, req.body.refId);
 
+            /** Update the salary period */
+            await attendanceService.updateSalaryPeriod(staff.id, req.body.date);
+
             return res.status(200).send({ code: "success", message: "success" });
         } catch(err) {
             await logger.error("Exception in save staff work api: ", err);

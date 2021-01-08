@@ -412,11 +412,20 @@ module.exports = class AttendanceService {
             totalPayments += parseFloat(p.amount);
         }
 
+        /** Fetch the total work done */
+        let workTotal = 0;
+        if(staff.salaryType.value === 'work_basis') {
+            let workDoneEntries = await staffWorkService.fetchStaffWorkByStaffId(staff.id, periodStart, periodEnd);
+            for(let wde of workDoneEntries) {
+                workTotal += parseFloat(wde.total);
+            }
+        }
+
         /** Fetch the last period */
         let previousSalaryPeriod = await salaryPeriodService.fetchPreviousSalaryPeriod(staff.id, periodStart, periodEnd, periodType);
         let previousDues = previousSalaryPeriod ? parseFloat(previousSalaryPeriod.total_dues) : 0;
 
-        let totalDues = - totalSalary + totalPayments + previousDues;
+        let totalDues = - totalSalary + totalPayments + previousDues - workTotal;
 
         /** Create of update the period salary */
         await salaryPeriodService.createOrUpdateSalaryPeriod(staff.id, {
@@ -440,7 +449,8 @@ module.exports = class AttendanceService {
             total_late_fine_salary: helperService.roundOff(totalLateFineSalary, 4),
             total_salary: helperService.roundOff(totalSalary, 4),
             total_payments: helperService.roundOff(totalPayments, 4),
-            total_dues: helperService.roundOff(totalDues, 4)
+            total_dues: helperService.roundOff(totalDues, 4),
+            total_work_salary: helperService.roundOff(workTotal, 4)
         }, previousSalaryPeriod);
     }
 
