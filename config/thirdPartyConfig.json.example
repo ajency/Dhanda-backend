@@ -11,6 +11,10 @@
                 "queueArn": ""
             }
         },
-        "queueMaxTries": 5
+        "queueMaxTries": 5,
+        "s3": {
+            "attendancePdfBucket": "",
+            "payslipBucket": ""
+        }
     }
 }
