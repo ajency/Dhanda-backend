@@ -150,7 +150,8 @@ module.exports = {
                         punchIn: att.punch_in_time,
                         punchOut: att.punch_out_time,
                         defaultPunchIn: defaultPunchInMap.has(staff.id) ? defaultPunchInMap.get(staff.id) : null,
-                        shiftHours: staff.daily_shift_duration ? staff.daily_shift_duration : ""
+                        shiftHours: staff.daily_shift_duration ? staff.daily_shift_duration : "",
+                        staffType: staff.salaryType.value
                     }
 
                     if(staff.salaryType.value === "hourly") {
