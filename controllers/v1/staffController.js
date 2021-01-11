@@ -727,6 +727,12 @@ module.exports = {
             
             let { periodStart, periodEnd } = req.query;
 
+            /** Verify that both period start and end have been sent */
+            if(!periodStart || !periodEnd) {
+                await logger.info("Download payslip - period start or end missing. staff " + staff.id );
+                return res.status(200).send({ code: "error", message: "params_missing" });
+            }
+
             let data = {
                 
             };
