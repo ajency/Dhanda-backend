@@ -754,7 +754,7 @@ module.exports = {
                 /** Convert file to base64 */
                 data.pdf = fs.readFileSync(filePath, {encoding: 'base64'});
                 /** Clear the file from the local storage */
-                fs.unlinkSync(filePath);
+                fs.unlink(filePath, (err) => { console.log("File cleared.") });
             }
 
             return res.status(200).send({ code: "success", message: "success", data: data });
