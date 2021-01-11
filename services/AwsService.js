@@ -10,6 +10,7 @@ const models = require("../models");
 const salaryPeriodService = new (require("./v1/SalaryPeriodService"));
 const https = require("https");
 const fs = require('fs');
+const path = require("path");
 
 aws.config.update({
     region: awsConfig.credentials.region,
@@ -194,7 +195,7 @@ module.exports = class AwsService {
         });
     }
 
-    downloadFileFromS3(bucket,fileName,storagePath) {
+    async downloadFileFromS3(bucket,fileName,storagePath) {
         return new Promise(async (resolve, reject) => {
             try{
                 var s3 = this.getS3Object();
@@ -227,5 +228,17 @@ module.exports = class AwsService {
                 return reject(e)
             }
         });
+    }
+
+    /** Fetch files from the private bucket */
+    async downloadFileFromS3Url(s3Url) {
+        /** Get the bucket and file name from the url */
+        let s3RelativePath = s3Url.split("amazonaws.com/")[1];
+        let s3RPExploded = s3RelativePath.split("/");
+        let fileName = s3RPExploded.pop();
+        let bucket = awsConfig.s3.privateBucket + "/" + s3RPExploded.join("/");
+
+        /** Fetch the file from S3 */
+        return await this.downloadFileFromS3(bucket, fileName, path.join(__dirname, '../public/s3Files/' + fileName));
     }
 }
