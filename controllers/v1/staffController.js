@@ -655,5 +655,55 @@ module.exports = {
             await logger.error("Exception in fetch staff work rate api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
+    },
+
+    fetchPayslipList: async (req, res) => {
+        try {
+            let { staffRefId } = req.params;
+
+            /** Fetch the staff */
+            let staff = await staffService.fetchStaff(staffRefId, true);
+            if(!staff) {
+                await logger.info("Fetch payslip list - staff not found for reference id: " + staffRefId);
+                return res.status(200).send({ code: "error", message: "staff_not_found" });
+            }
+
+            /** Check if the user is an admin */
+            let isAdmin = await businessService.isUserAdmin(req.user, staff.business.id);
+            if(!isAdmin) {
+                await logger.info("Fetch payslip list - not an admin. user: " + req.user + " business: " + staff.business.id);
+                return res.status(200).send({ code: "error", message: "not_an_admin" });
+            }
+            
+            let { page, perPage } = req.query;
+
+            /** Set the default values */
+            if(!page) {
+                page = 1;
+            }
+            if(!perPage) {
+                perPage = 5;
+            }
+
+            /** Fetch the latest 5 salary periods */
+            let salaryPeriodEntries = await salaryPeriodService.fetchSalaryPeriodsForStaff(staff.id, page, perPage);
+            
+            let salaryPeriodList = [];
+            for(let salaryPeriodEntry of salaryPeriodEntries) {
+                salaryPeriodList.push({
+                    periodStart: salaryPeriodEntry.period_start,
+                    periodEnd: salaryPeriodEntry.period_end,
+                });
+            }
+
+            let data = {
+                payslips: salaryPeriodList
+            };
+
+            return res.status(200).send({ code: "success", message: "success", data: data });
+        } catch (err) {
+            await logger.error("Exception in fetch staff dues (paginated) api: ", err);
+            return res.status(200).send({ code: "error", message: "error" });
+        }
     }
 }
