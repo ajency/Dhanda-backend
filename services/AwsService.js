@@ -178,8 +178,6 @@ module.exports = class AwsService {
             }
         });
     };
-
-    getFileFromS3() {}
     
     async uploadFileToS3(bucket, filePath, type, slug) {
         /** Upload file to s3 */
@@ -196,5 +194,38 @@ module.exports = class AwsService {
         });
     }
 
-    downloadFileFromS3() {};
+    downloadFileFromS3(bucket,fileName,storagePath) {
+        return new Promise(async (resolve, reject) => {
+            try{
+                var s3 = this.getS3Object();
+                let params = {
+                    Bucket: bucket, 
+                    Key: fileName
+                };
+                var fileStream = fs.createWriteStream(storagePath);
+                let s3Stream = s3.getObject(params).createReadStream();
+
+                // Listen for errors returned by the service
+                s3Stream.on('error', function(err) {
+                    // NoSuchKey: The specified key does not exist
+                    console.error(err);
+                    return reject(err)
+                });
+
+                s3Stream.pipe(fileStream).on('error', function(err) {
+                    // capture any errors that occur when writing data to the file
+                    console.error('File Stream:', err);
+                    return reject(err)
+                }).on('close', function() {
+                    console.log('File downloaded from s3.');
+                    return resolve(storagePath)
+                });
+   
+            }
+            catch(e){
+                console.log("getFileFromS3 =>download failed",e)
+                return reject(e)
+            }
+        });
+    }
 }
