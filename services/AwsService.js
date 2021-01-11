@@ -9,6 +9,7 @@ const moment = require("moment");
 const models = require("../models");
 const salaryPeriodService = new (require("./v1/SalaryPeriodService"));
 const https = require("https");
+const fs = require('fs');
 
 aws.config.update({
     region: awsConfig.credentials.region,
@@ -141,4 +142,42 @@ module.exports = class AwsService {
         await logger.info("Adding job to failed_jobs for: " + queue);
         await models.failed_jobs.create({ queue: queue, payload: payload });
     }
+
+    getS3Object() {
+        return new aws.S3({ 
+            region: awsConfig.credentials.region, 
+            accessKeyId: awsConfig.credentials.access_key_id, 
+            secretAccessKey: awsConfig.credentials.secret_access_key 
+        });
+    }
+    
+    async addFileToS3(filePath, bucket) {
+        try {
+            const s3 = this.getS3Object();
+            const file = fs.readFileSync(filePath);
+            let filePathExploded = filePath.split("/");
+            
+            /** Upload file to s3 */
+            await s3.upload({
+                Bucket: bucket,
+                Key: filePathExploded[filePathExploded.length - 1],
+                Body: file
+            }, function(err, data) {
+                if(err) {
+                    throw err;
+                }
+                fs.unlinkSync(filePath);
+                console.log(`File uploaded successfully. ${data.Location}`);
+                return data.Location;
+            });
+        } catch(err) {
+            await logger.error("File could not be uploaded: " + filePath, err);
+        }
+    };
+
+    getFileFromS3() {}
+    
+    uploadFileToS3() {}
+
+    downloadFileFromS3() {};
 }
