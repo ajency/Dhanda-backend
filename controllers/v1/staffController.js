@@ -7,9 +7,11 @@ const userService = new (require("../../services/v1/UserService"));
 const ormService = new (require("../../services/OrmService"));
 const attendanceService = new (require("../../services/v1/AttendanceService"));
 const moment = require("moment");
+const awsService = new (require("../../services/AwsService"));
 const taxonomyService = new (require("../../services/v1/TaxonomyService"));
 const salaryPeriodService = new (require("../../services/v1/SalaryPeriodService"));
 const staffWorkService = new (require("../../services/v1/StaffWorkService"));
+const fs = require("fs");
 
 module.exports = {
     saveStaff: async (req, res) => {
@@ -734,8 +736,23 @@ module.exports = {
             }
 
             let data = {
-                
+                pdf: ""
             };
+
+            /** Fetch the salary period */
+            let salaryPeriod = await salaryPeriodService.fetchSalaryPeriodFor(staff.id, periodStart, periodEnd);
+
+            /** Check if payslip has already been generated */
+            let filePath = null;
+            if(salaryPeriod.payslip_url) {
+                filePath = await awsService.downloadFileFromS3Url(salaryPeriod.payslip_url);
+            } else {
+                // TODO: generate the payslip pdf
+            }
+
+            if(filePath) {
+                data.pdf = fs.readFileSync(filePath, {encoding: 'base64'});
+            }
 
             return res.status(200).send({ code: "success", message: "success", data: data });
         } catch (err) {
