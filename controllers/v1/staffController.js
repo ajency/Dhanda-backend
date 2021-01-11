@@ -12,6 +12,7 @@ const taxonomyService = new (require("../../services/v1/TaxonomyService"));
 const salaryPeriodService = new (require("../../services/v1/SalaryPeriodService"));
 const staffWorkService = new (require("../../services/v1/StaffWorkService"));
 const fs = require("fs");
+const awsConfig = (require("../config/thirdPartyConfig.json")).aws;
 
 module.exports = {
     saveStaff: async (req, res) => {
@@ -747,7 +748,23 @@ module.exports = {
             if(salaryPeriod.payslip_url) {
                 filePath = await awsService.downloadFileFromS3Url(salaryPeriod.payslip_url);
             } else {
-                // TODO: generate the payslip pdf
+                /** Fetch the required data to generate the payslip */
+                let pdfData = await salaryPeriodService.fetchDataForPayslipGeneration(staff, salaryPeriod);
+                console.log(">>>>>>>>> " + JSON.stringify(pdfData));
+
+                /** Generate the PDF */
+                // TODO make a call to the pdf function - make sure the file name has slug + timestamp in it
+                filePath = "";
+
+                /** Upload to S3 - auto delete false */
+                let fileSlug = "PS" + staff.reference_id + moment(periodStart).format("YYYYMMDD");
+                let s3Url = await awsService.uploadFileToS3(awsConfig.s3.payslipBucket, filePath, "payslip", fileSlug, false);
+
+                /** Set the file url and locked to true */
+                await ormService.updateModel("staff_salary_period", salaryPeriod.id, {
+                    payslip_url: s3Url,
+                    locked: true
+                });
             }
 
             if(filePath) {

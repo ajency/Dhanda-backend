@@ -152,7 +152,7 @@ module.exports = class AwsService {
         });
     }
     
-    async addFileToS3(filePath, bucket) {
+    async addFileToS3(filePath, bucket, autoDelete) {
         return new Promise(async (resolve, reject) => {
             try {
                 const s3 = this.getS3Object();
@@ -169,7 +169,9 @@ module.exports = class AwsService {
                     if(err) {
                         throw err;
                     }
-                    fs.unlinkSync(filePath);
+                    if(autoDelete) {
+                        fs.unlinkSync(filePath);
+                    }
                     await logger.info('File uploaded successfully. ' + data.Location);
                     return resolve(data.Location);
                 });
@@ -180,9 +182,9 @@ module.exports = class AwsService {
         });
     };
     
-    async uploadFileToS3(bucket, filePath, type, slug) {
+    async uploadFileToS3(bucket, filePath, type, slug, autoDelete = true) {
         /** Upload file to s3 */
-        let s3Url = await this.addFileToS3(filePath, bucket);
+        let s3Url = await this.addFileToS3(filePath, bucket, autoDelete);
         if(!s3Url) {
             await logger.info("Could not upload file " + filePath + " to S3.");
         }
