@@ -3,6 +3,7 @@ const models = require("../../models");
 const moment = require("moment");
 const ormService = new (require("../OrmService"));
 const staffService = new (require("./StaffService"));
+const staffIncomeMetaService = new (require("./StaffIncomeMetaService"));
 
 module.exports = class SalaryPeriodService {
     async fetchSalaryPeriodFor(staffId, periodStart, periodEnd) {
@@ -85,5 +86,81 @@ module.exports = class SalaryPeriodService {
         } else {
             return salaryPeriods[0];
         }
+    }
+
+    async fetchDataForPayslipGeneration(staff, salaryPeriod) {
+        let data = {
+            payrollPeriod: moment(salaryPeriod.period_start).format("DD MMM YYYY")
+                + " - " + moment(salaryPeriod.period_end).format("DD MMM YYYY"),
+            businessName: staff.business.name,
+            staffName: staff.name,
+            staffType: staff.salaryType.value,
+            salaryOnPayroll: salaryPeriod.period_salary,
+            currency: staff.business.currency,
+            workingDays: salaryPeriod.total_present + salaryPeriod.total_half_day
+        };
+
+        /** Calculate the earnings and the deductions */
+        /** Fetch the payments for the period */
+        let payments = await staffIncomeMetaService.fetchPaymentsForStaffBetween(staff.id, salaryPeriod.period_start, salaryPeriod.period_end);
+
+        /** Group them into earnings and deductions */
+        let paymentsGrpMap = new Map();
+        for(let p in payments) {
+            if(paymentsGrpMap.has(p.income_type.value)) {
+                let amt = paymentsGrpMap.get(p.income_type.value);
+                amt += parseFloat(p.amount);
+                paymentsGrpMap.set(p.income_type.value, amt);
+            } else {
+                paymentsGrpMap.set(p.income_type.value, parseFloat(p.amount));
+            }
+        }
+
+        let earnings = [], deductions = [];
+        let grossEarnings = 0, grossDeductions = 0;
+
+        /** Add salary and overtime to earnings */
+        earnings.push({
+            title: "Earned Salary",
+            amount: parseFloat(salaryPeriod.total_salary)
+        });
+        grossEarnings += parseFloat(salaryPeriod.total_salary);
+
+        earnings.push({
+            title: "Overtime",
+            amount: parseFloat(salaryPeriod.total_overtime_salary)
+        });
+        grossEarnings += parseFloat(salaryPeriod.total_overtime_salary);
+
+        /** Add late fine to deductions */
+        deductions.push({
+            title: "Late Fine",
+            amount: parseFloat(salaryPeriod.total_late_fine_salary)
+        });
+        grossDeductions += parseFloat(salaryPeriod.total_overtime_salary);
+
+        for(let key of paymentsGrpMap.keys()) {
+            if(paymentsGrpMap.get(key).amount < 0) {
+                earnings.push({
+                    title: key,
+                    amount: parseFloat(paymentsGrpMap.get(key)) * -1
+                });
+                grossEarnings += parseFloat(paymentsGrpMap.get(key)) * -1;
+            } else {
+                deductions.push({
+                    title: key,
+                    amount: parseFloat(paymentsGrpMap.get(key))
+                });
+                grossDeductions += parseFloat(paymentsGrpMap.get(key))
+            }
+        }
+
+        data.earnings = earnings;
+        data.deductions = deuctions;
+        data.grossEarnings = grossEarnings;
+        data.grossDeductions = grossDeductions;
+        data.netPayableSalary = grossEarnings - grossDeductions;
+
+        return data;
     }
 }
