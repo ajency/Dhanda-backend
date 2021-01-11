@@ -126,18 +126,22 @@ module.exports = class SalaryPeriodService {
         });
         grossEarnings += parseFloat(salaryPeriod.total_salary);
 
-        earnings.push({
-            title: "Overtime",
-            amount: parseFloat(salaryPeriod.total_overtime_salary)
-        });
-        grossEarnings += parseFloat(salaryPeriod.total_overtime_salary);
+        if(parseFloat(salaryPeriod.total_overtime_salary) > 0) {
+            earnings.push({
+                title: "Overtime",
+                amount: parseFloat(salaryPeriod.total_overtime_salary)
+            });
+            grossEarnings += parseFloat(salaryPeriod.total_overtime_salary);
+        }
 
         /** Add late fine to deductions */
-        deductions.push({
-            title: "Late Fine",
-            amount: parseFloat(salaryPeriod.total_late_fine_salary)
-        });
-        grossDeductions += parseFloat(salaryPeriod.total_overtime_salary);
+        if(parseFloat(salaryPeriod.total_overtime_salary) < 0) {
+            deductions.push({
+                title: "Late Fine",
+                amount: parseFloat(salaryPeriod.total_late_fine_salary) * -1
+            });
+            grossDeductions += parseFloat(salaryPeriod.total_overtime_salary) * -1;
+        }
 
         for(let key of paymentsGrpMap.keys()) {
             if(paymentsGrpMap.get(key).amount < 0) {
@@ -156,7 +160,7 @@ module.exports = class SalaryPeriodService {
         }
 
         data.earnings = earnings;
-        data.deductions = deuctions;
+        data.deductions = deductions;
         data.grossEarnings = grossEarnings;
         data.grossDeductions = grossDeductions;
         data.netPayableSalary = grossEarnings - grossDeductions;

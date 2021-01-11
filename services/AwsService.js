@@ -195,6 +195,8 @@ module.exports = class AwsService {
             slug: slug,
             url: s3Url
         });
+
+        return s3Url;
     }
 
     async downloadFileFromS3(bucket,fileName,storagePath) {
