@@ -10,7 +10,7 @@ const businessController = require("../../controllers/v1/businessController");
 const staffController = require("../../controllers/v1/staffController");
 const attendanceController = require("../../controllers/v1/attendanceController");
 const cronController = require("../../controllers/v1/cronController");
-
+const pdfController = require("../../controllers/v1/pdfController");
 /** API auth middleware */
 require("../../config/apiAuth")
 
@@ -35,6 +35,11 @@ router.post("/staff/:staffRefId/attendance/overtime", passport.authenticate('jwt
 router.post("/staff/:staffRefId/attendance/lateFine", passport.authenticate('jwt', { session: false }), attendanceController.saveLateFine);
 router.post("/staff/:staffRefId/attendance/note", passport.authenticate('jwt', { session: false }), attendanceController.saveNote);
 router.get("/staff/:staffRefId/attendance", passport.authenticate('jwt', { session: false }), attendanceController.fetchSingleStaffAttendance);
+
+/** PDF */
+router.get("/pdf/:businessRefId/attendance", passport.authenticate('jwt', { session: false }), pdfController.fetchBusinessStaffAttendancePdf);
+router.get("/pdf/:staffRefId/singlestaffattendance", passport.authenticate('jwt', { session: false }), pdfController.fetchSingleStaffAttendancePdf);
+router.get("/pdf/payslip", passport.authenticate('jwt', { session: false }), pdfController.fetchPaySlipPdf);
 
 /** Admin */
 router.post("/business/:businessRefId/admin/invite", passport.authenticate('jwt', { session: false }), businessController.inviteAdmin);
