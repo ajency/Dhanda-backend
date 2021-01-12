@@ -1,6 +1,7 @@
 const logger = require("simple-node-logger").createSimpleLogger({ timestampFormat:'YYYY-MM-DD HH:mm:ss.SSS' });
+const { ConfigService } = require("aws-sdk");
 const moment = require("moment");
-
+const thirdPartyConfig = require('../../config/thirdPartyConfig.json');
 const businessService = new (require("../../services/v1/BusinessService"));
 const staffService = new (require("../../services/v1/StaffService"));
 const attendanceService = new (require("../../services/v1/AttendanceService"));
@@ -8,6 +9,8 @@ const helperService = new (require("../../services/HelperService"));
 const taxonomyService = new (require("../../services/v1/TaxonomyService"));
 const pdfService = new (require("../../services/v1/PdfService"));
 const awsService = new (require("../../services/AwsService"));
+const models = require("../../models");
+var fs = require('fs');
 
 module.exports = {
     fetchBusinessStaffAttendancePdf: async (req, res) => {
@@ -177,34 +180,87 @@ module.exports = {
 
             // fetching s3 file 
             
-            let fileName =`BAT${businessRefId}${moment(new Date()).format('YYYY MM DD')}`;
-            let file = await awsService.downloadFileFromS3(fileName);
-            console.log(file);
+            let fileName =`BAT${businessRefId}${moment(new Date()).format('YYYYMMDD')}`;
+            let file =await pdfService.fetchS3FileFromSlug(fileName);
+            
             if(file){
+                //file exists
+                // console.log('file exist');
+                // console.log('file data :',file.dataValues);
+                // console.log('staffMembers updateAt :', staffMembers[staffMembers.length -1].dataValues.updatedAt);
+                if(new Date(staffMembers[staffMembers.length -1].dataValues.updatedAt)>new Date(file.dataValues.updatedAt)){
+                    // new data is updated create pdf
+                    console.log('updated')
+                    try{
+                        //creating pdf
+                        let path= await pdfService.generateBusinessAttendancePdf(data,fileName);
+                        //pdf path
+                       
+                        // file base64 conversion
+                        var binaryData = await fs.readFileSync(path);
+                        var base64String = await Buffer.from(binaryData).toString('base64');
+                        //file upload to s3
+                        await awsService.uploadFileToS3(thirdPartyConfig.aws.s3.attendancePdfBucket,path,'business_daily_att_report',fileName);
+                        res.set({ 'Content-Type': 'application/pdf', 'Content-Length': base64String.length });
+                        return res.status(200).send({ code:"success",pdf:base64String,fileName:fileName});
+    
+                    }catch(err){
+                        console.log(err);
+                        return res.status(200).send({code:"error",message: "error"});
+                    }
+                }else{
+                    console.log('not updated');
+                    // data is not updated fetch file from s3 an pass
+                    let downloadFilePath =await awsService.downloadFileFromS3Url(file.dataValues.url);
+                    // console.log("downlaod file path:",downloadFilePath);
+                    try{
+                       
+                      
+                        // file base64 conversion
+                        var binaryData = await fs.readFileSync(downloadFilePath);
+                        var base64String = await Buffer.from(binaryData).toString('base64');
+                        //file upload to s3
+                        res.set({ 'Content-Type': 'application/pdf', 'Content-Length': base64String.length });
+                        return res.status(200).send({ code:"success",pdf:base64String,fileName:fileName});
+    
+                    }catch(err){
+                        console.log(err);
+                        return res.status(200).send({code:"error",message: "error"});
+                    }
+                }
 
-                console.log('file exist')
-                
             }else{
+
+                //file does not exist
                 console.log('file does not exist');
+
                 try{
-                    let fileName =`BAT${businessRefId}${moment(new Date()).format('YYYY MM DD')}`;
-                    let pdf=await pdfService.generateBusinessAttendancePdf(data,fileName);
-                    res.set({ 'Content-Type': 'application/pdf', 'Content-Length': pdf.length })
-                    return res.status(200).send({ code:"success",pdf:pdf});
+                    //creating pdf
+                    let path= await pdfService.generateBusinessAttendancePdf(data,fileName);
+                    //pdf path
+                   
+                    // file base64 conversion
+                    var binaryData = await fs.readFileSync(path);
+                    var base64String = await Buffer.from(binaryData).toString('base64');
+                    //file upload to s3
+                    await awsService.uploadFileToS3(thirdPartyConfig.aws.s3.attendancePdfBucket,path,'business_daily_att_report',fileName);
+                    res.set({ 'Content-Type': 'application/pdf', 'Content-Length': base64String.length });
+                    return res.status(200).send({ code:"success",pdf:base64String,fileName:fileName});
+
                 }catch(err){
                     console.log(err);
                     return res.status(200).send({code:"error",message: "error"});
                 }
-                
+
             }
           
 
-            
         } catch(err) {
             await logger.error("Exception in fetch staff attendance api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
         }
     },
+
 
     fetchSingleStaffAttendancePdf: async (req, res) => {
        
@@ -341,26 +397,79 @@ module.exports = {
            
             
            
-            let fileName =`STA${staffRefId}${ moment(new Date()).format('MMM YYYY')}`;
+            let fileName =`STA${staffRefId}${ moment(new Date()).format('MMMYYYY')}`;
             // fetching s3 file 
-            let file = pdfService.fetchfile(fileName);
-
-            console.log(file);
+            let file =await pdfService.fetchS3FileFromSlug(fileName);
+            
             if(file){
-
-                console.log('file exist')
-            }else{
-                try{
-                    console.log('file does not exist');
-                    /**pdf base64 file */
-                    let pdf = await pdfService.generateSingleStaffAttendancePdf(data,fileName);
-                    res.set({ 'Content-Type': 'application/pdf', 'Content-Length': pdf.length })
-                    return res.status(200).send({ code:"success",pdf:pdf});
-                }catch(err){
-                    console.log(err)
-                    return res.status(200).send({code:"error",pdf:null});
+                //file exists
+                // console.log('file exist');
+                // console.log('file data :',file);
+                // console.log('attendance updateAt :', attendance[attendance.length -1].dataValues.updatedAt);
+                 if(new Date(attendance[attendance.length-1].dataValues.updatedAt) > new Date(file.dataValues.updatedAt)){
+                    // new data is updated create pdf
+                    console.log('updated')
+                    try{
+                        //creating pdf
+                        let path= await pdfService.generateSingleStaffAttendancePdf(data,fileName);
+                        //pdf path
+                       
+                        // file base64 conversion
+                        var binaryData = await fs.readFileSync(path);
+                        var base64String = await Buffer.from(binaryData).toString('base64');
+                        //file upload to s3
+                        await awsService.uploadFileToS3(thirdPartyConfig.aws.s3.attendancePdfBucket,path,'staff_monthly_att_report',fileName);
+                        res.set({ 'Content-Type': 'application/pdf', 'Content-Length': base64String.length });
+                        return res.status(200).send({ code:"success",pdf:base64String,fileName:fileName});
+    
+                    }catch(err){
+                        console.log(err);
+                        return res.status(200).send({code:"error",message: "error"});
+                    }
+                }else{
+                    console.log('not updated');
+                    // data is not updated fetch file from s3 an pass
+                     let downloadFilePath =await awsService.downloadFileFromS3Url(file.dataValues.url);
+                    // console.log("downlaod file path:",downloadFilePath);
+                    try{
+                       
+                      
+                        // file base64 conversion
+                        var binaryData = await fs.readFileSync(downloadFilePath);
+                        var base64String = await Buffer.from(binaryData).toString('base64');
+                        //file upload to s3
+                        res.set({ 'Content-Type': 'application/pdf', 'Content-Length': base64String.length });
+                        return res.status(200).send({ code:"success",pdf:base64String,fileName:fileName});
+    
+                    }catch(err){
+                        console.log(err);
+                        return res.status(200).send({code:"error",message: "error"});
+                    }
                 }
-               
+
+            }else{
+
+                //file does not exist
+                console.log('file does not exist');
+
+                try{
+                    //creating pdf
+                    let path= await pdfService.generateSingleStaffAttendancePdf(data,fileName);
+                    //pdf path
+                   
+                    // file base64 conversion
+                    var binaryData = await fs.readFileSync(path);
+                    var base64String = await Buffer.from(binaryData).toString('base64');
+                    //file upload to s3
+                    await awsService.uploadFileToS3(thirdPartyConfig.aws.s3.attendancePdfBucket,path,'staff_monthly_att_report',fileName);
+                    res.set({ 'Content-Type': 'application/pdf', 'Content-Length': base64String.length });
+                    return res.status(200).send({ code:"success",pdf:base64String,fileName:fileName});
+
+                }catch(err){
+                    console.log(err);
+                    return res.status(200).send({code:"error",message: "error"});
+                }
+
             }
 
            
@@ -404,11 +513,15 @@ module.exports = {
         let fileName = `PaySlip`    
         let data =JSON.parse(str);    
         try{
-            /**pdf base64 file */
-            let pdf = await pdfService.generatePaySlipPdf(data,fileName);
-            //console.log('pdf:',pdf);
-            res.set({ 'Content-Type': 'application/pdf', 'Content-Length': pdf.length })
-            return res.status(200).send({code:"success",fileName:fileName,pdf:pdf});
+            //pdf path
+            let path= await pdfService.generatePaySlipPdf(data,fileName);
+            
+           
+            // file base64 conversion
+            var binaryData = await fs.readFileSync(path);
+            var base64String = await Buffer.from(binaryData).toString('base64');
+            res.set({ 'Content-Type': 'application/pdf', 'Content-Length': base64String.length })
+            return res.status(200).send({code:"success",fileName:fileName,pdf:base64String});
         }catch(err){
             console.log(err)
             return res.status(200).send({code:"error",pdf:null});

@@ -1,13 +1,17 @@
 const puppeteer = require('puppeteer');
 var moment = require('moment');
 var fs = require('fs');
+const models = require("../../models");
 
 module.exports = class PdfService {
 
     /**check for s3 file */
-    fetchfile(name){
-        console.log(name);
-        return false;
+    async fetchS3FileFromSlug(slug){
+
+        return await models.s3_file.findOne({
+            where: { slug:slug }
+        });
+
     }
 
     /** generates BusinessAttendancePdf */
@@ -70,8 +74,8 @@ module.exports = class PdfService {
                 browser.close();
                 // var filepath = `${__dirname}/../../pdfs/${fileName}.pdf`;
                 // var binaryData = await fs.readFileSync(filepath);
-                var base64String = await Buffer.from(buffer).toString('base64');
-                return base64String;
+               // var base64String = await Buffer.from(buffer).toString('base64');
+                return `${__dirname}/../../public/pdfs/${fileName}.pdf`;
             }catch(e){
                 console.log(e)
                 return e;

@@ -241,4 +241,6 @@ module.exports = class AwsService {
         /** Fetch the file from S3 */
         return await this.downloadFileFromS3(bucket, fileName, path.join(__dirname, '../public/s3Files/' + fileName));
     }
+
+   
 }
