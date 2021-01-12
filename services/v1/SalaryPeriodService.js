@@ -3,14 +3,17 @@ const models = require("../../models");
 const moment = require("moment");
 const ormService = new (require("../OrmService"));
 const staffService = new (require("./StaffService"));
+const staffIncomeMetaService = new (require("./StaffIncomeMetaService"));
 
 module.exports = class SalaryPeriodService {
     async fetchSalaryPeriodFor(staffId, periodStart, periodEnd) {
         return await models.staff_salary_period.findOne({ where: {
-            staff_id: staffId,
-            period_start: periodStart,
-            period_end: periodEnd
-        } });
+                staff_id: staffId,
+                period_start: periodStart,
+                period_end: periodEnd
+            },
+            order: [ ["created_at", "DESC"] ]
+        });
     }
 
     async fetchOldestSalaryPeriod(staffId) {
@@ -30,7 +33,7 @@ module.exports = class SalaryPeriodService {
         /** Fetch the entry */
         let salaryPeriodEntry = await this.fetchSalaryPeriodFor(staffId, staffSalaryPeriodObj.period_start, staffSalaryPeriodObj.period_end);
 
-        if(salaryPeriodEntry) {
+        if(salaryPeriodEntry && salaryPeriodEntry.locked === false) {
             /** Update the entry */
             await models.staff_salary_period.update(staffSalaryPeriodObj, { where: { id: salaryPeriodEntry.id } });
             return;
@@ -64,26 +67,111 @@ module.exports = class SalaryPeriodService {
             + "half_day_salary, total_hour_salary, total_overtime_salary, total_late_fine_salary, total_salary, " 
             + "total_payments, total_dues, payslip_url FROM staff_salary_periods " 
             + "WHERE staff_id IN ('" + staffIds.join("','") + "') "
-            + "ORDER BY staff_id, period_start DESC";
+            + "ORDER BY staff_id, period_start, created_at DESC";
         
         return ormService.runRawSelectQuery(query);
     }
 
     async fetchSalaryPeriodsForStaff(staffId, page = 1, perPage = 5) {
-        return models.staff_salary_period.findAll({ where: { staff_id: staffId }, 
-            offset: (page - 1) * perPage, limit: perPage,
-            order: [ [ "period_start", "desc" ] ] });
+        // return models.staff_salary_period.findAll({ where: { staff_id: staffId }, 
+        //     offset: (page - 1) * perPage, limit: perPage,
+        //     order: [ [ "period_start", "desc" ] ] });
+
+        let query = "SELECT DISTINCT on (period_start) period_start as ps, * FROM staff_salary_periods WHERE staff_id = " + staffId 
+            + " ORDER BY period_start DESC LIMIT " + perPage + " OFFSET " + (page - 1) * perPage;
+        
+        return ormService.runRawSelectQuery(query);
     }
 
     async fetchStaffPeriodByDate(staffId, date) {
         let salaryPeriods = await ormService.runRawSelectQuery("SELECT * FROM staff_salary_periods WHERE staff_id = "
             + staffId + " AND period_start <= '" + date + "' "
-            + " AND period_end >= '" + date + "'");
+            + " AND period_end >= '" + date + "' ORDER BY created_at DESC");
         
         if(salaryPeriods.length === 0) {
             return null;
         } else {
             return salaryPeriods[0];
         }
+    }
+
+    async fetchDataForPayslipGeneration(staff, salaryPeriod) {
+        let data = {
+            payrollPeriod: moment(salaryPeriod.period_start).format("DD MMM YYYY")
+                + " - " + moment(salaryPeriod.period_end).format("DD MMM YYYY"),
+            businessName: staff.business.name,
+            staffName: staff.name,
+            staffType: staff.salaryType.value,
+            salaryOnPayroll: salaryPeriod.period_salary,
+            currency: staff.business.currency,
+            workingDays: salaryPeriod.total_present + salaryPeriod.total_half_day
+        };
+
+        /** Calculate the earnings and the deductions */
+        /** Fetch the payments for the period */
+        let payments = await staffIncomeMetaService.fetchPaymentsForStaffBetween(staff.id, salaryPeriod.period_start, salaryPeriod.period_end);
+
+        /** Group them into earnings and deductions */
+        let paymentsGrpMap = new Map();
+        for(let p of payments) {
+            if(paymentsGrpMap.has(p.income_type.value)) {
+                let amt = paymentsGrpMap.get(p.income_type.value);
+                amt += parseFloat(p.amount);
+                paymentsGrpMap.set(p.income_type.value, amt);
+            } else {
+                paymentsGrpMap.set(p.income_type.value, parseFloat(p.amount));
+            }
+        }
+
+        let earnings = [], deductions = [];
+        let grossEarnings = 0, grossDeductions = 0;
+
+        /** Add salary and overtime to earnings */
+        earnings.push({
+            earningTitle: "Earned Salary",
+            earningAmount: parseFloat(salaryPeriod.total_salary)
+        });
+        grossEarnings += parseFloat(salaryPeriod.total_salary);
+
+        if(parseFloat(salaryPeriod.total_overtime_salary) > 0) {
+            earnings.push({
+                earningTitle: "Overtime",
+                earningAmount: parseFloat(salaryPeriod.total_overtime_salary)
+            });
+            grossEarnings += parseFloat(salaryPeriod.total_overtime_salary);
+        }
+
+        /** Add late fine to deductions */
+        if(parseFloat(salaryPeriod.total_overtime_salary) < 0) {
+            deductions.push({
+                deductionTitle: "Late Fine",
+                deductionAmount: parseFloat(salaryPeriod.total_late_fine_salary) * -1
+            });
+            grossDeductions += parseFloat(salaryPeriod.total_overtime_salary) * -1;
+        }
+
+        for(let key of paymentsGrpMap.keys()) {
+            if(paymentsGrpMap.get(key).amount < 0) {
+                earnings.push({
+                    earningTitle: key,
+                    earningAmount: parseFloat(paymentsGrpMap.get(key)) * -1
+                });
+                grossEarnings += parseFloat(paymentsGrpMap.get(key)) * -1;
+            } else {
+                deductions.push({
+                    deductionTitle: key,
+                    deductionAmount: parseFloat(paymentsGrpMap.get(key))
+                });
+                grossDeductions += parseFloat(paymentsGrpMap.get(key))
+            }
+        }
+
+        data.earnings = earnings;
+        data.deductions = deductions;
+        data.grossEarnings = grossEarnings;
+        data.grossDeductions = grossDeductions;
+        data.netPayableSalary = grossEarnings - grossDeductions;
+
+        return data;
     }
 }
