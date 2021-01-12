@@ -13,6 +13,7 @@ const salaryPeriodService = new (require("../../services/v1/SalaryPeriodService"
 const staffWorkService = new (require("../../services/v1/StaffWorkService"));
 const fs = require("fs");
 const awsConfig = (require("../../config/thirdPartyConfig.json")).aws;
+const pdfService = new (require("../../services/v1/PdfService"));
 
 module.exports = {
     saveStaff: async (req, res) => {
@@ -750,14 +751,15 @@ module.exports = {
             } else {
                 /** Fetch the required data to generate the payslip */
                 let pdfData = await salaryPeriodService.fetchDataForPayslipGeneration(staff, salaryPeriod);
+                // TODO remove logger after testing
                 console.log(">>>>>>>>> " + JSON.stringify(pdfData));
 
+                let fileSlug = "PS" + staff.reference_id + moment(periodStart).format("YYYYMMDD");
+
                 /** Generate the PDF */
-                // TODO make a call to the pdf function - make sure the file name has slug + timestamp in it
-                filePath = "";
+                filePath = await pdfService.generatePaySlipPdf(pdfData, fileSlug + "_" + (new Date()).getTime());
 
                 /** Upload to S3 - auto delete false */
-                let fileSlug = "PS" + staff.reference_id + moment(periodStart).format("YYYYMMDD");
                 let s3Url = await awsService.uploadFileToS3(awsConfig.s3.payslipBucket, filePath, "payslip", fileSlug, false);
 
                 /** Set the file url and locked to true */
