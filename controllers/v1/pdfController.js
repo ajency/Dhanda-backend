@@ -491,20 +491,24 @@ module.exports = {
             "currency": "INR",
             "workingDays": 20,
             "lop": 11,
-            "earningDeductions": [
-              {
+            earnings:[
+                {
+                    "earningsTitle": "Earned Salary",
+                    "earningsAmount": "20,000.0"
+                }
+            , {
                 "earningsTitle": "Earned Salary",
-                "earningsAmount": "20,000.0",
-                "deductionTitle": "PF",
-                "deductionAmount": "2,500.0"
-              },
-              {
-                "earningsTitle": "Earned Salary",
-                "earningsAmount": "20,000.0",
-                "deductionTitle": "PF",
-                "deductionAmount": "2,500.0"
-              }
-            ],
+                "earningsAmount": "20,000.0"
+            }],
+            duductions:[
+                {
+                    "deductionTitle": "PF",
+                    "deductionAmount": "2,500.0"
+                 },
+                 {},
+                 {}
+                ],
+            
             "grossEarnings": "23000.0",
             "grossDeductions": "3200.0",
             "netPayableSalary": "19800"

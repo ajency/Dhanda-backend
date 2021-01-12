@@ -1212,7 +1212,6 @@ module.exports = class PdfService {
             </div>
         </div>`;
 
-
         let tableData = ``;
 
             data.earningDeductions.forEach(function(value){
