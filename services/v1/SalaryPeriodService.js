@@ -8,10 +8,12 @@ const staffIncomeMetaService = new (require("./StaffIncomeMetaService"));
 module.exports = class SalaryPeriodService {
     async fetchSalaryPeriodFor(staffId, periodStart, periodEnd) {
         return await models.staff_salary_period.findOne({ where: {
-            staff_id: staffId,
-            period_start: periodStart,
-            period_end: periodEnd
-        } });
+                staff_id: staffId,
+                period_start: periodStart,
+                period_end: periodEnd
+            },
+            order: [ ["created_at", "DESC"] ]
+        });
     }
 
     async fetchOldestSalaryPeriod(staffId) {
@@ -31,7 +33,7 @@ module.exports = class SalaryPeriodService {
         /** Fetch the entry */
         let salaryPeriodEntry = await this.fetchSalaryPeriodFor(staffId, staffSalaryPeriodObj.period_start, staffSalaryPeriodObj.period_end);
 
-        if(salaryPeriodEntry) {
+        if(salaryPeriodEntry && salaryPeriodEntry.locked === false) {
             /** Update the entry */
             await models.staff_salary_period.update(staffSalaryPeriodObj, { where: { id: salaryPeriodEntry.id } });
             return;
@@ -65,21 +67,26 @@ module.exports = class SalaryPeriodService {
             + "half_day_salary, total_hour_salary, total_overtime_salary, total_late_fine_salary, total_salary, " 
             + "total_payments, total_dues, payslip_url FROM staff_salary_periods " 
             + "WHERE staff_id IN ('" + staffIds.join("','") + "') "
-            + "ORDER BY staff_id, period_start DESC";
+            + "ORDER BY staff_id, period_start, created_at DESC";
         
         return ormService.runRawSelectQuery(query);
     }
 
     async fetchSalaryPeriodsForStaff(staffId, page = 1, perPage = 5) {
-        return models.staff_salary_period.findAll({ where: { staff_id: staffId }, 
-            offset: (page - 1) * perPage, limit: perPage,
-            order: [ [ "period_start", "desc" ] ] });
+        // return models.staff_salary_period.findAll({ where: { staff_id: staffId }, 
+        //     offset: (page - 1) * perPage, limit: perPage,
+        //     order: [ [ "period_start", "desc" ] ] });
+
+        let query = "SELECT DISTINCT on (period_start) period_start as ps, * FROM staff_salary_periods WHERE staff_id = " + staffId 
+            + " ORDER BY period_start DESC LIMIT " + perPage + " OFFSET " + (page - 1) * perPage;
+        
+        return ormService.runRawSelectQuery(query);
     }
 
     async fetchStaffPeriodByDate(staffId, date) {
         let salaryPeriods = await ormService.runRawSelectQuery("SELECT * FROM staff_salary_periods WHERE staff_id = "
             + staffId + " AND period_start <= '" + date + "' "
-            + " AND period_end >= '" + date + "'");
+            + " AND period_end >= '" + date + "' ORDER BY created_at DESC");
         
         if(salaryPeriods.length === 0) {
             return null;
@@ -106,7 +113,7 @@ module.exports = class SalaryPeriodService {
 
         /** Group them into earnings and deductions */
         let paymentsGrpMap = new Map();
-        for(let p in payments) {
+        for(let p of payments) {
             if(paymentsGrpMap.has(p.income_type.value)) {
                 let amt = paymentsGrpMap.get(p.income_type.value);
                 amt += parseFloat(p.amount);

@@ -12,7 +12,7 @@ const taxonomyService = new (require("../../services/v1/TaxonomyService"));
 const salaryPeriodService = new (require("../../services/v1/SalaryPeriodService"));
 const staffWorkService = new (require("../../services/v1/StaffWorkService"));
 const fs = require("fs");
-const awsConfig = (require("../config/thirdPartyConfig.json")).aws;
+const awsConfig = (require("../../config/thirdPartyConfig.json")).aws;
 
 module.exports = {
     saveStaff: async (req, res) => {
