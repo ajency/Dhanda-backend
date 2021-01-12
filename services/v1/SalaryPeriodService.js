@@ -128,15 +128,15 @@ module.exports = class SalaryPeriodService {
 
         /** Add salary and overtime to earnings */
         earnings.push({
-            title: "Earned Salary",
-            amount: parseFloat(salaryPeriod.total_salary)
+            earningTitle: "Earned Salary",
+            earningAmount: parseFloat(salaryPeriod.total_salary)
         });
         grossEarnings += parseFloat(salaryPeriod.total_salary);
 
         if(parseFloat(salaryPeriod.total_overtime_salary) > 0) {
             earnings.push({
-                title: "Overtime",
-                amount: parseFloat(salaryPeriod.total_overtime_salary)
+                earningTitle: "Overtime",
+                earningAmount: parseFloat(salaryPeriod.total_overtime_salary)
             });
             grossEarnings += parseFloat(salaryPeriod.total_overtime_salary);
         }
@@ -144,8 +144,8 @@ module.exports = class SalaryPeriodService {
         /** Add late fine to deductions */
         if(parseFloat(salaryPeriod.total_overtime_salary) < 0) {
             deductions.push({
-                title: "Late Fine",
-                amount: parseFloat(salaryPeriod.total_late_fine_salary) * -1
+                deductionTitle: "Late Fine",
+                deductionAmount: parseFloat(salaryPeriod.total_late_fine_salary) * -1
             });
             grossDeductions += parseFloat(salaryPeriod.total_overtime_salary) * -1;
         }
@@ -153,14 +153,14 @@ module.exports = class SalaryPeriodService {
         for(let key of paymentsGrpMap.keys()) {
             if(paymentsGrpMap.get(key).amount < 0) {
                 earnings.push({
-                    title: key,
-                    amount: parseFloat(paymentsGrpMap.get(key)) * -1
+                    earningTitle: key,
+                    earningAmount: parseFloat(paymentsGrpMap.get(key)) * -1
                 });
                 grossEarnings += parseFloat(paymentsGrpMap.get(key)) * -1;
             } else {
                 deductions.push({
-                    title: key,
-                    amount: parseFloat(paymentsGrpMap.get(key))
+                    deductionTitle: key,
+                    deductionAmount: parseFloat(paymentsGrpMap.get(key))
                 });
                 grossDeductions += parseFloat(paymentsGrpMap.get(key))
             }
