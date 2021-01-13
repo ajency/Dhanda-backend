@@ -397,7 +397,7 @@ module.exports = {
            
             
            
-            let fileName =`STA${staffRefId}${ moment(new Date()).format('MMMYYYY')}`;
+            let fileName =`STA${staffRefId}${moment(new Date()).format('MMMYYYY')}`;
             // fetching s3 file 
             let file =await pdfService.fetchS3FileFromSlug(fileName);
             
@@ -480,35 +480,46 @@ module.exports = {
     },
 
     fetchPaySlipPdf: async(req,res)=>{
-       // return res.status(200).send({ code:"payslip"});
-       //add str as params as example given below
-        let str = `{
-            "payrollPeriod": "1 Oct 2020 - 31 Oct 2020",
-            "businessName": "Rajesh Sweet Mart",
-            "staffName": "Evelyn Dias",
-            "staffType": "Monthly",
-            "salaryOnPayroll": "30,000",
-            "currency": "INR",
-            "workingDays": 20,
-            "lop": 11,
-            "earningDeductions": [
-              {
-                "earningsTitle": "Earned Salary",
-                "earningsAmount": "20,000.0",
-                "deductionTitle": "PF",
-                "deductionAmount": "2,500.0"
-              },
-              {
-                "earningsTitle": "Earned Salary",
-                "earningsAmount": "20,000.0",
-                "deductionTitle": "PF",
-                "deductionAmount": "2,500.0"
+      
+     
+        let str = `
+            {
+                "payrollPeriod": "1 Oct 2020 - 31 Oct 2020",
+                "businessName": "Rajesh Sweet Mart",
+                "staffName": "Evelyn Dias",
+                "staffType": "Monthly",
+                "salaryOnPayroll": "30,000",
+                "currency": "INR",
+                "workingDays": 20,
+                "lop": 11,
+                "earnings": [
+                  {
+                    "earningTitle": "Earned Salary",
+                    "earningAmount": "20,000.0"
+                  }
+                ],
+                "deductions": [
+                  {
+                    "deductionTitle": "PF",
+                    "deductionAmount": "2,500.0"
+                  },
+                  {
+                    "deductionTitle": "PF",
+                    "deductionAmount": "2,500.0"
+                  },
+                  {
+                    "deductionTitle": "PF",
+                    "deductionAmount": "2,500.0"
+                  },
+                  {
+                    "deductionTitle": "PF",
+                    "deductionAmount": "2,500.0"
+                  }
+                ],
+                "grossEarnings": "23000.0",
+                "grossDeductions": "3200.0",
+                "netPayableSalary": "19800"
               }
-            ],
-            "grossEarnings": "23000.0",
-            "grossDeductions": "3200.0",
-            "netPayableSalary": "19800"
-          }
             `;
         let fileName = `PaySlip`    
         let data =JSON.parse(str);    
@@ -527,5 +538,5 @@ module.exports = {
             return res.status(200).send({code:"error",pdf:null});
         }
     }
-
+       
 }

@@ -84,7 +84,7 @@ module.exports = class PdfService {
 
 
     generateDailyAttendanceHtml =(data)=>{
-   
+        
     
         try{
         
@@ -1158,7 +1158,21 @@ module.exports = class PdfService {
     }
 
     generatePaySLipHtml = (data)=>{
-        //console.log(data);
+        console.log('data 121313',data);
+        console.log('length',data.deductions.length)
+        if(data.deductions.length > data.earnings.length){
+            let i =data.deductions.length - data.earnings.length;
+            for(let j = 0;j<i;j++){
+                data.earnings.push({ earningTitle: '', earningAmount: '' });
+            }
+           
+
+        }else if(data.earnings.length > data.deductions.length){
+            let i =data.earnings.length - data.deductions.length;
+            for(let j = 0;j<i;j++){
+                 data.deductions.push({ deductionTitle: '', deductionAmount: '' });
+            }
+        }
 
         let head =`   
         <div class="head-container">
@@ -1212,28 +1226,33 @@ module.exports = class PdfService {
             </div>
         </div>`;
 
+        let tableData1 = ``;
 
-        let tableData = ``;
+        data.earnings.forEach(function(value){
+            tableData1 += `   
+            <div class="table-body-row ">
+                <div class="earning-value-container border-right">
+                    <label class="earning-value-title  ">${value.earningTitle}</label>
+                </div>
+                <div class="amount-value-container  ">
+                    <label class="amount-value-title">${value.earningAmount!= '' ? currency : ''} ${value.earningAmount}</label>
+                </div>
+            </div>       
+         `;
+        })
+        let tableData2 = ``;
 
-            data.earningDeductions.forEach(function(value){
-                tableData += `   
-                 <div class="table-body">
-                    <div class="earning-value-container border-right ">
-                        <label class="earning-value-title  ">${value.earningsTitle}</label>
-                    </div>
-                    <div class="amount-value-container border-right ">
-                        <label class="amount-value-title">${currency} ${value.earningsAmount}</label>
-                    </div>
-                    <div class="earning-value-container border-right ">
-                        <label class="earning-value-title">${value.deductionTitle}</label>
-                    </div>
-                    <div class="amount-value-container">
-                        <label class="amount-value-title">${currency} ${value.deductionAmount}</label>
-                    </div>
-             </div>`
-
-
-            })
+        data.deductions.forEach(function(value){
+            tableData2 += `   
+            <div class="table-body-row border-right">
+                <div class="earning-value-container border-right">
+                    <label class="earning-value-title">${value.deductionTitle}</label>
+                </div>
+                <div class="amount-value-container">
+                    <label class="amount-value-title">${value.deductionAmount!= ''? currency : ''} ${value.deductionAmount}</label>
+                </div>
+            </div>`;
+        })
 
         let tablepreFoot=` 
             <div class="table-head border-top border-bottom">
@@ -1276,339 +1295,354 @@ module.exports = class PdfService {
                 <link rel="preconnect" href="https://fonts.gstatic.com">
                 <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"> 
                 <style>
-                        *{
-                        margin: 0;
-                        padding: 0;
-                        box-sizing: border-box;
-                        }
-        
-                        .align-item-center{
-                            align-items: center;
-                        }
-                        .align-item-start{
-                            align-items: flex-start;
-                        }
-                        .align-item-end{
-                            align-items: flex-end;
-                        }
-                        .container{
-                            max-width: 1000px;
-                            position: relative;
-                            
-                        }
-                        .head-container{
-                            height: 124px;
-                            width:100%;
-                            background-color: #0F9D58;
-                            align-items: center;
-                        }
-        
-                        .head-text-container{
-                            width: 100%;
-                            height: 100%;
-                            display: flex;
-                            flex-direction: column;
-                            padding-left: 25px;
-                            padding-right: 25px;
-                            
-                        }
-                        .head-text-element{
-                            display: flex;
-                            flex:1;
-                            flex-direction: column;
-                            justify-content: center;
-                            margin-top: 22px;
-                        }
-                        .head-salary-text{
-                            display: flex;
-                            flex:1;
-                            flex-direction: column;
-                            justify-content: center;
-                            align-items: center;
-                            margin-bottom: 19px;
-                            margin-top: 5px;
-                        }
-        
-                        .head-dateRange{
-                            color: #FFFFFF;
-                            font-size: 16px;
-                            font-weight: 500;
-                            line-height: 24px;
-                            margin-top: 4px;
-                            font-family: 'Poppins', sans-serif;
-                        }
-                        .head-businessName{
-                            color: #FFFFFF;
-                            font-size: 11px;
-                            font-weight: 700;
-                            line-height: 16px;
-                            font-family: 'Poppins', sans-serif;
-                        }
-                        .head-exportTime{
-                            color: #FFFFFF;
-                            font-size: 9px;
-                            font-weight: 500;
-                            line-height: 13px;
-                            font-family: 'Poppins', sans-serif;
-                            text-align: right;
-                        }
-        
-                        .body-container{
-                            width: 90%;
-                            margin-left: auto;
-                            margin-right: auto;
-                            
-                        }
-                        .title-container{
-                            width: 100%;
-                            height: 40px;
-                            display: flex;
-                            flex-direction: row;
-                            height:40px;
-                            padding-top:9px;
-                            padding-bottom: 9px;
-                            margin-top: 20px;
-                        }
-                        .title-text{
-                            font-size: 18px;
-                            font-style: normal;
-                            font-weight: 500;
-                            line-height: 27px;
-                            letter-spacing: 0em;
-                            text-align: center;
-                            color: rgb(24,103,178,1);
-                            font-family:Poppins;
-                        
-                        }
-                        .employee-details-container{
-                            width: 100%;
-                            height: 176px;
-                            margin-top: 8px;
-                            display: flex;
-                            flex-direction: row;
-                        }
-                        .green-bar{
-                            height: 100%;
-                            background-color: #0F9D58;
-                            width:5px
-                        }
-                        .detail{
-                            width: 100%;
-                            background-color: rgba(15, 157, 88, 0.03);
-                        }
-                        .detail-item{
-                            width: 100%;
-                            height: 18px;
-                            flex: 1;
-                            margin-top: 9px;
-                            display: flex;
-                            flex-direction: row;
-                        }
-                        .label{
-                            padding-left: 10px;
-                            flex:0.3;
-                            text-transform: uppercase;
-                            font-family: Poppins;
-                            font-size: 12px;
-                            font-style: normal;
-                            font-weight: 500;
-                            line-height: 18px;
-                            letter-spacing: 0em;
-                            text-align: left;
-                            color: #0F9D58;
-        
-                        }
-                        .value{
-                            flex: 0.7;
-                            padding-left: 10px;
-                            font-family: Poppins;
-                            font-size: 12px;
-                            font-style: normal;
-                            font-weight: 500;
-                            line-height: 18px;
-                            letter-spacing: 0em;
-                            text-align: left;
-                            color: #000000;
-                        }
-                        .table-container{
-                            width: 100%;
-                        
-                        }
-                        .table-head{
-                            width: 100%;
-                            height: 43px;
-                            background-color: rgba(15, 157, 88, 0.03);
-                            display: flex;
-                            flex-direction: row;
-                        
-                        }
-                        .earnings-container{
-                            flex: 0.4;
-                            display: flex;
-                            align-items: center;
-                            justify-content: left;
-                        
-                        }
-                        .earnings-title{
-                            font-family: Poppins;
-                            font-size: 12px;
-                            font-style: normal;
-                            font-weight: 500;
-                            line-height: 18px;
-                            letter-spacing: 0em;
-                            text-align: left;
-                            color: #0F9D58;
-                            text-transform: uppercase;
-                            padding:16px ;
-                            text-align: left;
-                            
-                        }
-                        .amount-container{
-                        
-                            flex: 0.2;
-                            display: flex;
-                            align-items: center;
-                            justify-content: flex-end;
-                        
-                        }
-                        .amount-title{
-                            font-family: Poppins;
-                            font-size: 12px;
-                            font-style: normal;
-                            font-weight: 500;
-                            line-height: 18px;
-                            letter-spacing: 0em;
-                            text-align: left;
-                            color: #0F9D58;
-                            text-transform: uppercase;
-                            padding:16px ;
-                            text-align: right;
-                        }
-                        .table-text{
-                            font-family: Poppins;
-                            font-size: 12px;
-                            font-style: normal;
-                            font-weight: 500;
-                            line-height: 18px;
-                            letter-spacing: 0em;
-                            text-align: center;
-                            padding:16px ;
-                            color: #000000;
-                        }
-                        .table-foot{
-                            width: 100%;
-                            height: 43px;
-                            background-color: rgba(15, 157, 88, 0.03);
-                            display: flex;
-                            flex-direction: row;
-                        }
-                        .net-container{
-                            flex: 0.4;
-                            display: flex;
-                            align-items: center;
-                            justify-content: left;
-                            
-                        }
-                        .netamount-container{
-                            flex: 0.2;
-                            display: flex;
-                            align-items: center;
-                            justify-content: flex-end;
-                        
-                        }
-                        .table-body{
-                            width: 100%;
-                            height: 43px;
-                            background-color: rgba(15, 157, 88, 0.03);
-                            display: flex;
-                            flex-direction: row; 
-                        }
-                        .earning-value-container{
-                            flex: 0.4;
-                            display: flex;
-                            align-items: center;
-                            justify-content: left;
-                            
-                        }
-                        .earning-value-title{
-                            font-family: Poppins;
-                            font-size: 12px;
-                            font-style: normal;
-                            font-weight: 500;
-                            line-height: 18px;
-                            letter-spacing: 0em;
-                            text-align: left;
-                            padding:16px ;
-                            color: #000000;
-                        }
-                        .amount-value-container{
-                            flex: 0.2;
-                            display: flex;
-                            align-items: center;
-                            justify-content: flex-end;
-                        
-                        }
-                        .amount-value-title{
-                            font-family: Poppins;
-                            font-size: 12px;
-                            font-style: normal;
-                            font-weight: 500;
-                            line-height: 18px;
-                            letter-spacing: 0em;
-                            text-align: center;
-                            padding:16px ;
-                            color: #000000;
-                        }
-                        .conditon-container{
-                            width: 100%;
-                            height: 20px;
-                            margin-top: 12px;
-                            flex-direction: column;
-                            align-items: center;
-                            justify-content: center;
-                        }
-                        .condition-text{
-                            font-family: Poppins;
-                            font-size: 12px;
-                            font-style: normal;
-                            font-weight: 400;
-                            line-height: 18px;
-                            letter-spacing: 0em;
-                            text-align: left;
-                            color: rgb(0,0,0,0.7);
-        
-        
-                        }
-                        .footer{
-                            width: 100%;
-                            height: 20px;
-                            margin-top: 25px;
-                            flex-direction: column;
-                            align-items: center;
-                            justify-content: center;
-                        }
-                        .footer-text{
-                            font-family: Roboto;
-                            font-size: 9px;
-                            font-style: normal;
-                            font-weight: 400;
-                            line-height: 11px;
-                            letter-spacing: 0em;
-                            text-align: left;
-                            color: rgb(0,0,0,0.7);
-                        }
-                        .border-bottom{
-                            border-bottom: 1px solid #0F9D58;
-                        }
-                        .border-top{
-                            border-top: 1px solid #0F9D58;
-                        }
-                        .border-left{
-                            border-left: 1px solid #0F9D58;
-                        }
-                        .border-right{
-                            border-right: 1px solid #0F9D58;
-                        }
+                *{
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+                
+                .align-item-center{
+                    align-items: center;
+                }
+                .align-item-start{
+                    align-items: flex-start;
+                }
+                .align-item-end{
+                    align-items: flex-end;
+                }
+                .container{
+                    max-width: 1000px;
+                    position: relative;
+                    
+                }
+                .head-container{
+                    height: 124px;
+                    width:100%;
+                    background-color: #0F9D58;
+                    align-items: center;
+                }
+                
+                .head-text-container{
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    padding-left: 25px;
+                    padding-right: 25px;
+                    
+                }
+                .head-text-element{
+                    display: flex;
+                    flex:1;
+                    flex-direction: column;
+                    justify-content: center;
+                    margin-top: 22px;
+                }
+                .head-salary-text{
+                    display: flex;
+                    flex:1;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    margin-bottom: 19px;
+                    margin-top: 5px;
+                }
+                
+                .head-dateRange{
+                    color: #FFFFFF;
+                    font-size: 16px;
+                    font-weight: 500;
+                    line-height: 24px;
+                    margin-top: 4px;
+                    font-family: 'Poppins', sans-serif;
+                }
+                .head-businessName{
+                    color: #FFFFFF;
+                    font-size: 11px;
+                    font-weight: 700;
+                    line-height: 16px;
+                    font-family: 'Poppins', sans-serif;
+                }
+                .head-exportTime{
+                    color: #FFFFFF;
+                    font-size: 9px;
+                    font-weight: 500;
+                    line-height: 13px;
+                    font-family: 'Poppins', sans-serif;
+                    text-align: right;
+                }
+                
+                .body-container{
+                    width: 90%;
+                    margin-left: auto;
+                    margin-right: auto;
+                    
+                }
+                .title-container{
+                    width: 100%;
+                    height: 40px;
+                    display: flex;
+                    flex-direction: row;
+                    height:40px;
+                    padding-top:9px;
+                    padding-bottom: 9px;
+                    margin-top: 20px;
+                }
+                .title-text{
+                    font-size: 18px;
+                    font-style: normal;
+                    font-weight: 500;
+                    line-height: 27px;
+                    letter-spacing: 0em;
+                    text-align: center;
+                    color: rgb(24,103,178,1);
+                    font-family:Poppins;
+                   
+                }
+                .employee-details-container{
+                    width: 100%;
+                    height: 176px;
+                    margin-top: 8px;
+                    display: flex;
+                    flex-direction: row;
+                }
+                .green-bar{
+                    height: 100%;
+                    background-color: #0F9D58;
+                    width:5px
+                }
+                .detail{
+                    width: 100%;
+                    background-color: rgba(15, 157, 88, 0.03);
+                }
+                .detail-item{
+                    width: 100%;
+                    height: 18px;
+                    flex: 1;
+                    margin-top: 9px;
+                    display: flex;
+                    flex-direction: row;
+                }
+                .label{
+                    padding-left: 10px;
+                    flex:0.3;
+                    text-transform: uppercase;
+                    font-family: Poppins;
+                    font-size: 12px;
+                    font-style: normal;
+                    font-weight: 500;
+                    line-height: 18px;
+                    letter-spacing: 0em;
+                    text-align: left;
+                    color: #0F9D58;
+                
+                }
+                .value{
+                    flex: 0.7;
+                    padding-left: 10px;
+                    font-family: Poppins;
+                    font-size: 12px;
+                    font-style: normal;
+                    font-weight: 500;
+                    line-height: 18px;
+                    letter-spacing: 0em;
+                    text-align: left;
+                    color: #000000;
+                }
+                .table-container{
+                    width: 100%;
+                  
+                }
+                .table-head{
+                    width: 100%;
+                    height: 43px;
+                    background-color: rgba(15, 157, 88, 0.03);
+                    display: flex;
+                    flex-direction: row;
+                   
+                }
+                .earnings-container{
+                    flex: 0.4;
+                    display: flex;
+                    align-items: center;
+                    justify-content: left;
+                   
+                }
+                .earnings-title{
+                    font-family: Poppins;
+                    font-size: 12px;
+                    font-style: normal;
+                    font-weight: 500;
+                    line-height: 18px;
+                    letter-spacing: 0em;
+                    text-align: left;
+                    color: #0F9D58;
+                    text-transform: uppercase;
+                    padding:16px ;
+                    text-align: left;
+                    
+                }
+                .amount-container{
+                   
+                    flex: 0.2;
+                    display: flex;
+                    align-items: center;
+                    justify-content: flex-end;
+                   
+                }
+                .amount-title{
+                    font-family: Poppins;
+                    font-size: 12px;
+                    font-style: normal;
+                    font-weight: 500;
+                    line-height: 18px;
+                    letter-spacing: 0em;
+                    text-align: left;
+                    color: #0F9D58;
+                    text-transform: uppercase;
+                    padding:16px ;
+                    text-align: right;
+                }
+                .table-text{
+                    font-family: Poppins;
+                    font-size: 12px;
+                    font-style: normal;
+                    font-weight: 500;
+                    line-height: 18px;
+                    letter-spacing: 0em;
+                    text-align: center;
+                    padding:16px ;
+                    color: #000000;
+                }
+                .table-foot{
+                    width: 100%;
+                    height: 43px;
+                    background-color: rgba(15, 157, 88, 0.03);
+                    display: flex;
+                    flex-direction: row;
+                }
+                .net-container{
+                    flex: 0.4;
+                    display: flex;
+                    align-items: center;
+                    justify-content: left;
+                    
+                }
+                .netamount-container{
+                    flex: 0.2;
+                    display: flex;
+                    align-items: center;
+                    justify-content: flex-end;
+                   
+                }
+                .table-body{
+                    width: 100%;
+                    background-color:white;
+                    display: flex;
+                    flex-direction: row; 
+                }
+                .table-earnings-body{
+                    flex: 0.5;
+                }
+                .table-deductions-body{
+                    flex: 0.5;
+                 
+                }
+                .table-body-row{
+                    flex: 1;
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    height: 43px;
+                }
+                .earning-value-container{
+                    flex: 0.68;
+                    display: flex;
+                    align-items: center;
+                    justify-content: left;
+                    min-height: 43px;
+                    
+                }
+                .earning-value-title{
+                    font-family: Poppins;
+                    font-size: 12px;
+                    font-style: normal;
+                    font-weight: 500;
+                    line-height: 18px;
+                    letter-spacing: 0em;
+                    text-align: left;
+                    padding-left:16px ;
+                    padding-right:16px ;
+                    color: #000000;
+                }
+                .amount-value-container{
+                    flex: 0.34;
+                    display: flex;
+                    align-items: center;
+                    justify-content: flex-end;
+                   
+                }
+                .amount-value-title{
+                    font-family: Poppins;
+                    font-size: 12px;
+                    font-style: normal;
+                    font-weight: 500;
+                    line-height: 18px;
+                    letter-spacing: 0em;
+                    text-align: center;
+                    padding:16px ;
+                    color: #000000;
+                }
+                .conditon-container{
+                    width: 100%;
+                    height: 20px;
+                    margin-top: 12px;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .condition-text{
+                    font-family: Poppins;
+                    font-size: 12px;
+                    font-style: normal;
+                    font-weight: 400;
+                    line-height: 18px;
+                    letter-spacing: 0em;
+                    text-align: left;
+                    color: rgb(0,0,0,0.7);
+                
+                
+                }
+                .footer{
+                    width: 100%;
+                    height: 20px;
+                    margin-top: 25px;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .footer-text{
+                    font-family: Roboto;
+                    font-size: 9px;
+                    font-style: normal;
+                    font-weight: 400;
+                    line-height: 11px;
+                    letter-spacing: 0em;
+                    text-align: left;
+                    color: rgb(0,0,0,0.7);
+                }
+                .border-bottom{
+                    border-bottom: 1px solid #0F9D58;
+                }
+                .border-top{
+                    border-top: 1px solid #0F9D58;
+                }
+                .border-left{
+                    border-left: 1px solid #0F9D58;
+                }
+                .border-right{
+                    border-right: 1px solid #0F9D58;
+                }
                 </style>   
             </head>
             <body>
@@ -1637,8 +1671,18 @@ module.exports = class PdfService {
                                     <label class="amount-title">amount</label>
                                 </div>
                             </div>
-                            ${tableData}
-                           
+                            <div class="table-body">
+                                <div class="table-earnings-body">
+                                    ${tableData1}
+                                    
+                                   
+                                </div>
+                                <div  class="table-deductions-body border-left">
+                                    ${tableData2}
+                                    
+                                </div>
+                            </div>
+                            
                            ${tablepreFoot}
                             
                             ${tableFoot}

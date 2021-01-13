@@ -39,7 +39,7 @@ router.get("/staff/:staffRefId/attendance", passport.authenticate('jwt', { sessi
 /** PDF */
 router.get("/pdf/:businessRefId/attendance", passport.authenticate('jwt', { session: false }), pdfController.fetchBusinessStaffAttendancePdf);
 router.get("/pdf/:staffRefId/singlestaffattendance", passport.authenticate('jwt', { session: false }), pdfController.fetchSingleStaffAttendancePdf);
-router.get("/pdf/payslip", passport.authenticate('jwt', { session: false }), pdfController.fetchPaySlipPdf);
+router.get("/pdf/:staffRefId/payslip", passport.authenticate('jwt', { session: false }), pdfController.fetchPaySlipPdf);
 
 /** Admin */
 router.post("/business/:businessRefId/admin/invite", passport.authenticate('jwt', { session: false }), businessController.inviteAdmin);

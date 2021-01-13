@@ -13,6 +13,7 @@ const salaryPeriodService = new (require("../../services/v1/SalaryPeriodService"
 const staffWorkService = new (require("../../services/v1/StaffWorkService"));
 const fs = require("fs");
 const awsConfig = (require("../../config/thirdPartyConfig.json")).aws;
+const pdfService = new(require("../../services/v1/PdfService"));
 
 module.exports = {
     saveStaff: async (req, res) => {
@@ -742,7 +743,7 @@ module.exports = {
 
             /** Fetch the salary period */
             let salaryPeriod = await salaryPeriodService.fetchSalaryPeriodFor(staff.id, periodStart, periodEnd);
-
+            console.log("salary period",salaryPeriod);
             /** Check if payslip has already been generated */
             let filePath = null;
             if(salaryPeriod.payslip_url) {
@@ -752,12 +753,12 @@ module.exports = {
                 let pdfData = await salaryPeriodService.fetchDataForPayslipGeneration(staff, salaryPeriod);
                 console.log(">>>>>>>>> " + JSON.stringify(pdfData));
 
-                /** Generate the PDF */
+                 /** Generate the PDF */
                 // TODO make a call to the pdf function - make sure the file name has slug + timestamp in it
-                filePath = "";
-
+               
                 /** Upload to S3 - auto delete false */
                 let fileSlug = "PS" + staff.reference_id + moment(periodStart).format("YYYYMMDD");
+                filePath = await pdfService.generatePaySlipPdf(pdfData,fileSlug);
                 let s3Url = await awsService.uploadFileToS3(awsConfig.s3.payslipBucket, filePath, "payslip", fileSlug, false);
 
                 /** Set the file url and locked to true */
@@ -773,8 +774,9 @@ module.exports = {
                 /** Clear the file from the local storage */
                 fs.unlink(filePath, (err) => { console.log("File cleared.") });
             }
+            
 
-            return res.status(200).send({ code: "success", message: "success", data: data });
+            return res.status(200).send({ code: "success", message: "success", data: data.pdf });
         } catch (err) {
             await logger.error("Exception in download payslip api: ", err);
             return res.status(200).send({ code: "error", message: "error" });
