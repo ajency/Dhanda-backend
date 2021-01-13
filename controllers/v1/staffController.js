@@ -13,11 +13,8 @@ const salaryPeriodService = new (require("../../services/v1/SalaryPeriodService"
 const staffWorkService = new (require("../../services/v1/StaffWorkService"));
 const fs = require("fs");
 const awsConfig = (require("../../config/thirdPartyConfig.json")).aws;
-<<<<<<< HEAD
-const pdfService = new(require("../../services/v1/PdfService"));
-=======
 const pdfService = new (require("../../services/v1/PdfService"));
->>>>>>> d1194746742a321139665f3cc2349e8a8c5c1697
+
 
 module.exports = {
     saveStaff: async (req, res) => {
