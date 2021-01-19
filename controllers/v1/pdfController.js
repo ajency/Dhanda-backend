@@ -90,6 +90,7 @@ module.exports = {
             /** Look through the staff members and generate the response */
             let monthlyStaff = [], hourlyStaff = [];
             let presentTotal = 0,  absentTotal = 0, halfDayTotal = 0, paidHolidayTotal = 0;
+            let overTimeHours ='00:00' ;
             for(let staff of staffMembers) {
                 let staffRes = {};
                 let att = attendanceMap.get(staff.id);
@@ -150,7 +151,7 @@ module.exports = {
                         overtime: att.overtime ? att.overtime : "",
                         overtimePay: att.overtime_pay ? att.overtime_pay : "",
                         lateFineHours: att.late_fine_hours ? att.late_fine_hours : "",
-                        lateFineAmount: att.late_fine_amount ? att.late_fine_amount : "",
+                        lateFineAmount: att.late_fine_amount ? pdfService.getDisplayCurrency(att.late_fine_amount,business.currency) : "",
                         status: att.dayStatus ? att.dayStatus.value : "",
                         note: (att.meta && att.meta.note) ? att.meta.note : "",
                         punchIn: att.punch_in_time,
@@ -164,7 +165,10 @@ module.exports = {
                     } else {
                         monthlyStaff.push(staffRes);
                     }
+                        overTimeHours = pdfService.addTimes(overTimeHours,att.overtime);                  
                 }
+                
+                
             }
 
             /** Populate the response */
@@ -172,12 +176,13 @@ module.exports = {
                 present: presentTotal,
                 absent: absentTotal,
                 halfDay: halfDayTotal,
-                paidHoliday: paidHolidayTotal
+                paidHoliday: paidHolidayTotal,
+                overTimeHours:overTimeHours
             };
 
             data.monthlyStaff = monthlyStaff;
             data.hourlyStaff = hourlyStaff;
-
+           // console.log('data 1234 :',data);
             // fetching s3 file 
             
             let fileName =`BAT${businessRefId}${moment(new Date()).format('YYYYMMDD')}`;
@@ -321,7 +326,8 @@ module.exports = {
             let latestPunchInTime = await attendanceService.fetchLatestPunchInTimeFor([staff.id]);
             let dayStatusMap = new Map();
             let attendanceList = [];
-            let lateFineAmount=0, lateFineHrs='00:00',overtime=0;
+            let lateFineAmount=0, lateFineHrs='00:00',overtimeHrs='00:00';
+
             for(let attendanceRecord of attendance) {
                 let hours = "";
                
@@ -355,9 +361,9 @@ module.exports = {
                     name: staff.name,
                     hours: hours,
                     overtime: attendanceRecord.overtime ? attendanceRecord.overtime : "",
-                    overtimePay: attendanceRecord.overtime_pay ? attendanceRecord.overtime_pay : "",
+                    overtimePay: attendanceRecord.overtime_pay ? pdfService.getDisplayCurrency(attendanceRecord.overtime_pay,staff.business.currency) : "",
                     lateFineHours: attendanceRecord.late_fine_hours ? attendanceRecord.late_fine_hours : "",
-                    lateFineAmount: attendanceRecord.late_fine_amount ? attendanceRecord.late_fine_amount : "",
+                    lateFineAmount: attendanceRecord.late_fine_amount ? pdfService.getDisplayCurrency(attendanceRecord.late_fine_amount,staff.business.currency) : "",
                     status: dayStatusMap.get(attendanceRecord.day_status_txid) ? dayStatusMap.get(attendanceRecord.day_status_txid).value : "",
                     note: (attendanceRecord.meta && attendanceRecord.meta.note) ? attendanceRecord.meta.note : "",
                     punchIn: attendanceRecord.punch_in_time ? attendanceRecord.punch_in_time : "",
@@ -366,9 +372,10 @@ module.exports = {
                     shiftHours: staff.daily_shift_duration ? staff.daily_shift_duration : ""
                 });
 
-                statusSummary.lateFineAmount = statusSummary.lateFineAmount + Number(attendanceRecord.late_fine_amount);
-                lateFineHrs=0;
-                overtime=0;
+                lateFineAmount = lateFineAmount + Number(attendanceRecord.late_fine_amount);
+                lateFineHrs=pdfService.addTimes(lateFineHrs,attendanceRecord.late_fine_hours);
+                overtimeHrs=pdfService.addTimes(overtimeHrs,attendanceRecord.overtime);
+
 
                 /** Update aggregate data */
                 if(dayStatusMap.get(attendanceRecord.day_status_txid)) {
@@ -391,11 +398,13 @@ module.exports = {
                     }
                 }                
             }
-
+            // console.log('late fine hours',lateFineHrs);
+            // console.log('overtime hours',overtimeHrs);
+            statusSummary.overtime = overtimeHrs;
+            statusSummary.lateFineHrs = lateFineHrs;
+            statusSummary.lateFineAmount = pdfService.getDisplayCurrency(lateFineAmount,staff.business.currency);
             data.statusSummary = statusSummary;
             data.attendance = attendanceList.reverse();
-           
-            
            
             let fileName =`STA${staffRefId}${moment(new Date()).format('MMMYYYY')}`;
             // fetching s3 file 
@@ -537,6 +546,7 @@ module.exports = {
             console.log(err)
             return res.status(200).send({code:"error",pdf:null});
         }
-    }
+    },
+
        
 }

@@ -755,8 +755,25 @@ module.exports = {
                 // TODO remove logger after testing
                 console.log(">>>>>>>>> " + JSON.stringify(pdfData));
 
+                console.log(">>>>>>>>> ",pdfData)
 
-
+                pdfData.salaryOnPayroll = pdfService.getDisplayCurrency(pdfData.salaryOnPayroll,pdfData.currency)
+                pdfData.grossEarnings = pdfService.getDisplayCurrency(pdfData.grossEarnings,pdfData.currency)
+                pdfData.grossDeductions = pdfService.getDisplayCurrency(pdfData.grossDeductions,pdfData.currency)
+                pdfData.netPayableSalary = pdfService.getDisplayCurrency(pdfData.netPayableSalary,pdfData.currency)
+                
+                let temp = []
+                pdfData.earnings.forEach(element => {
+                    temp.push({earningTitle:element.earningTitle,earningAmount:pdfService.getDisplayCurrency(element.earningAmount,pdfData.currency)})
+                });
+                pdfData.earnings = temp;
+                
+                temp = []
+                 pdfData.deductions.forEach(element => {
+                    temp.push({deductionTitle:element.deductionTitle,deductionAmount:pdfService.getDisplayCurrency(element.deductionAmount,pdfData.currency)})
+                });
+                pdfData.deductions = temp;
+               
 
                 let fileSlug = "PS" + staff.reference_id + moment(periodStart).format("YYYYMMDD");
 

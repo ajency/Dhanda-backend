@@ -1,7 +1,8 @@
-const puppeteer = require('puppeteer');
 var moment = require('moment');
-var fs = require('fs');
 const models = require("../../models");
+
+var pdf = require('html-pdf');
+var options = {};
 
 module.exports = class PdfService {
 
@@ -42,8 +43,9 @@ module.exports = class PdfService {
     async generatePaySlipPdf(data,name){
         
         const content = this.generatePaySLipHtml(data);
+       // console.log('htm 1111:',content);
         try{
-            const pdf = await this.generatePdf(content,name);
+            const pdf =await this.generatePdf(content,name);
             //console.log('generatePaySlip',pdf);
             return pdf;
         }catch(err){
@@ -55,31 +57,17 @@ module.exports = class PdfService {
     }
 
     /** generate pdf from html file */
-    async generatePdf(html,fileName){
-        try{
-            const browser = await puppeteer.launch({ headless: true });
-            const page = await browser.newPage();
-            await page.setContent(html);
-            const buffer = await page.pdf({
-                path:`${__dirname}/../../public/pdfs/${fileName}.pdf`,
-                format: 'A4',
-                printBackground: true,
-                margin: {
-                    left: '0px',
-                    top: '0px',
-                    right: '0px',
-                    bottom: '0px'
+    generatePdf(html,fileName){
+       return new Promise((resolve,reject)=>{
+            pdf.create(html, options).toFile(`${__dirname}/../../public/pdfs/${fileName}.pdf`,
+            function(err,res){
+                if(err){
+                    reject('error generating pdf');
+                }else{
+                    resolve(`${__dirname}/../../public/pdfs/${fileName}.pdf`);
                 }
-            })
-                browser.close();
-                // var filepath = `${__dirname}/../../pdfs/${fileName}.pdf`;
-                // var binaryData = await fs.readFileSync(filepath);
-               // var base64String = await Buffer.from(buffer).toString('base64');
-                return `${__dirname}/../../public/pdfs/${fileName}.pdf`;
-            }catch(e){
-                console.log(e)
-                return e;
-            }
+            });
+        });
     }
 
 
@@ -125,7 +113,7 @@ module.exports = class PdfService {
              <label class="card-title">Total</label>
              <label class="card-title">Overtime</label>
              <div class="time-container">
-                 <label class="card-value card-time">24</label>
+                 <label class="card-value card-time">${data.staffStatusSummary.overTimeHours}</label>
                  <label class="time-hrs">Hrs</label>
              </div>
              
@@ -216,7 +204,7 @@ module.exports = class PdfService {
                              <Label class="table-text font-Poppins-SemiBold">${value.overtime? value.overtime:'-'}</Label>
                          </div>
                          <div class="table-head-element align-item-end flex-10">
-                             <Label class="table-text font-Poppins-SemiBold">${value.lateFineHours ? value.lateFineHours:'-'}</Label>
+                             <Label class="table-text font-Poppins-SemiBold">${value.lateFineAmount ? `${data.currency} ${value.lateFineAmount}`:'-'}</Label>
                          </div>
                          <div class="table-head-element align-item-start flex-35">
                              <Label class="table-notes ">${value.note}</Label>
@@ -308,7 +296,7 @@ module.exports = class PdfService {
                              <Label class="table-text font-Poppins-SemiBold">${value.overtime? value.overtime:'-'}</Label>
                          </div>
                          <div class="table-head-element align-item-end flex-10">
-                             <Label class="table-text font-Poppins-SemiBold">${value.lateFineHours ? value.lateFineHours:'-'}</Label>
+                             <Label class="table-text font-Poppins-SemiBold">${value.lateFineAmount ? `${data.currency} ${value.lateFineAmount}`:'-'}</Label>
                          </div>
                          <div class="table-head-element align-item-start flex-35">
                              <Label class="table-notes ">${value.note}</Label>
@@ -1159,7 +1147,8 @@ module.exports = class PdfService {
 
     generatePaySLipHtml = (data)=>{
         console.log('data 121313',data);
-        console.log('length',data.deductions.length)
+       // console.log('length',data.deductions.length)
+
         if(data.deductions.length > data.earnings.length){
             let i =data.deductions.length - data.earnings.length;
             for(let j = 0;j<i;j++){
@@ -1187,12 +1176,12 @@ module.exports = class PdfService {
                 </div>
             </div>
         </div>`;
-        let currency;
-        if(data.currency === 'INR'){
-            currency="rs"
-        }else{
-            currency="Rp."
-        }
+        // let currency;
+        // if(data.currency === 'INR'){
+        //     currency="rs"
+        // }else{
+        //     currency="Rp."
+        // }
         let employeDetails = `  
         <div class="employee-details-container">
             <div class="green-bar">
@@ -1213,7 +1202,7 @@ module.exports = class PdfService {
                 </div>
                 <div class="detail-item">
                     <label class="label">salary as on payroll</label>
-                    <label class="value">: ${currency} ${data.salaryOnPayroll}/- </label>
+                    <label class="value">: ${data.currency} ${data.salaryOnPayroll}/- </label>
                 </div>
                 <div class="detail-item">
                     <label class="label">Working Days</label>
@@ -1235,7 +1224,7 @@ module.exports = class PdfService {
                     <label class="earning-value-title  ">${value.earningTitle}</label>
                 </div>
                 <div class="amount-value-container  ">
-                    <label class="amount-value-title">${value.earningAmount!= '' ? currency : ''} ${value.earningAmount}</label>
+                    <label class="amount-value-title">${value.earningAmount!= '' ? data.currency : ''} ${value.earningAmount}</label>
                 </div>
             </div>       
          `;
@@ -1249,7 +1238,7 @@ module.exports = class PdfService {
                     <label class="earning-value-title">${value.deductionTitle}</label>
                 </div>
                 <div class="amount-value-container">
-                    <label class="amount-value-title">${value.deductionAmount!= ''? currency : ''} ${value.deductionAmount}</label>
+                    <label class="amount-value-title">${value.deductionAmount!= ''? data.currency : ''} ${value.deductionAmount}</label>
                 </div>
             </div>`;
         })
@@ -1260,13 +1249,13 @@ module.exports = class PdfService {
                     <label class="earnings-title">gross earnings</label>
                 </div>
                 <div class="amount-container border-right ">
-                    <label class="table-text">${currency} ${data.grossEarnings}</label>
+                    <label class="table-text">${data.currency} ${data.grossEarnings}</label>
                 </div>
                 <div class="earnings-container border-right ">
                     <label class="earnings-title">gross deductions</label>
                 </div>
                 <div class="amount-container">
-                    <label class="table-text">${currency} ${data.grossDeductions}</label>
+                    <label class="table-text">${data.currency} ${data.grossDeductions}</label>
                 </div>
             </div>`  ;
 
@@ -1276,7 +1265,7 @@ module.exports = class PdfService {
                     <label class="earnings-title">NET PAYABLE SALARY</label>
                 </div>
                 <div class="netamount-container border-right">
-                    <label class="table-text">${currency} ${data.netPayableSalary}</label>
+                    <label class="table-text">${data.currency} ${data.netPayableSalary}</label>
                 </div>
                 <div class="net-container border-right">
                     <label class="earnings-title"></label>
@@ -1334,6 +1323,7 @@ module.exports = class PdfService {
                 .head-text-element{
                     display: flex;
                     flex:1;
+                    -webkit-flex:1;
                     flex-direction: column;
                     justify-content: center;
                     margin-top: 22px;
@@ -1341,6 +1331,7 @@ module.exports = class PdfService {
                 .head-salary-text{
                     display: flex;
                     flex:1;
+                    -webkit-flex:1;
                     flex-direction: column;
                     justify-content: center;
                     align-items: center;
@@ -1419,6 +1410,7 @@ module.exports = class PdfService {
                     width: 100%;
                     height: 18px;
                     flex: 1;
+                    -webkit-flex:1;
                     margin-top: 9px;
                     display: flex;
                     flex-direction: row;
@@ -1463,6 +1455,7 @@ module.exports = class PdfService {
                 }
                 .earnings-container{
                     flex: 0.4;
+                    -webkit-flex:0.4;
                     display: flex;
                     align-items: center;
                     justify-content: left;
@@ -1646,62 +1639,140 @@ module.exports = class PdfService {
                 </style>   
             </head>
             <body>
-               <div class="container">
-                 ${head}    
-                    <div class="body-container">
-                        <div class="title-container">
-                            <label class="title-text">Employee Details</label>
-                        </div>
-                        ${employeDetails}
-                        <div class="title-container">
-                            <label class="title-text">Calculation</label>
-                        </div>
-                        <div class="table-container border-top border-bottom border-right border-left">
-                            <div class="table-head border-bottom">
-                                <div class="earnings-container border-right">
-                                    <label class="earnings-title">earnings</label>
-                                </div>
-                                <div class="amount-container border-right ">
-                                    <label class="amount-title">amounts</label>
-                                </div>
-                                <div class="earnings-container border-right">
-                                    <label class="earnings-title">deductions</label>
-                                </div>
-                                <div class="amount-container">
-                                    <label class="amount-title">amount</label>
-                                </div>
-                            </div>
-                            <div class="table-body">
-                                <div class="table-earnings-body">
-                                    ${tableData1}
-                                    
-                                   
-                                </div>
-                                <div  class="table-deductions-body border-left">
-                                    ${tableData2}
-                                    
-                                </div>
-                            </div>
-                            
-                           ${tablepreFoot}
-                            
-                            ${tableFoot}
-        
-                        </div>
-                        <div class="conditon-container">
-                            <label class="condition-text">*Calculated Earned Salary is Inclusive of Present Day(s), Half Day(s), Paid Leave(s)</label>
-                        </div>
-                        <div class="footer">
-                            <label class="footer-text">Powered By Ogaji App</label>
-                        </div>
-                    </div>
-                   
-                    </div>
+            <div class="container">
+            ${head}    
+               <div class="body-container">
+                   <div class="title-container">
+                       <label class="title-text">Employee Details</label>
+                   </div>
+                   ${employeDetails}
+                   <div class="title-container">
+                       <label class="title-text">Calculation</label>
+                   </div>
+                   <div class="table-container border-top border-bottom border-right border-left">
+                       <div class="table-head border-bottom">
+                           <div class="earnings-container border-right">
+                               <label class="earnings-title">earnings</label>
+                           </div>
+                           <div class="amount-container border-right ">
+                               <label class="amount-title">amounts</label>
+                           </div>
+                           <div class="earnings-container border-right">
+                               <label class="earnings-title">deductions</label>
+                           </div>
+                           <div class="amount-container">
+                               <label class="amount-title">amount</label>
+                           </div>
+                       </div>
+                       <div class="table-body">
+                           <div class="table-earnings-body">
+                               ${tableData1}
+                               
+                              
+                           </div>
+                           <div  class="table-deductions-body border-left">
+                               ${tableData2}
+                               
+                           </div>
+                       </div>
+                       
+                      ${tablepreFoot}
+                       
+                       ${tableFoot}
+   
+                   </div>
+                   <div class="conditon-container">
+                       <label class="condition-text">*Calculated Earned Salary is Inclusive of Present Day(s), Half Day(s), Paid Leave(s)</label>
+                   </div>
+                   <div class="footer">
+                       <label class="footer-text">Powered By Ogaji App</label>
+                   </div>
                </div>
+              
+               </div>
+          </div>
             </body>
         </html>`
 
         return html;
+    }
+
+
+    
+    addTimes= (startTime, endTime) =>{
+        var times = [ 0, 0, 0 ]
+        var max = times.length
+      
+        var a = (startTime || '').split(':')
+        var b = (endTime || '').split(':')
+      
+        // normalize time values
+        for (var i = 0; i < max; i++) {
+          a[i] = isNaN(parseInt(a[i])) ? 0 : parseInt(a[i])
+          b[i] = isNaN(parseInt(b[i])) ? 0 : parseInt(b[i])
+        }
+      
+        // store time values
+        for (var i = 0; i < max; i++) {
+          times[i] = a[i] + b[i]
+        }
+      
+        var hours = times[0]
+        var minutes = times[1]
+        var seconds = times[2]
+      
+        if (seconds >= 60) {
+          var m = (seconds / 60) << 0
+          minutes += m
+          seconds -= 60 * m
+        }
+      
+        if (minutes >= 60) {
+          var h = (minutes / 60) << 0
+          hours += h
+          minutes -= 60 * h
+        }
+      
+        return ('0' + hours).slice(-2) + ':' + ('0' + minutes).slice(-2) + ':' + ('0' + seconds).slice(-2)
+    }
+
+    getDisplayCurrency= (rate, currency) => {
+        let amount = String(rate)
+        let n1 = String(amount)
+        let n2 = 0
+        if(amount.split){
+            if(String(amount.split("."))){
+                n1 = String(amount.split(".")[0])
+                n2 = String(amount.split(".")[1] ? amount.split(".")[1] : "") 
+            }
+        }
+        if(currency == "IDR"){
+            n1 = n1.replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+            if(n2 !== 0 && n2 !== "" && n2 !== undefined && n2 !== null){
+                return `${n1},${n2}`
+            }else{
+                return n1
+            }
+        }else{
+            if(currency == "INR"){
+                //console.log("n1", n1)
+                if(n1.length > 3){
+                    n1 = `${n1.slice(0, n1.length - 3).replace(/\B(?=(\d{2})+(?!\d))/g, ",")},${n1.slice(n1.length - 3)}`
+                }
+                if(n2 !== 0 && n2 !== "" && n2 !== undefined && n2 !== null){
+                    return `${n1}.${n2}`
+                }else{
+                    return n1
+                }
+            }else{
+                n1 = n1.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                if(n2 !== 0 && n2 !== "" && n2 !== undefined && n2 !== null){
+                    return `${n1}.${n2}`
+                }else{
+                    return n1
+                }
+            }
+        }
     }
 
 
