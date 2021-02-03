@@ -568,6 +568,9 @@ module.exports = {
                 units: req.body.units,
                 total: parseFloat(req.body.rate) * parseFloat(req.body.units)
             }
+            if(staffWorkObj.total === null || isNaN(staffWorkObj.total)) {
+                staffWorkObj.total = 0;
+            }
             await staffWorkService.saveOrUpdateStaffWork(staffWorkObj, req.body.refId);
 
             /** Update the salary period */
