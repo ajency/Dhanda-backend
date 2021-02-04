@@ -235,6 +235,17 @@ module.exports = {
                     rtSalaryPeriod = salaryPeriodEntry;
                 }
 
+                /** If work basis staff then fetch the units of work */
+                let totalUnitsOfWork = 0;
+                if(staff.salaryType.value === "work_basis") {
+                    let workDoneInSalaryPeriod = await staffWorkService.fetchStaffWorkByStaffId(staff.id, salaryPeriodEntry.period_start, salaryPeriodEntry.period_end);
+                    if(workDoneInSalaryPeriod) {
+                        for(let wd of workDoneInSalaryPeriod) {
+                            totalUnitsOfWork += wd.units;
+                        }
+                    }
+                }
+
                 salaryPeriodList.push({
                     periodType: staff.salaryType.value === "weekly" ? "weekly" : "monthly",
                     periodStart: salaryPeriodEntry.period_start,
@@ -244,7 +255,8 @@ module.exports = {
                     daysTotal: moment(salaryPeriodEntry.period_end).diff(moment(salaryPeriodEntry.period_start), "days") + 1,
                     hoursWorked: salaryPeriodEntry.total_hours,
                     salary: staff.salary,
-                    salaryType: staff.salaryType.value
+                    salaryType: staff.salaryType.value,
+                    totalUnits: totalUnitsOfWork
                 });
             }
 
@@ -340,6 +352,17 @@ module.exports = {
             
             let salaryPeriodList = [];
             for(let salaryPeriodEntry of salaryPeriodEntries) {
+                /** If work basis staff then fetch the units of work */
+                let totalUnitsOfWork = 0;
+                if(staff.salaryType.value === "work_basis") {
+                    let workDoneInSalaryPeriod = await staffWorkService.fetchStaffWorkByStaffId(staff.id, salaryPeriodEntry.period_start, salaryPeriodEntry.period_end);
+                    if(workDoneInSalaryPeriod) {
+                        for(let wd of workDoneInSalaryPeriod) {
+                            totalUnitsOfWork += wd.units;
+                        }
+                    }
+                }
+
                 salaryPeriodList.push({
                     periodType: staff.salaryType.value === "weekly" ? "weekly" : "monthly",
                     periodStart: salaryPeriodEntry.period_start,
@@ -349,7 +372,8 @@ module.exports = {
                     daysTotal: moment(salaryPeriodEntry.period_end).diff(moment(salaryPeriodEntry.period_start), "days") + 1,
                     hoursWorked: salaryPeriodEntry.total_hours,
                     salary: staff.salary,
-                    salaryType: staff.salaryType.value
+                    salaryType: staff.salaryType.value,
+                    totalUnits: totalUnitsOfWork
                 });
             }
 
@@ -544,6 +568,9 @@ module.exports = {
                 rate: req.body.rate,
                 units: req.body.units,
                 total: parseFloat(req.body.rate) * parseFloat(req.body.units)
+            }
+            if(staffWorkObj.total === null || isNaN(staffWorkObj.total)) {
+                staffWorkObj.total = 0;
             }
             await staffWorkService.saveOrUpdateStaffWork(staffWorkObj, req.body.refId);
 
