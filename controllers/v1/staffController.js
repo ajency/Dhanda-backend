@@ -278,7 +278,7 @@ module.exports = {
             let totalDue = "", currentPayable = "";
             if(rtSalaryPeriod) {
                 /** Basically last period's dues */
-                totalDue = helperService.roundOff(parseFloat(rtSalaryPeriod.total_dues) + parseFloat(rtSalaryPeriod.total_salary) - parseFloat(rtSalaryPeriod.total_payments), 2);
+                totalDue = helperService.roundOff(parseFloat(rtSalaryPeriod.total_dues) + parseFloat(rtSalaryPeriod.total_salary) - parseFloat(rtSalaryPeriod.total_payments) + parseFloat(rtSalaryPeriod.total_work_salary), 2);
                 // currentPayable = helperService.roundOff(totalDue - parseFloat(rtSalaryPeriod.total_salary) + parseFloat(rtSalaryPeriod.total_payments), 2);
                 currentPayable = helperService.roundOff(parseFloat(rtSalaryPeriod.total_dues) - totalDue, 2);
             }
