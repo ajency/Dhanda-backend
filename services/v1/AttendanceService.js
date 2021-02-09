@@ -435,7 +435,7 @@ module.exports = class AttendanceService {
             period_type: periodType,
             period_start: periodStart,
             period_end: periodEnd,
-            period_salary: helperService.roundOff(parseFloat(staff.salary), 4),
+            period_salary: staff.salary ? helperService.roundOff(parseFloat(staff.salary), 4) : 0,
             total_present: totalPresent,
             total_paid_leave: totalPaidLeave,
             total_half_day: totalHalfDay,
